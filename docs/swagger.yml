@@ -1,0 +1,11 @@
+swagger: '2.0'
+info:
+  description: POEditor pull through cache
+  title: Parrot
+  version: 1.0.0
+produces:
+  - application/json
+schemes:
+  - https
+paths: {}
+definitions: {}
