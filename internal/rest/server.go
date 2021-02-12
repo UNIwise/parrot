@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
@@ -14,15 +13,10 @@ const (
 )
 
 type Server struct {
-	Config *Config
-	Echo   *echo.Echo
+	Echo *echo.Echo
 }
 
-func NewServer(conf *Config) (*Server, error) {
-	if conf == nil {
-		return nil, errors.New("Config can't be nil")
-	}
-
+func NewServer() (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -45,11 +39,10 @@ func NewServer(conf *Config) (*Server, error) {
 	})
 
 	return &Server{
-		Config: conf,
-		Echo:   e,
+		Echo: e,
 	}, nil
 }
 
 func (s *Server) Start() error {
-	return s.Echo.Start(fmt.Sprintf(":%d", s.Config.Port))
+	return s.Echo.Start(fmt.Sprintf(":%d", 9000))
 }

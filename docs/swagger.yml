@@ -7,5 +7,15 @@ produces:
   - application/json
 schemes:
   - https
-paths: {}
-definitions: {}
+paths:
+  /v1/project/{project}/language/{language}:
+    get:
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Successful"
+        "400":
+          description: "Invalid project id"
+        "404":
+          description: "No translation found for language code"
