@@ -12,7 +12,7 @@ RUN go mod download -x
 ############################
 # STEP 2 image base
 ############################
-FROM alpine:3.11 as image-base
+FROM alpine:3.12 as image-base
 # Set workdir
 WORKDIR /app
 # Copy certificates
