@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
 	v1 "github.com/uniwise/parrot/internal/rest/v1"
 )
 
@@ -14,9 +15,11 @@ const (
 
 type Server struct {
 	Echo *echo.Echo
+	Port int
+	Log  *logrus.Entry
 }
 
-func NewServer() (*Server, error) {
+func NewServer(port int, entry *logrus.Entry) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -40,9 +43,13 @@ func NewServer() (*Server, error) {
 
 	return &Server{
 		Echo: e,
+		Port: port,
+		Log:  entry,
 	}, nil
 }
 
 func (s *Server) Start() error {
-	return s.Echo.Start(fmt.Sprintf(":%d", 9000))
+	address := fmt.Sprintf(":%d", s.Port)
+	s.Log.Infof("Listening on %s", address)
+	return s.Echo.Start(address)
 }

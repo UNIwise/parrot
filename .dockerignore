@@ -1,1 +1,6 @@
-docs
+*
+!internal
+!cmd
+!main.go
+!go.mod
+!go.sum
