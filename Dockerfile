@@ -18,7 +18,7 @@ WORKDIR /app
 # Copy certificates
 COPY --from=build-base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Run the main binary
-ENTRYPOINT ["/app/service"]
+ENTRYPOINT ["/app/parrot"]
 
 ############################
 # STEP 3 build executable
@@ -27,11 +27,11 @@ FROM build-base AS builder
 # Copy src
 COPY . .
 # Build the binary.
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o /build/bin/service cmd/service/main.go
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o /build/bin/parrot main.go
 
 ############################
 # STEP 4 Finalize image
 ############################
 FROM image-base
 # Copy our static executable
-COPY --from=builder /build/bin/service service
+COPY --from=builder /build/bin/parrot parrot
