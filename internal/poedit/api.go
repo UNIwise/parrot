@@ -3,6 +3,7 @@ package poedit
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -48,6 +49,13 @@ func ExportLanguage(h *http.Client, request ExportProjectRequest) (*ExportProjec
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to request project export")
 	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(resp.Body)
+
+		return nil, errors.Errorf("Project export failed. status='%d' body='%s'", resp.StatusCode, string(b))
+	}
 	decoder := json.NewDecoder(resp.Body)
 
 	response := &ExportProjectResponse{}
@@ -55,5 +63,6 @@ func ExportLanguage(h *http.Client, request ExportProjectRequest) (*ExportProjec
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to decode response body from poeditor")
 	}
+
 	return response, nil
 }
