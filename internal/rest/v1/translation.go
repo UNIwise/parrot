@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 
@@ -37,5 +38,15 @@ func getProjectLanguage(ctx echo.Context) error {
 	}
 	c.Log.Debug("Cache miss!")
 
-	return echo.NewHTTPError(http.StatusNotImplemented, "Not implemented")
+	result, err := c.Client.FetchTerms(context.Background(), *req.Project, *req.Language, "key_value_json")
+	if err != nil {
+		c.Log.WithError(err).Error("Error fetching data from poeditor")
+		return echo.ErrInternalServerError
+	}
+	if err := c.Cacher.SetTranslation(*req.Project, *req.Language, "key_value_json", result); err != nil {
+		c.Log.WithError(err).Error("Error caching translation data")
+		return echo.ErrInternalServerError
+	}
+
+	return c.Stream(http.StatusOK, "application/json", bytes.NewReader(b))
 }
