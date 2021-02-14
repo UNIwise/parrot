@@ -50,10 +50,6 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 	}
 
 	if time.Since(s.ModTime()) > f.ttl {
-		if err := os.Remove(filename); err != nil {
-			return nil, errors.Wrap(err, "Failed to remove expired cache file")
-		}
-
 		return nil, ErrCacheMiss
 	}
 
