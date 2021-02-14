@@ -16,9 +16,13 @@ limitations under the License.
 package cmd
 
 import (
+	"time"
+
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/rest"
 )
 
@@ -30,30 +34,20 @@ var serveCmd = &cobra.Command{
 This will take care of serving your translations,
 by caching exports from poeditor`,
 	Run: func(cmd *cobra.Command, args []string) {
-		logger := logrus.New()
+		logger := instantiateLogger()
 
-		lvl, err := logrus.ParseLevel(viper.GetString("log.level"))
-		if err != nil {
-			logger.WithError(err).Warnf("Could not parse log level '%s' defaulting to INFO", viper.GetString("log.level"))
-			lvl = logrus.InfoLevel
-		}
-		logger.SetLevel(lvl)
-
-		switch viper.GetString("log.format") {
-		case "json":
-			logger.SetFormatter(&logrus.JSONFormatter{})
-		case "text":
-			logger.SetFormatter(&logrus.TextFormatter{})
-		default:
-			logger.Warnf("Did not understand log format '%s'. Defaulting to json format", viper.GetString("log.format"))
-			logger.SetFormatter(&logrus.JSONFormatter{})
-		}
-
-		server, err := rest.NewServer(viper.GetInt("server.port"), logrus.NewEntry(logger))
+		c, err := instantiateCache()
 		if err != nil {
 			logger.Fatal(err)
 		}
-		logger.Fatal(server.Start())
+
+		server, err := rest.NewServer(nil, c, logrus.NewEntry(logger))
+		if err != nil {
+			logger.Fatal(err)
+		}
+		port := viper.GetInt("server.port")
+		logger.Infof("Server listening at :%d", port)
+		logger.Fatal(server.Start(port))
 	},
 }
 
@@ -61,14 +55,59 @@ func init() {
 	viper.SetDefault("server.port", 80)
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("log.format", "json")
+	viper.SetDefault("cache.type", "filesystem")
+	viper.SetDefault("cache.ttl", time.Hour)
 
 	serveCmd.PersistentFlags().Int32("port", 0, "Port for the server to listen on")
 	serveCmd.PersistentFlags().String("loglevel", "", "Log level")
 	serveCmd.PersistentFlags().String("logformat", "", "Formatter for the logs")
+	serveCmd.PersistentFlags().String("cache-type", "", "Which system to use for the underlying cache")
+	serveCmd.PersistentFlags().Duration("cache-ttl", 0, "Time to live for the cache")
 
 	viper.BindPFlag("server.port", serveCmd.PersistentFlags().Lookup("port"))
 	viper.BindPFlag("log.level", serveCmd.PersistentFlags().Lookup("loglevel"))
 	viper.BindPFlag("log.format", serveCmd.PersistentFlags().Lookup("logformat"))
+	viper.BindPFlag("cache.type", serveCmd.PersistentFlags().Lookup("cache-type"))
+	viper.BindPFlag("cache.ttl", serveCmd.PersistentFlags().Lookup("cache-ttl"))
 
 	rootCmd.AddCommand(serveCmd)
+}
+
+func instantiateLogger() *logrus.Logger {
+	logger := logrus.New()
+
+	lvl, err := logrus.ParseLevel(viper.GetString("log.level"))
+	if err != nil {
+		logger.WithError(err).Warnf("Could not parse log level '%s' defaulting to INFO", viper.GetString("log.level"))
+		lvl = logrus.InfoLevel
+	}
+	logger.SetLevel(lvl)
+
+	switch viper.GetString("log.format") {
+	case "json":
+		logger.SetFormatter(&logrus.JSONFormatter{})
+	case "text":
+		logger.SetFormatter(&logrus.TextFormatter{})
+	default:
+		logger.Warnf("Did not understand log format '%s'. Defaulting to json format", viper.GetString("log.format"))
+		logger.SetFormatter(&logrus.JSONFormatter{})
+	}
+	return logger
+}
+
+func instantiateCache() (cache.Cache, error) {
+	cType := viper.GetString("cache.type")
+	ttl := viper.GetDuration("cache.ttl")
+	switch cType {
+	case "filesystem":
+		c, err := cache.NewFileCache(ttl)
+		if err != nil {
+			return nil, errors.Wrap(err, "Could not instantiate filesystem cache")
+		}
+		return c, nil
+	case "redis":
+		return nil, errors.Errorf("'%s' cache type is not yet implemented", cType)
+	default:
+		return nil, errors.Errorf("'%s' cache type is not yet implemented", cType)
+	}
 }

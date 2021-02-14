@@ -3,9 +3,13 @@ package rest
 import (
 	"fmt"
 
+	"github.com/labstack/gommon/random"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
+	"github.com/uniwise/parrot/internal/cache"
+	"github.com/uniwise/parrot/internal/poedit"
 	v1 "github.com/uniwise/parrot/internal/rest/v1"
 )
 
@@ -15,11 +19,9 @@ const (
 
 type Server struct {
 	Echo *echo.Echo
-	Port int
-	Log  *logrus.Entry
 }
 
-func NewServer(port int, entry *logrus.Entry) (*Server, error) {
+func NewServer(client poedit.PoeditClient, cacher cache.Cache, entry *logrus.Entry) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -30,9 +32,24 @@ func NewServer(port int, entry *logrus.Entry) (*Server, error) {
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: gzipCompressionLevel,
 	}))
+	e.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
+		Generator: func() string {
+			return random.String(10, random.Hex)
+		},
+	}))
 
-	// Routes
-	v1.Register(e.Group("/v1"))
+	v1Group := e.Group("/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			cc := &v1.Context{
+				Context: c,
+				Client:  client,
+				Cacher:  cacher,
+				Log:     entry.WithField("requestID", c.Response().Header().Get(echo.HeaderXRequestID)),
+			}
+			return next(cc)
+		}
+	})
+	v1.Register(v1Group)
 
 	// Health endpoint
 	e.GET("/health", func(c echo.Context) error {
@@ -43,13 +60,9 @@ func NewServer(port int, entry *logrus.Entry) (*Server, error) {
 
 	return &Server{
 		Echo: e,
-		Port: port,
-		Log:  entry,
 	}, nil
 }
 
-func (s *Server) Start() error {
-	address := fmt.Sprintf(":%d", s.Port)
-	s.Log.Infof("Listening on %s", address)
-	return s.Echo.Start(address)
+func (s *Server) Start(port int) error {
+	return s.Echo.Start(fmt.Sprintf(":%d", port))
 }
