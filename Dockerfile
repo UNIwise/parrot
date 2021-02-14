@@ -13,25 +13,20 @@ RUN go mod download -x
 # STEP 2 image base
 ############################
 FROM alpine:3.12 as image-base
-# Set workdir
 WORKDIR /app
-# Copy certificates
 COPY --from=build-base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-# Run the main binary
 ENTRYPOINT ["/app/parrot"]
 
 ############################
 # STEP 3 build executable
 ############################
 FROM build-base AS builder
-# Copy src
 COPY . .
-# Build the binary.
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o /build/bin/parrot main.go
 
 ############################
 # STEP 4 Finalize image
 ############################
 FROM image-base
-# Copy our static executable
+COPY LICENSE .
 COPY --from=builder /build/bin/parrot parrot
