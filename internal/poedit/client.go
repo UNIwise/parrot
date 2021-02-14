@@ -1,9 +1,14 @@
 package poedit
 
-type PoeditClient interface{}
+import "context"
 
-type PoeditClientImpl struct{}
+type Client interface {
+	// Not ExportProject in order to seperate it from the api call
+	FetchTerms(ctx context.Context, projectID int, language, format string) (result []byte, err error)
+}
 
-func NewClient() *PoeditClientImpl {
-	return &PoeditClientImpl{}
+type ClientImpl struct{}
+
+func NewClient() *ClientImpl {
+	return &ClientImpl{}
 }

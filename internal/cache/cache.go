@@ -1,11 +1,15 @@
 package cache
 
+import (
+	"context"
+	"errors"
+)
+
+var (
+	ErrCacheMiss = errors.New("Cache miss")
+)
+
 type Cache interface {
-	GetTranslation(projectID uint32, languageCode, format string)
-}
-
-type CacheImpl struct{}
-
-func New() *CacheImpl {
-	return &CacheImpl{}
+	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (data []byte, err error)
+	SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (err error)
 }
