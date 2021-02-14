@@ -57,5 +57,5 @@ func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, language
 }
 
 func (r *RedisCache) key(projectID int, languageCode, format string) string {
-	return fmt.Sprintf("%d-%s-%s", projectID, languageCode, format)
+	return fmt.Sprintf("%d:%s:%s", projectID, languageCode, format)
 }
