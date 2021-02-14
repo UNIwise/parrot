@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   description: POEditor pull through cache
   title: Parrot
@@ -9,9 +9,19 @@ schemes:
   - https
 paths:
   /v1/project/{project}/language/{language}:
+    parameters:
+      - type: integer
+        format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+      - type: string
+        description: Language code
+        name: language
+        in: path
+        required: true
     get:
-      produces:
-      - "application/json"
       responses:
         "200":
           description: "Successful"
@@ -19,3 +29,36 @@ paths:
           description: "Invalid project id"
         "404":
           description: "No translation found for language code"
+  /v1/project/{project}/purge:
+    parameters:
+      - type: integer
+        format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+    post:
+      responses:
+        "200":
+          description: "Successful"
+        "400":
+          description: "Invalid project id"
+  /v1/project/{project}/language/{language}/purge:
+    parameters:
+      - type: integer
+        format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+      - type: string
+        description: Language code
+        name: language
+        in: path
+        required: true
+    post:
+      responses:
+        "200":
+          description: "Successful"
+        "400":
+          description: "Invalid project id"
