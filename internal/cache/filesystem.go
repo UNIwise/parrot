@@ -45,7 +45,8 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 	s, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return nil, ErrCacheMiss
-	} else if err != nil {
+	}
+	if err != nil {
 		return nil, errors.Wrap(err, "Failed to get cached file state from OS")
 	}
 
