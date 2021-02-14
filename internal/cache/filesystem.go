@@ -77,11 +77,6 @@ func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, lan
 func (f *FilesystemCache) key(projectID int, languageCode, format string) string {
 	return path.Join(
 		f.dir,
-		fmt.Sprintf(
-			"%d-%s-%s",
-			projectID,
-			languageCode,
-			format,
-		),
+		fmt.Sprintf("%d_%s_%s", projectID, languageCode, format),
 	)
 }
