@@ -1,9 +1,9 @@
 package poedit
 
-type PoeditClient interface{}
+type Client interface{}
 
-type PoeditClientImpl struct{}
+type ClientImpl struct{}
 
-func NewClient() *PoeditClientImpl {
-	return &PoeditClientImpl{}
+func NewClient() *ClientImpl {
+	return &ClientImpl{}
 }

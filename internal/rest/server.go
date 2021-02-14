@@ -21,7 +21,7 @@ type Server struct {
 	Echo *echo.Echo
 }
 
-func NewServer(client poedit.PoeditClient, cacher cache.Cache, entry *logrus.Entry) (*Server, error) {
+func NewServer(client poedit.Client, cacher cache.Cache, entry *logrus.Entry) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true

@@ -9,7 +9,7 @@ import (
 
 type Context struct {
 	echo.Context
-	Client poedit.PoeditClient
+	Client poedit.Client
 	Cacher cache.Cache
 	Log    *logrus.Entry
 }
