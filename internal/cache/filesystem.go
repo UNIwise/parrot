@@ -1,53 +1,92 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
-type FileCache struct {
+const (
+	cacheSubdir = "parrot"
+)
+
+type FilesystemCache struct {
 	dir string
 	ttl time.Duration
 }
 
-func NewFileCache(ttl time.Duration) (*FileCache, error) {
+func NewFilesystemCache(ttl time.Duration) (*FilesystemCache, error) {
 	dir, err := os.UserCacheDir()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to determin OS user cache directory")
 	}
-	cacheDir := path.Join(dir, "parrot")
+
+	cacheDir := path.Join(dir, cacheSubdir)
+
 	err = os.MkdirAll(cacheDir, os.ModeDir)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to create cacge directory")
 	}
-	return &FileCache{
+
+	return &FilesystemCache{
 		dir: cacheDir,
 		ttl: ttl,
 	}, nil
 }
 
-func (f *FileCache) GetTranslation(projectID int, languageCode, format string) ([]byte, error) {
-	s, err := os.Stat(f.key(projectID, languageCode, format))
-	if os.IsNotExist(err) {
-		return nil, ErrCacheMiss
+func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, error) {
+	filename := f.key(projectID, languageCode, format)
+
+	s, err := os.Stat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, ErrCacheMiss
+		}
+
+		return nil, errors.Wrap(err, "Failed to get cached file state from OS")
 	}
+
 	if time.Since(s.ModTime()) > f.ttl {
+		if err := os.Remove(filename); err != nil {
+			return nil, errors.Wrap(err, "Failed to remove expired cache file")
+		}
+
 		return nil, ErrCacheMiss
 	}
-	b, err := ioutil.ReadFile(f.key(projectID, languageCode, format))
+
+	b, err := ioutil.ReadFile(filename)
 	if os.IsNotExist(err) {
 		return nil, ErrCacheMiss
 	}
+
 	return b, nil
 }
 
-func (f *FileCache) SetTranslation(projectID int, languageCode, format string, contents []byte) error {
-	return ioutil.WriteFile(f.key(projectID, languageCode, format), contents, os.ModePerm)
+func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) error {
+	return ioutil.WriteFile(
+		f.key(
+			projectID,
+			languageCode,
+			format,
+		),
+		data,
+		os.ModePerm,
+	)
 }
 
-func (f *FileCache) key(projectID int, languageCode, format string) string {
-	return path.Join(f.dir, fmt.Sprintf("%d-%s-%s", projectID, languageCode, format))
+func (f *FilesystemCache) key(projectID int, languageCode, format string) string {
+	return path.Join(
+		f.dir,
+		fmt.Sprintf(
+			"%d-%s-%s",
+			projectID,
+			languageCode,
+			format,
+		),
+	)
 }

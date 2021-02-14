@@ -29,7 +29,7 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	b, err := c.Cacher.GetTranslation(*req.Project, *req.Language, "key_value_json")
+	b, err := c.Cacher.GetTranslation(ctx.Request().Context(), *req.Project, *req.Language, "key_value_json")
 	if err == nil {
 		return c.Stream(http.StatusOK, "application/json", bytes.NewReader(b))
 	} else if !errors.Is(err, cache.ErrCacheMiss) {
@@ -43,7 +43,7 @@ func getProjectLanguage(ctx echo.Context) error {
 		c.Log.WithError(err).Error("Error fetching data from poeditor")
 		return echo.ErrInternalServerError
 	}
-	if err := c.Cacher.SetTranslation(*req.Project, *req.Language, "key_value_json", result); err != nil {
+	if err := c.Cacher.SetTranslation(ctx.Request().Context(), *req.Project, *req.Language, "key_value_json", result); err != nil {
 		c.Log.WithError(err).Error("Error caching translation data")
 		return echo.ErrInternalServerError
 	}

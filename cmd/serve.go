@@ -100,7 +100,7 @@ func instantiateCache() (cache.Cache, error) {
 	ttl := viper.GetDuration("cache.ttl")
 	switch cType {
 	case "filesystem":
-		c, err := cache.NewFileCache(ttl)
+		c, err := cache.NewFilesystemCache(ttl)
 		if err != nil {
 			return nil, errors.Wrap(err, "Could not instantiate filesystem cache")
 		}
