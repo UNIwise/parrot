@@ -1,6 +1,7 @@
 package project
 
 import (
+	"context"
 	"errors"
 
 	"github.com/uniwise/parrot/internal/cache"
@@ -8,9 +9,9 @@ import (
 )
 
 type Service interface {
-	GetTranslation(projectID int, languageCode, format string) (data []byte, err error)
-	PurgeTranslation(projectID int, languageCode string) (err error)
-	PurgeProject(projectID int) (err error)
+	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (data []byte, err error)
+	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
+	PurgeProject(ctx context.Context, projectID int) (err error)
 }
 
 type ServiceImpl struct {
@@ -25,8 +26,25 @@ func NewService(cli poedit.Client, cache cache.Cache) *ServiceImpl {
 	}
 }
 
-func (s *ServiceImpl) GetTranslation(projectID int, languageCode, format string) ([]byte, error) {
-	return nil, errors.New("Not implemented")
+func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, error) {
+	data, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
+	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
+		return nil, err
+	}
+	if err == nil {
+		return data, nil
+	}
+
+	data, err = s.Client.FetchTerms(ctx, projectID, languageCode, format)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, data); err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func (s *ServiceImpl) PurgeTranslation(projectID int, languageCode string) error {

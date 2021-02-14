@@ -40,9 +40,9 @@ func NewFilesystemCache(ttl time.Duration) (*FilesystemCache, error) {
 }
 
 func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, error) {
-	filename := f.key(projectID, languageCode, format)
+	filePath := f.filePath(projectID, languageCode, format)
 
-	s, err := os.Stat(filename)
+	s, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		return nil, ErrCacheMiss
 	}
@@ -54,7 +54,7 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 		return nil, ErrCacheMiss
 	}
 
-	b, err := ioutil.ReadFile(filename)
+	b, err := ioutil.ReadFile(filePath)
 	if os.IsNotExist(err) {
 		return nil, ErrCacheMiss
 	}
@@ -63,20 +63,30 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 }
 
 func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) error {
+	filePath := f.filePath(projectID, languageCode, format)
+
 	return ioutil.WriteFile(
-		f.key(
-			projectID,
-			languageCode,
-			format,
-		),
+		filePath,
 		data,
 		os.ModePerm,
 	)
 }
 
-func (f *FilesystemCache) key(projectID int, languageCode, format string) string {
+func (f *FilesystemCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error) {
+	return errors.New("Not implemented")
+}
+
+func (f *FilesystemCache) PurgeProject(ctx context.Context, projectID int) (err error) {
+	return errors.New("Not implemented")
+}
+
+func (f *FilesystemCache) filePath(projectID int, languageCode, format string) string {
 	return path.Join(
 		f.dir,
-		fmt.Sprintf("%d_%s_%s", projectID, languageCode, format),
+		f.filename(projectID, languageCode, format),
 	)
+}
+
+func (f *FilesystemCache) filename(projectID int, languageCode, format string) string {
+	return fmt.Sprintf("%d_%s_%s", projectID, languageCode, format)
 }
