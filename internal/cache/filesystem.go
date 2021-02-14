@@ -30,7 +30,7 @@ func NewFilesystemCache(ttl time.Duration) (*FilesystemCache, error) {
 
 	err = os.MkdirAll(cacheDir, os.ModeDir)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create cacge directory")
+		return nil, errors.Wrap(err, "Failed to create cache directory")
 	}
 
 	return &FilesystemCache{
