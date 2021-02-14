@@ -18,7 +18,7 @@ This cache makes it possible to pull app translations directly from [POEditor](h
 
 # Features
 
--   **Cache choices**: Parrot support comes with a Filesystem and Redis cache choice to facilitate single app deployment and highly distributed deployments.
+-   **Cache choices**: Parrot comes with a Filesystem and Redis cache to facilitate single app deployments and highly distributed deployments.
 -   **OpenAPI**: The Parrot API has been documented in OpenAPI specification which can be found in the [doc/](/docs) directory.
 -   _..._
 
