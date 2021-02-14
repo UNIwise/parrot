@@ -1,16 +1,4 @@
-# Parrot
-
-```
-     (\
-    (  \  /(o)\
-    (   \/  ()/ /)
-     (   `;.))'".)
-      `(/////.-'
-   =====))=))===()
-     ///'
-    //   PjP/ejm
-   '
-```
+![Parrot logo](assets/parrot.png)
 
 Parrot the [POEditor](http://poeditor.com/) pull-through cache.
 
