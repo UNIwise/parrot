@@ -42,6 +42,7 @@ func getProjectLanguage(ctx echo.Context) error {
 	}
 
 	c.Response().Header().Add("etag", h)
+	c.Response().Header().Add("Cache-Control", "max-age=3600")
 
 	return c.Stream(http.StatusOK, "application/json", bytes.NewReader(b))
 }
