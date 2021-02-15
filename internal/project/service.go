@@ -12,7 +12,7 @@ import (
 )
 
 type Service interface {
-	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (data []byte, err error)
+	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (data []byte, hash string, err error)
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 }
@@ -29,13 +29,13 @@ func NewService(cli poedit.Client, cache cache.Cache) *ServiceImpl {
 	}
 }
 
-func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, error) {
-	data, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
+func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
+	data, hash, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
 	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
-		return nil, err
+		return nil, "", err
 	}
 	if err == nil {
-		return data, nil
+		return data, hash, nil
 	}
 
 	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
@@ -45,30 +45,31 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 		Filters:  []string{"translated"},
 	})
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// TODO: Make use of injected http client, to support timeouts
 	d, err := http.Get(resp.Result.URL)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer d.Body.Close()
 
 	if d.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("Response code '%d' from download GET", d.StatusCode)
+		return nil, "", errors.Errorf("Response code '%d' from download GET", d.StatusCode)
 	}
 
 	data, err = ioutil.ReadAll(d.Body)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	if err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, data); err != nil {
-		return nil, err
+	hash, err = s.Cache.SetTranslation(ctx, projectID, languageCode, format, data)
+	if err != nil {
+		return nil, "", err
 	}
 
-	return data, nil
+	return data, hash, nil
 }
 
 func (s *ServiceImpl) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
