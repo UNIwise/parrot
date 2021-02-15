@@ -1,14 +1,28 @@
 package poedit
 
-import "context"
+import (
+	"context"
+	"net/http"
 
+	"gopkg.in/resty.v1"
+)
+
+// Client is an interface to poeditors api
 type Client interface {
-	// Not ExportProject in order to seperate it from the api call
-	FetchTerms(ctx context.Context, projectID int, language, format string) (result []byte, err error)
+	ExportProject(ctx context.Context, req ExportProjectRequest) (result *ExportProjectResponse, err error)
 }
 
-type ClientImpl struct{}
+// ClientImpl is an implementation of the poeditor client interface
+type ClientImpl struct {
+	r *resty.Client
+}
 
-func NewClient() *ClientImpl {
-	return &ClientImpl{}
+// NewClient creates a new poeditor api client
+func NewClient(apiToken string, httpClient *http.Client) *ClientImpl {
+	r := resty.NewWithClient(httpClient)
+	r.FormData.Add("api_token", apiToken)
+	r.SetHostURL("https://api.poeditor.com")
+	return &ClientImpl{
+		r: r,
+	}
 }

@@ -11,24 +11,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	cacheSubdir = "parrot"
-)
-
 type FilesystemCache struct {
 	dir string
 	ttl time.Duration
 }
 
-func NewFilesystemCache(ttl time.Duration) (*FilesystemCache, error) {
-	dir, err := os.UserCacheDir()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to determin OS user cache directory")
-	}
+func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, error) {
 
-	cacheDir := path.Join(dir, cacheSubdir)
-
-	err = os.MkdirAll(cacheDir, os.ModeDir)
+	err := os.MkdirAll(cacheDir, 0777)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create cache directory")
 	}
