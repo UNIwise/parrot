@@ -41,7 +41,9 @@ by caching exports from poeditor`,
 			logger.Fatal(err)
 		}
 
-		server, err := rest.NewServer(nil, c, logrus.NewEntry(logger))
+		// TODO: instantiate project service
+
+		server, err := rest.NewServer(nil, logrus.NewEntry(logger))
 		if err != nil {
 			logger.Fatal(err)
 		}

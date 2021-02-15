@@ -8,20 +8,20 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
-	"github.com/uniwise/parrot/internal/cache"
-	"github.com/uniwise/parrot/internal/poedit"
+	"github.com/uniwise/parrot/internal/project"
 	v1 "github.com/uniwise/parrot/internal/rest/v1"
 )
 
 const (
 	gzipCompressionLevel = 5
+	requestIDLength      = 10
 )
 
 type Server struct {
 	Echo *echo.Echo
 }
 
-func NewServer(client poedit.Client, cacher cache.Cache, entry *logrus.Entry) (*Server, error) {
+func NewServer(projectService project.Service, entry *logrus.Entry) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -34,18 +34,18 @@ func NewServer(client poedit.Client, cacher cache.Cache, entry *logrus.Entry) (*
 	}))
 	e.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
 		Generator: func() string {
-			return random.String(10, random.Hex)
+			return random.String(requestIDLength, random.Hex)
 		},
 	}))
 
 	v1Group := e.Group("/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			cc := &v1.Context{
-				Context: c,
-				Client:  client,
-				Cacher:  cacher,
-				Log:     entry.WithField("requestID", c.Response().Header().Get(echo.HeaderXRequestID)),
+				Context:        c,
+				ProjectService: projectService,
+				Log:            entry.WithField("requestID", c.Response().Header().Get(echo.HeaderXRequestID)),
 			}
+
 			return next(cc)
 		}
 	})

@@ -56,6 +56,14 @@ func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, language
 	return nil
 }
 
+func (f *RedisCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error) {
+	return errors.New("Not implemented")
+}
+
+func (f *RedisCache) PurgeProject(ctx context.Context, projectID int) (err error) {
+	return errors.New("Not implemented")
+}
+
 func (r *RedisCache) key(projectID int, languageCode, format string) string {
-	return fmt.Sprintf("%d-%s-%s", projectID, languageCode, format)
+	return fmt.Sprintf("%d:%s:%s", projectID, languageCode, format)
 }
