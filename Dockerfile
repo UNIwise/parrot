@@ -15,7 +15,7 @@ RUN go mod download -x
 FROM alpine:3.12 as image-base
 WORKDIR /app
 COPY --from=build-base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-ENTRYPOINT ["/app/parrot"]
+ENTRYPOINT ["/app/parrot", "serve"]
 
 ############################
 # STEP 3 build executable
