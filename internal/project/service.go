@@ -2,8 +2,11 @@ package project
 
 import (
 	"context"
-	"errors"
 
+	"io/ioutil"
+	"net/http"
+
+	"github.com/pkg/errors"
 	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/poedit"
 )
@@ -35,7 +38,28 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 		return data, nil
 	}
 
-	data, err = s.Client.FetchTerms(ctx, projectID, languageCode, format)
+	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
+		ID:       projectID,
+		Language: languageCode,
+		Type:     format,
+		Filters:  []string{"translated"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Make use of injected http client, to support timeouts
+	d, err := http.Get(resp.Result.URL)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Body.Close()
+
+	if d.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("Response code '%d' from download GET", d.StatusCode)
+	}
+
+	data, err = ioutil.ReadAll(d.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -47,10 +71,10 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 	return data, nil
 }
 
-func (s *ServiceImpl) PurgeTranslation(projectID int, languageCode string) error {
+func (s *ServiceImpl) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
 	return errors.New("Not implemented")
 }
 
-func (s *ServiceImpl) PurgeProject(projectID int) error {
+func (s *ServiceImpl) PurgeProject(ctx context.Context, projectID int) error {
 	return errors.New("Not implemented")
 }

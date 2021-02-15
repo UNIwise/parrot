@@ -8,8 +8,8 @@ import (
 )
 
 type getProjectLanguageRequest struct {
-	Project  *int    `url:"project" validate:"required"`
-	Language *string `url:"language" validate:"required,languageCode"`
+	Project  int    `param:"project" validate:"required"`
+	Language string `param:"language" validate:"required"`
 }
 
 func getProjectLanguage(ctx echo.Context) error {
@@ -23,6 +23,7 @@ func getProjectLanguage(ctx echo.Context) error {
 	}
 
 	if err := c.Validate(req); err != nil {
+		c.Log.Debug(req)
 		c.Log.WithError(err).Error("Error validating request")
 
 		return echo.ErrBadRequest
@@ -30,8 +31,8 @@ func getProjectLanguage(ctx echo.Context) error {
 
 	b, err := c.ProjectService.GetTranslation(
 		ctx.Request().Context(),
-		*req.Project,
-		*req.Language,
+		req.Project,
+		req.Language,
 		"key_value_json",
 	)
 	if err != nil {

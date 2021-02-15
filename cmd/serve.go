@@ -16,6 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"net/http"
+	"os"
+	"path"
 	"time"
 
 	"github.com/pkg/errors"
@@ -23,6 +26,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/uniwise/parrot/internal/cache"
+	"github.com/uniwise/parrot/internal/poedit"
+	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/internal/rest"
 )
 
@@ -41,9 +46,11 @@ by caching exports from poeditor`,
 			logger.Fatal(err)
 		}
 
-		// TODO: instantiate project service
+		cli := poedit.NewClient(viper.GetString("api.token"), http.DefaultClient)
 
-		server, err := rest.NewServer(nil, logrus.NewEntry(logger))
+		svc := project.NewService(cli, c)
+
+		server, err := rest.NewServer(svc, logrus.NewEntry(logger))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -54,23 +61,34 @@ by caching exports from poeditor`,
 }
 
 func init() {
+	cDir, err := os.UserCacheDir()
+	if err != nil {
+		cDir = "/tmp"
+	}
+
 	viper.SetDefault("server.port", 80)
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("log.format", "json")
 	viper.SetDefault("cache.type", "filesystem")
 	viper.SetDefault("cache.ttl", time.Hour)
+	viper.SetDefault("cache.filesystem.dir", path.Join(cDir, "parrot"))
+	viper.SetDefault("api.token", "")
 
 	serveCmd.PersistentFlags().Int32("port", 0, "Port for the server to listen on")
 	serveCmd.PersistentFlags().String("loglevel", "", "Log level")
 	serveCmd.PersistentFlags().String("logformat", "", "Formatter for the logs")
 	serveCmd.PersistentFlags().String("cache-type", "", "Which system to use for the underlying cache")
 	serveCmd.PersistentFlags().Duration("cache-ttl", 0, "Time to live for the cache")
+	serveCmd.PersistentFlags().String("cache-dir", "", "Directory where the filesystem cache lives")
+	serveCmd.PersistentFlags().String("api-token", "", "API token to authenticate against poeditor")
 
 	viper.BindPFlag("server.port", serveCmd.PersistentFlags().Lookup("port"))
 	viper.BindPFlag("log.level", serveCmd.PersistentFlags().Lookup("loglevel"))
 	viper.BindPFlag("log.format", serveCmd.PersistentFlags().Lookup("logformat"))
 	viper.BindPFlag("cache.type", serveCmd.PersistentFlags().Lookup("cache-type"))
 	viper.BindPFlag("cache.ttl", serveCmd.PersistentFlags().Lookup("cache-ttl"))
+	viper.BindPFlag("api.token", serveCmd.PersistentFlags().Lookup("api-token"))
+	viper.BindPFlag("cache.filesystem.dir", serveCmd.PersistentFlags().Lookup("cache-dir"))
 
 	rootCmd.AddCommand(serveCmd)
 }
@@ -102,7 +120,7 @@ func instantiateCache() (cache.Cache, error) {
 	ttl := viper.GetDuration("cache.ttl")
 	switch cType {
 	case "filesystem":
-		c, err := cache.NewFilesystemCache(ttl)
+		c, err := cache.NewFilesystemCache(viper.GetString("cache.filesystem.dir"), ttl)
 		if err != nil {
 			return nil, errors.Wrap(err, "Could not instantiate filesystem cache")
 		}
