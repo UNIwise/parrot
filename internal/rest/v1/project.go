@@ -28,7 +28,12 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	b, err := c.ProjectService.GetTranslation(ctx.Request().Context(), *req.Project, *req.Language, "key_value_json")
+	b, err := c.ProjectService.GetTranslation(
+		ctx.Request().Context(),
+		*req.Project,
+		*req.Language,
+		"key_value_json",
+	)
 	if err != nil {
 		c.Log.WithError(err).Error("Error retrieving translation")
 
