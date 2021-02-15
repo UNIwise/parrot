@@ -9,7 +9,7 @@ import (
 
 type getProjectLanguageRequest struct {
 	Project  int    `param:"project" validate:"required"`
-	Language string `param:"language" validate:"required"`
+	Language string `param:"language" validate:"required,languageCode"`
 }
 
 func getProjectLanguage(ctx echo.Context) error {

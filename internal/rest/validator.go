@@ -24,5 +24,5 @@ func (cv *Validator) Validate(i interface{}) error {
 }
 
 func validateLanguageCode(fl validator.FieldLevel) bool {
-	return langreg.IsValidLangRegCode(fl.Field().String())
+	return langreg.IsValidLanguageCode(fl.Field().String())
 }
