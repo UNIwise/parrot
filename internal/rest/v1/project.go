@@ -41,7 +41,7 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	c.Response().Header().Add("ETag", h)
+	c.Response().Header().Add("etag", h)
 
 	return c.Stream(http.StatusOK, "application/json", bytes.NewReader(b))
 }
