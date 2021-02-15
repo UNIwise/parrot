@@ -1,17 +1,28 @@
 package rest
 
-import "github.com/go-playground/validator"
+import (
+	"github.com/go-playground/validator"
+	"github.com/johngb/langreg"
+)
 
 type Validator struct {
 	validator *validator.Validate
 }
 
 func NewValidator() *Validator {
+	v := validator.New()
+
+	v.RegisterValidation("languageCode", validateLanguageCode)
+
 	return &Validator{
-		validator: validator.New(),
+		validator: v,
 	}
 }
 
 func (cv *Validator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
+}
+
+func validateLanguageCode(fl validator.FieldLevel) bool {
+	return langreg.IsValidLangRegCode(fl.Field().String())
 }

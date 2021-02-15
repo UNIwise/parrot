@@ -3,20 +3,25 @@ package rest
 import (
 	"fmt"
 
+	"github.com/labstack/gommon/random"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
+	"github.com/uniwise/parrot/internal/project"
 	v1 "github.com/uniwise/parrot/internal/rest/v1"
 )
 
 const (
 	gzipCompressionLevel = 5
+	requestIDLength      = 10
 )
 
 type Server struct {
 	Echo *echo.Echo
 }
 
-func NewServer() (*Server, error) {
+func NewServer(projectService project.Service, entry *logrus.Entry) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -27,9 +32,24 @@ func NewServer() (*Server, error) {
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: gzipCompressionLevel,
 	}))
+	e.Use(middleware.RequestIDWithConfig(middleware.RequestIDConfig{
+		Generator: func() string {
+			return random.String(requestIDLength, random.Hex)
+		},
+	}))
 
-	// Routes
-	v1.Register(e.Group("/v1"))
+	v1Group := e.Group("/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			cc := &v1.Context{
+				Context:        c,
+				ProjectService: projectService,
+				Log:            entry.WithField("requestID", c.Response().Header().Get(echo.HeaderXRequestID)),
+			}
+
+			return next(cc)
+		}
+	})
+	v1.Register(v1Group)
 
 	// Health endpoint
 	e.GET("/health", func(c echo.Context) error {
@@ -43,6 +63,6 @@ func NewServer() (*Server, error) {
 	}, nil
 }
 
-func (s *Server) Start() error {
-	return s.Echo.Start(fmt.Sprintf(":%d", 9000))
+func (s *Server) Start(port int) error {
+	return s.Echo.Start(fmt.Sprintf(":%d", port))
 }
