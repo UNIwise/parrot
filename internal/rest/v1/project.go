@@ -29,7 +29,7 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	b, err := c.ProjectService.GetTranslation(
+	b, h, err := c.ProjectService.GetTranslation(
 		ctx.Request().Context(),
 		req.Project,
 		req.Language,
@@ -40,6 +40,8 @@ func getProjectLanguage(ctx echo.Context) error {
 
 		return echo.ErrInternalServerError
 	}
+
+	c.Response().Header().Add("ETag", h)
 
 	return c.Stream(http.StatusOK, "application/json", bytes.NewReader(b))
 }
