@@ -8,8 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrFailedToUnmarshalResponse = errors.New("Failed to unmarshal response")
-
 type ExportProjectRequest struct {
 	ID       int
 	Language string
@@ -58,6 +56,19 @@ func (c *ClientImpl) ExportProject(ctx context.Context, r ExportProjectRequest) 
 		return nil, ErrFailedToUnmarshalResponse
 	}
 
+	if res.Response.Code == "403" {
+		return nil, &ErrProjectPermissionDenied{
+			ProjectID: r.ID,
+		}
+	}
+
+	if res.Response.Code == "4044" {
+		return nil, &ErrLanguageNotFound{
+			ProjectID:    r.ID,
+			LanguageCode: r.Language,
+		}
+	}
+
 	if res.Response.Code != "200" {
 		return nil, errors.New(res.Response.Message)
 	}
@@ -69,5 +80,6 @@ func formDataArray(data []string) string {
 	if len(data) > 0 {
 		return fmt.Sprintf("[\"%s\"]", strings.Join(data, "\",\""))
 	}
+
 	return "[]"
 }
