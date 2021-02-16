@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/uniwise/parrot/internal/poedit"
 )
 
 type getProjectLanguageRequest struct {
@@ -36,9 +37,16 @@ func getProjectLanguage(ctx echo.Context) error {
 		"key_value_json",
 	)
 	if err != nil {
-		c.Log.WithError(err).Error("Error retrieving translation")
+		switch err.(type) {
+		case *poedit.ErrProjectPermissionDenied:
+			return echo.ErrBadRequest
+		case *poedit.ErrLanguageNotFound:
+			return echo.ErrNotFound
+		default:
+			c.Log.WithError(err).Error("Error retrieving translation")
 
-		return echo.ErrInternalServerError
+			return echo.ErrInternalServerError
+		}
 	}
 
 	c.Response().Header().Add("etag", h)
