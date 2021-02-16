@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	redisCache "github.com/go-redis/cache/v8"
@@ -36,11 +37,11 @@ func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, language
 	key := r.key(projectID, languageCode, format)
 
 	var item RedisCacheItem
-	err := r.rc.Get(ctx, key, item)
-	if err == redis.Nil {
-		return nil, "", ErrCacheMiss
-	}
+	err := r.rc.Get(ctx, key, &item)
 	if err != nil {
+		if strings.Contains(err.Error(), "key is missing") {
+			return nil, "", ErrCacheMiss
+		}
 		return nil, "", errors.Wrapf(err, "Could not get cache data for key %s", key)
 	}
 
@@ -66,7 +67,7 @@ func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, language
 		return "", errors.Wrapf(err, "Error while setting cache data for key %s", key)
 	}
 
-	return "", nil
+	return hash, nil
 }
 
 func (f *RedisCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error) {

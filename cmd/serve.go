@@ -21,6 +21,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -29,6 +30,28 @@ import (
 	"github.com/uniwise/parrot/internal/poedit"
 	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/internal/rest"
+)
+
+const (
+	confServerPort = "server.port"
+
+	confLogLevel  = "log.level"
+	confLogFormat = "log.format"
+
+	confCacheType                  = "cache.type"
+	confCacheTTL                   = "cache.ttl"
+	confCacheFSDir                 = "cache.filesystem.dir"
+	confCacheRedisMode             = "cache.redis.mode"
+	confCacheRedisAddress          = "cache.redis.address"
+	confCacheRedisUser             = "cache.redis.username"
+	confCacheRedisPassword         = "cache.redis.password"
+	confCacheRedisMaxRetries       = "cache.redis.maxRetries"
+	confCacheRedisDB               = "cache.redis.db"
+	confCacheRedisSentinelMaster   = "cache.redis.sentinel.master"
+	confCacheRedisSentinelAddress  = "cache.redis.sentinel.addresses"
+	confCacheRedisSentinelPassword = "cache.redis.sentinel.password"
+
+	confApiToken = "api.token"
 )
 
 // serveCmd represents the serve command
@@ -46,7 +69,7 @@ by caching exports from poeditor`,
 			logger.Fatal(err)
 		}
 
-		cli := poedit.NewClient(viper.GetString("api.token"), http.DefaultClient)
+		cli := poedit.NewClient(viper.GetString(confApiToken), http.DefaultClient)
 
 		svc := project.NewService(cli, c)
 
@@ -54,7 +77,7 @@ by caching exports from poeditor`,
 		if err != nil {
 			logger.Fatal(err)
 		}
-		port := viper.GetInt("server.port")
+		port := viper.GetInt(confServerPort)
 		logger.Infof("Server listening at :%d", port)
 		logger.Fatal(server.Start(port))
 	},
@@ -66,29 +89,17 @@ func init() {
 		cDir = "/tmp"
 	}
 
-	viper.SetDefault("server.port", 80)
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("log.format", "json")
-	viper.SetDefault("cache.type", "filesystem")
-	viper.SetDefault("cache.ttl", time.Hour)
-	viper.SetDefault("cache.filesystem.dir", path.Join(cDir, "parrot"))
-	viper.SetDefault("api.token", "")
+	viper.SetDefault(confServerPort, 80)
 
-	serveCmd.PersistentFlags().Int32("port", 0, "Port for the server to listen on")
-	serveCmd.PersistentFlags().String("loglevel", "", "Log level")
-	serveCmd.PersistentFlags().String("logformat", "", "Formatter for the logs")
-	serveCmd.PersistentFlags().String("cache-type", "", "Which system to use for the underlying cache")
-	serveCmd.PersistentFlags().Duration("cache-ttl", 0, "Time to live for the cache")
-	serveCmd.PersistentFlags().String("cache-dir", "", "Directory where the filesystem cache lives")
-	serveCmd.PersistentFlags().String("api-token", "", "API token to authenticate against poeditor")
+	viper.SetDefault(confLogLevel, "info")
+	viper.SetDefault(confLogFormat, "json")
 
-	viper.BindPFlag("server.port", serveCmd.PersistentFlags().Lookup("port"))
-	viper.BindPFlag("log.level", serveCmd.PersistentFlags().Lookup("loglevel"))
-	viper.BindPFlag("log.format", serveCmd.PersistentFlags().Lookup("logformat"))
-	viper.BindPFlag("cache.type", serveCmd.PersistentFlags().Lookup("cache-type"))
-	viper.BindPFlag("cache.ttl", serveCmd.PersistentFlags().Lookup("cache-ttl"))
-	viper.BindPFlag("api.token", serveCmd.PersistentFlags().Lookup("api-token"))
-	viper.BindPFlag("cache.filesystem.dir", serveCmd.PersistentFlags().Lookup("cache-dir"))
+	viper.SetDefault(confCacheType, "filesystem")
+	viper.SetDefault(confCacheTTL, time.Hour)
+	viper.SetDefault(confCacheFSDir, path.Join(cDir, "parrot"))
+	viper.SetDefault(confCacheRedisMode, "single")
+	viper.SetDefault(confCacheRedisMaxRetries, -1)
+	viper.SetDefault(confCacheRedisDB, 1)
 
 	rootCmd.AddCommand(serveCmd)
 }
@@ -96,38 +107,68 @@ func init() {
 func instantiateLogger() *logrus.Logger {
 	logger := logrus.New()
 
-	lvl, err := logrus.ParseLevel(viper.GetString("log.level"))
+	lvl, err := logrus.ParseLevel(viper.GetString(confLogLevel))
 	if err != nil {
-		logger.WithError(err).Warnf("Could not parse log level '%s' defaulting to INFO", viper.GetString("log.level"))
+		logger.WithError(err).Warnf("Could not parse log level '%s' defaulting to INFO", viper.GetString(confLogLevel))
 		lvl = logrus.InfoLevel
 	}
 	logger.SetLevel(lvl)
 
-	switch viper.GetString("log.format") {
+	switch viper.GetString(confLogFormat) {
 	case "json":
 		logger.SetFormatter(&logrus.JSONFormatter{})
 	case "text":
 		logger.SetFormatter(&logrus.TextFormatter{})
 	default:
-		logger.Warnf("Did not understand log format '%s'. Defaulting to json format", viper.GetString("log.format"))
+		logger.Warnf("Did not understand log format '%s'. Defaulting to json format", viper.GetString(confLogFormat))
 		logger.SetFormatter(&logrus.JSONFormatter{})
 	}
 	return logger
 }
 
 func instantiateCache() (cache.Cache, error) {
-	cType := viper.GetString("cache.type")
-	ttl := viper.GetDuration("cache.ttl")
+	cType := viper.GetString(confCacheType)
 	switch cType {
 	case "filesystem":
-		c, err := cache.NewFilesystemCache(viper.GetString("cache.filesystem.dir"), ttl)
-		if err != nil {
-			return nil, errors.Wrap(err, "Could not instantiate filesystem cache")
-		}
-		return c, nil
+		return instantiateFilesystemCache()
 	case "redis":
-		return nil, errors.Errorf("'%s' cache type is not yet implemented", cType)
+		return instantiateRedisCache()
 	default:
 		return nil, errors.Errorf("'%s' cache type is not yet implemented", cType)
 	}
+}
+
+func instantiateRedisCache() (*cache.RedisCache, error) {
+	switch viper.GetString(confCacheRedisMode) {
+	case "sentinel":
+		return cache.NewRedisCache(redis.NewFailoverClient(&redis.FailoverOptions{
+			Username:   viper.GetString(confCacheRedisUser),
+			Password:   viper.GetString(confCacheRedisPassword),
+			MaxRetries: viper.GetInt(confCacheRedisMaxRetries),
+			DB:         viper.GetInt(confCacheRedisDB),
+
+			MasterName:       viper.GetString(confCacheRedisSentinelMaster),
+			SentinelAddrs:    viper.GetStringSlice(confCacheRedisSentinelAddress),
+			SentinelPassword: viper.GetString(confCacheRedisSentinelPassword),
+		}), viper.GetDuration(confCacheTTL)), nil
+	case "single":
+		return cache.NewRedisCache(redis.NewClient(&redis.Options{
+			Username:   viper.GetString(confCacheRedisUser),
+			Password:   viper.GetString(confCacheRedisPassword),
+			MaxRetries: viper.GetInt(confCacheRedisMaxRetries),
+			DB:         viper.GetInt(confCacheRedisDB),
+
+			Addr: viper.GetString(confCacheRedisAddress),
+		}), viper.GetDuration(confCacheTTL)), nil
+	case "cluster":
+		return nil, errors.New("Cluster mode is not supported")
+	case "ring":
+		return nil, errors.New("Ring mode is not supported")
+	default:
+		return nil, errors.Errorf("Did not understand redis mode '%s'", viper.GetString(confCacheRedisMode))
+	}
+}
+
+func instantiateFilesystemCache() (*cache.FilesystemCache, error) {
+	return cache.NewFilesystemCache(viper.GetString(confCacheFSDir), viper.GetDuration(confCacheTTL))
 }
