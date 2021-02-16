@@ -1,4 +1,4 @@
-![Parrot logo](assets/parrot.png)
+<img alt="Parrot logo" src="assets/parrot.svg" height="150"/>
 
 Parrot the [POEditor](http://poeditor.com/) pull-through cache.
 
