@@ -14,7 +14,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	redisScanCount = 10
+)
+
 type RedisCache struct {
+	c   *redis.Client
 	rc  *redisCache.Cache
 	ttl time.Duration
 }
@@ -24,10 +29,11 @@ type RedisCacheItem struct {
 	Data []byte
 }
 
-func NewRedisCache(rc *redis.Client, ttl time.Duration) *RedisCache {
+func NewRedisCache(c *redis.Client, ttl time.Duration) *RedisCache {
 	return &RedisCache{
+		c: c,
 		rc: redisCache.New(&redisCache.Options{
-			Redis: rc,
+			Redis: c,
 		}),
 		ttl: ttl,
 	}
@@ -42,6 +48,7 @@ func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, language
 		if strings.Contains(err.Error(), "key is missing") {
 			return nil, "", ErrCacheMiss
 		}
+
 		return nil, "", errors.Wrapf(err, "Could not get cache data for key %s", key)
 	}
 
@@ -70,14 +77,67 @@ func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, language
 	return hash, nil
 }
 
-func (f *RedisCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error) {
-	return errors.New("Not implemented")
+func (r *RedisCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
+	pattern := fmt.Sprintf("%d:%s:*", projectID, languageCode)
+
+	if err := r.deleteKeysMatching(ctx, pattern); err != nil {
+		return errors.Wrapf(err, "Failed to remove cached language '%s' for project '%d'", languageCode, projectID)
+	}
+
+	return nil
 }
 
-func (f *RedisCache) PurgeProject(ctx context.Context, projectID int) (err error) {
-	return errors.New("Not implemented")
+func (r *RedisCache) PurgeProject(ctx context.Context, projectID int) error {
+	pattern := fmt.Sprintf("%d:*", projectID)
+
+	if err := r.deleteKeysMatching(ctx, pattern); err != nil {
+		return errors.Wrapf(err, "Failed to remove cached project '%d'", projectID)
+	}
+
+	return nil
 }
 
 func (r *RedisCache) key(projectID int, languageCode, format string) string {
 	return fmt.Sprintf("%d:%s:%s", projectID, languageCode, format)
+}
+
+func (r *RedisCache) deleteKeysMatching(ctx context.Context, pattern string) error {
+	keys, err := r.getKeysMatching(ctx, pattern)
+	if err != nil {
+		return err
+	}
+
+	if err := r.c.Del(ctx, keys...).Err(); err != nil {
+		return errors.Wrapf(err, "Failed to remove redis keys matching '%s'", pattern)
+	}
+
+	return nil
+}
+
+func (r *RedisCache) getKeysMatching(ctx context.Context, pattern string) ([]string, error) {
+	var allKeys []string
+
+	var cursor uint64
+	for {
+		var keys []string
+		var err error
+
+		keys, cursor, err = r.c.Scan(
+			ctx,
+			cursor,
+			pattern,
+			redisScanCount,
+		).Result()
+		if err != nil {
+			return nil, errors.Wrapf(err, "Failed to retrieve keys from redis matching pattern '%s'", pattern)
+		}
+
+		if cursor == 0 {
+			break
+		}
+
+		allKeys = append(allKeys, keys...)
+	}
+
+	return allKeys, nil
 }
