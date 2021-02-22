@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -62,10 +64,8 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 }
 
 func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
-	filePath := f.filePath(projectID, languageCode, format)
-
 	if err := ioutil.WriteFile(
-		filePath,
+		f.filePath(projectID, languageCode, format),
 		data,
 		os.ModePerm,
 	); err != nil {
@@ -76,7 +76,7 @@ func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, lan
 	hash := hex.EncodeToString(hashBytes[:])
 
 	if err := ioutil.WriteFile(
-		fmt.Sprintf("%s.md5", filePath),
+		f.md5Path(projectID, languageCode, format),
 		[]byte(hash),
 		os.ModePerm,
 	); err != nil {
@@ -86,12 +86,26 @@ func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, lan
 	return hash, nil
 }
 
-func (f *FilesystemCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error) {
-	return errors.New("Not implemented")
+func (f *FilesystemCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
+	prefix := fmt.Sprintf("%d_%s", projectID, languageCode)
+
+	err := f.removeFilesWithPrefix(prefix)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to remove cached translation files '%s/%s*'", f.dir, prefix)
+	}
+
+	return nil
 }
 
-func (f *FilesystemCache) PurgeProject(ctx context.Context, projectID int) (err error) {
-	return errors.New("Not implemented")
+func (f *FilesystemCache) PurgeProject(ctx context.Context, projectID int) error {
+	prefix := fmt.Sprintf("%d_", projectID)
+
+	err := f.removeFilesWithPrefix(prefix)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to remove cached translation files '%s/%s*'", f.dir, prefix)
+	}
+
+	return nil
 }
 
 func (f *FilesystemCache) filePath(projectID int, languageCode, format string) string {
@@ -101,6 +115,30 @@ func (f *FilesystemCache) filePath(projectID int, languageCode, format string) s
 	)
 }
 
+func (f *FilesystemCache) md5Path(projectID int, languageCode, format string) string {
+	return path.Join(
+		f.dir,
+		fmt.Sprintf(
+			"%s.md5",
+			f.filename(projectID, languageCode, format),
+		),
+	)
+}
+
 func (f *FilesystemCache) filename(projectID int, languageCode, format string) string {
 	return fmt.Sprintf("%d_%s_%s", projectID, languageCode, format)
+}
+
+func (f *FilesystemCache) removeFilesWithPrefix(prefix string) error {
+	return filepath.Walk(f.dir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			if strings.HasPrefix(info.Name(), prefix) {
+				if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
 }
