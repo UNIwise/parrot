@@ -10,6 +10,7 @@ import (
 
 	redisCache "github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
+	"github.com/sirupsen/logrus"
 
 	"github.com/pkg/errors"
 )
@@ -27,6 +28,14 @@ type RedisCache struct {
 type RedisCacheItem struct {
 	Hash string
 	Data []byte
+}
+
+type RedisLogger struct {
+	*logrus.Entry
+}
+
+func (r *RedisLogger) Printf(ctx context.Context, format string, v ...interface{}) {
+	r.WithContext(ctx).Printf(format, v...)
 }
 
 func NewRedisCache(c *redis.Client, ttl time.Duration) *RedisCache {
