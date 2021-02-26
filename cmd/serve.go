@@ -69,6 +69,10 @@ by caching exports from poeditor`,
 			logger.Fatal(err)
 		}
 
+		redis.SetLogger(&cache.RedisLogger{
+			Entry: logrus.NewEntry(logger),
+		})
+
 		cli := poedit.NewClient(viper.GetString(confApiToken), http.DefaultClient)
 
 		svc := project.NewService(cli, c)
