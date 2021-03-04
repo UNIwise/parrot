@@ -26,8 +26,9 @@ type RedisCache struct {
 }
 
 type RedisCacheItem struct {
-	Hash string
-	Data []byte
+	CreatedAt time.Time
+	Checksum  string
+	Data      []byte
 }
 
 type RedisLogger struct {
@@ -48,42 +49,47 @@ func NewRedisCache(c *redis.Client, ttl time.Duration) *RedisCache {
 	}
 }
 
-func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
+func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
 	key := r.key(projectID, languageCode, format)
 
 	var item RedisCacheItem
 	err := r.rc.Get(ctx, key, &item)
 	if err != nil {
 		if strings.Contains(err.Error(), "key is missing") {
-			return nil, "", ErrCacheMiss
+			return nil, ErrCacheMiss
 		}
 
-		return nil, "", errors.Wrapf(err, "Could not get cache data for key %s", key)
+		return nil, errors.Wrapf(err, "Could not get cache data for key %s", key)
 	}
 
-	return item.Data, item.Hash, nil
+	return &CacheItem{
+		CreatedAt: item.CreatedAt,
+		Checksum:  item.Checksum,
+		Data:      item.Data,
+	}, nil
 }
 
 func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
 	key := r.key(projectID, languageCode, format)
 
 	hashBytes := md5.Sum(data)
-	hash := hex.EncodeToString(hashBytes[:])
+	checksum := hex.EncodeToString(hashBytes[:])
 
 	if err := r.rc.Set(&redisCache.Item{
 		Ctx: ctx,
 		Key: key,
 		TTL: r.ttl,
 		Value: RedisCacheItem{
-			Hash: hash,
-			Data: data,
+			CreatedAt: time.Now(),
+			Checksum:  checksum,
+			Data:      data,
 		},
 		SkipLocalCache: true,
 	}); err != nil {
 		return "", errors.Wrapf(err, "Error while setting cache data for key %s", key)
 	}
 
-	return hash, nil
+	return checksum, nil
 }
 
 func (r *RedisCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
@@ -149,4 +155,8 @@ func (r *RedisCache) getKeysMatching(ctx context.Context, pattern string) ([]str
 	}
 
 	return allKeys, nil
+}
+
+func (f *RedisCache) GetTTL() time.Duration {
+	return f.ttl
 }

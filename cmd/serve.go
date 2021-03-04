@@ -40,6 +40,7 @@ const (
 
 	confCacheType                  = "cache.type"
 	confCacheTTL                   = "cache.ttl"
+	confCacheRenewalThreshold      = "cache.renewalThreshold"
 	confCacheFSDir                 = "cache.filesystem.dir"
 	confCacheRedisMode             = "cache.redis.mode"
 	confCacheRedisAddress          = "cache.redis.address"
@@ -75,13 +76,14 @@ by caching exports from poeditor`,
 
 		cli := poedit.NewClient(viper.GetString(confApiToken), http.DefaultClient)
 
-		svc := project.NewService(cli, c)
+		svc := project.NewService(cli, c, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
 
 		server, err := rest.NewServer(svc, logrus.NewEntry(logger))
 		if err != nil {
 			logger.Fatal(err)
 		}
 		port := viper.GetInt(confServerPort)
+
 		logger.Infof("Server listening at :%d", port)
 		logger.Fatal(server.Start(port))
 	},
@@ -100,6 +102,7 @@ func init() {
 
 	viper.SetDefault(confCacheType, "filesystem")
 	viper.SetDefault(confCacheTTL, time.Hour)
+	viper.SetDefault(confCacheRenewalThreshold, time.Minute*30)
 	viper.SetDefault(confCacheFSDir, path.Join(cDir, "parrot"))
 	viper.SetDefault(confCacheRedisMode, "single")
 	viper.SetDefault(confCacheRedisMaxRetries, -1)

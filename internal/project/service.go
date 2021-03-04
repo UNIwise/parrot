@@ -2,42 +2,102 @@ package project
 
 import (
 	"context"
+	"time"
 
 	"io/ioutil"
 	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/poedit"
+	"golang.org/x/sync/semaphore"
 )
 
+type Translation struct {
+	TTL      time.Duration
+	Checksum string
+	Data     []byte
+}
+
 type Service interface {
-	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (data []byte, hash string, err error)
+	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (trans *Translation, err error)
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 }
 
 type ServiceImpl struct {
-	Client poedit.Client
-	Cache  cache.Cache
+	Logger            *logrus.Entry
+	Client            poedit.Client
+	Cache             cache.Cache
+	RenewalThreshold  time.Duration
+	PreFetchSemaphore *semaphore.Weighted
 }
 
-func NewService(cli poedit.Client, cache cache.Cache) *ServiceImpl {
+func NewService(cli poedit.Client, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
 	return &ServiceImpl{
-		Client: cli,
-		Cache:  cache,
+		Logger:            entry,
+		Client:            cli,
+		Cache:             cache,
+		RenewalThreshold:  renewalThreshold,
+		PreFetchSemaphore: semaphore.NewWeighted(1),
 	}
 }
 
-func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
-	data, hash, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
+func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*Translation, error) {
+	item, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
 	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
-		return nil, "", err
+		return nil, err
 	}
 	if err == nil {
-		return data, hash, nil
+		expiresAt := item.CreatedAt.Add(s.Cache.GetTTL())
+
+		if time.Until(expiresAt) < s.RenewalThreshold {
+			go func() {
+				bgCtx := context.Background()
+
+				if err := s.PreFetchSemaphore.Acquire(bgCtx, 1); err != nil {
+					return
+				}
+				defer s.PreFetchSemaphore.Release(1)
+
+				s.Logger.Debugf("Pre-fetching language %s format %s for project %d", languageCode, format, projectID)
+
+				_, _, err := s.fetchAndCacheTranslation(bgCtx, projectID, languageCode, format)
+				if err != nil {
+					s.Logger.Errorf("Failed to pre-fetch language %s format %s for project %d", languageCode, format, projectID)
+				}
+			}()
+		}
+
+		return &Translation{
+			TTL:      s.Cache.GetTTL(),
+			Checksum: item.Checksum,
+			Data:     item.Data,
+		}, nil
 	}
 
+	data, checksum, err := s.fetchAndCacheTranslation(ctx, projectID, languageCode, format)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Translation{
+		TTL:      s.Cache.GetTTL(),
+		Checksum: checksum,
+		Data:     data,
+	}, nil
+}
+
+func (s *ServiceImpl) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
+	return errors.New("Not implemented")
+}
+
+func (s *ServiceImpl) PurgeProject(ctx context.Context, projectID int) error {
+	return errors.New("Not implemented")
+}
+
+func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
 	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
 		ID:       projectID,
 		Language: languageCode,
@@ -59,23 +119,15 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 		return nil, "", errors.Errorf("Response code '%d' from download GET", d.StatusCode)
 	}
 
-	data, err = ioutil.ReadAll(d.Body)
+	data, err := ioutil.ReadAll(d.Body)
 	if err != nil {
 		return nil, "", err
 	}
 
-	hash, err = s.Cache.SetTranslation(ctx, projectID, languageCode, format, data)
+	checksum, err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, data)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return data, hash, nil
-}
-
-func (s *ServiceImpl) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
-	return errors.New("Not implemented")
-}
-
-func (s *ServiceImpl) PurgeProject(ctx context.Context, projectID int) error {
-	return errors.New("Not implemented")
+	return data, checksum, nil
 }
