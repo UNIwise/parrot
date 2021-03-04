@@ -17,6 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/resty.v1 v1.12.0
 )

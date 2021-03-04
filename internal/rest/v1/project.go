@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -30,7 +31,7 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	b, h, err := c.ProjectService.GetTranslation(
+	trans, err := c.ProjectService.GetTranslation(
 		ctx.Request().Context(),
 		req.Project,
 		req.Language,
@@ -49,8 +50,8 @@ func getProjectLanguage(ctx echo.Context) error {
 		}
 	}
 
-	c.Response().Header().Add("etag", h)
-	c.Response().Header().Add("Cache-Control", "max-age=3600")
+	c.Response().Header().Add("Etag", trans.Checksum)
+	c.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", trans.TTL.Seconds()))
 
-	return c.Stream(http.StatusOK, "application/json", bytes.NewReader(b))
+	return c.Stream(http.StatusOK, "application/json", bytes.NewReader(trans.Data))
 }

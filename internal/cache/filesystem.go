@@ -32,35 +32,39 @@ func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, e
 	}, nil
 }
 
-func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
+func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
 	filePath := f.filePath(projectID, languageCode, format)
 
 	s, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
-		return nil, "", ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 	if err != nil {
-		return nil, "", errors.Wrap(err, "Failed to get cached file state from OS")
+		return nil, errors.Wrap(err, "Failed to get cached file state from OS")
 	}
 
 	if time.Since(s.ModTime()) > f.ttl {
-		return nil, "", ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 
 	b, err := ioutil.ReadFile(filePath)
 	if os.IsNotExist(err) {
-		return nil, "", ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	md5, err := ioutil.ReadFile(fmt.Sprintf("%s.md5", filePath))
 	if err != nil {
-		return nil, "", ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 
-	return b, string(md5), nil
+	return &CacheItem{
+		Checksum:  string(md5),
+		Data:      b,
+		CreatedAt: s.ModTime(),
+	}, nil
 }
 
 func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
@@ -141,4 +145,8 @@ func (f *FilesystemCache) removeFilesWithPrefix(prefix string) error {
 
 		return nil
 	})
+}
+
+func (f *FilesystemCache) GetTTL() time.Duration {
+	return f.ttl
 }
