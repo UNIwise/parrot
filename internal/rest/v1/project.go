@@ -2,6 +2,8 @@ package v1
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -37,6 +39,10 @@ func getProjectLanguage(ctx echo.Context) error {
 		req.Language,
 		"key_value_json",
 	)
+	if errors.Is(err, context.Canceled) {
+		return echo.NewHTTPError(499, "client closed request")
+	}
+
 	if err != nil {
 		switch err.(type) {
 		case *poedit.ErrProjectPermissionDenied:
