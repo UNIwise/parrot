@@ -16,8 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"net/http"
 	"os"
+	"os/signal"
 	"path"
 	"time"
 
@@ -27,13 +29,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/uniwise/parrot/internal/cache"
+	"github.com/uniwise/parrot/internal/metrics"
 	"github.com/uniwise/parrot/internal/poedit"
 	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/internal/rest"
 )
 
 const (
-	confServerPort = "server.port"
+	confServerPort  = "server.port"
+	confServerGrace = "server.gracePeriod"
 
 	confLogLevel  = "log.level"
 	confLogFormat = "log.format"
@@ -52,6 +56,10 @@ const (
 	confCacheRedisSentinelAddress  = "cache.redis.sentinel.addresses"
 	confCacheRedisSentinelPassword = "cache.redis.sentinel.password"
 
+	confPrometheusEnabled = "prometheus.enabled"
+	confPrometheusPath    = "prometheus.path"
+	confPrometheusPort    = "prometheus.port"
+
 	confApiToken = "api.token"
 )
 
@@ -65,27 +73,44 @@ by caching exports from poeditor`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := instantiateLogger()
 
-		c, err := instantiateCache()
+		c, err := instantiateCache(logger.WithField("subsystem", "cache"))
 		if err != nil {
 			logger.Fatal(err)
 		}
-
-		redis.SetLogger(&cache.RedisLogger{
-			Entry: logrus.NewEntry(logger),
-		})
 
 		cli := poedit.NewClient(viper.GetString(confApiToken), http.DefaultClient)
 
 		svc := project.NewService(cli, c, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
 
-		server, err := rest.NewServer(svc, logrus.NewEntry(logger))
+		server, err := rest.NewServer(svc, logrus.NewEntry(logger), viper.GetBool(confPrometheusEnabled))
 		if err != nil {
 			logger.Fatal(err)
 		}
+
 		port := viper.GetInt(confServerPort)
 
 		logger.Infof("Server listening at :%d", port)
-		logger.Fatal(server.Start(port))
+		go func() {
+			if err := server.Start(port); err != nil && err != http.ErrServerClosed {
+				logger.Fatal("shutting down server")
+			}
+		}()
+
+		if viper.GetBool(confPrometheusEnabled) {
+			logger.Infof("Prometheus metrics exposed at :%d%s", viper.GetInt(confPrometheusPort), viper.GetString(confPrometheusPath))
+			go func() {
+				logger.Fatal(metrics.Start(viper.GetString(confPrometheusPath), viper.GetInt(confPrometheusPort)))
+			}()
+		}
+
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, os.Interrupt)
+		<-quit
+		ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration(confServerGrace))
+		defer cancel()
+		if err := server.Shutdown(ctx); err != nil {
+			logger.Fatal(err)
+		}
 	},
 }
 
@@ -96,6 +121,7 @@ func init() {
 	}
 
 	viper.SetDefault(confServerPort, 80)
+	viper.SetDefault(confServerGrace, time.Second*10)
 
 	viper.SetDefault(confLogLevel, "info")
 	viper.SetDefault(confLogFormat, "json")
@@ -107,6 +133,10 @@ func init() {
 	viper.SetDefault(confCacheRedisMode, "single")
 	viper.SetDefault(confCacheRedisMaxRetries, -1)
 	viper.SetDefault(confCacheRedisDB, 1)
+
+	viper.SetDefault(confPrometheusEnabled, true)
+	viper.SetDefault(confPrometheusPort, 9090)
+	viper.SetDefault(confPrometheusPath, "/metrics")
 
 	rootCmd.AddCommand(serveCmd)
 }
@@ -133,12 +163,14 @@ func instantiateLogger() *logrus.Logger {
 	return logger
 }
 
-func instantiateCache() (cache.Cache, error) {
+func instantiateCache(l *logrus.Entry) (cache.Cache, error) {
 	cType := viper.GetString(confCacheType)
 	switch cType {
 	case "filesystem":
 		return instantiateFilesystemCache()
 	case "redis":
+		redis.SetLogger(&cache.RedisLogger{Entry: l})
+
 		return instantiateRedisCache()
 	default:
 		return nil, errors.Errorf("'%s' cache type is not yet implemented", cType)

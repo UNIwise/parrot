@@ -48,6 +48,11 @@ spec:
             - name: http
               containerPort: {{ default 80 .Values.config.server.port }}
               protocol: TCP
+            {{- if .Values.config.prometheus.enabled }}
+            - name: prometheus
+              continerPort: {{ default 9090 .Values.config.prometheus.port }}
+              protocol: TCP
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /health
