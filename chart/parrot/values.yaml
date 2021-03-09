@@ -81,12 +81,30 @@ affinity: {}
 config:
   server:
     port: 80
+    gracePeriod: 10s
   log:
     level: info
     format: json
   cache:
     type: filesystem
     ttl: 1h
+    renewalThreshold: 30m
+    # filesystem:
+    #   dir:
+    # redis:
+    #   mode: 
+    #   address:
+    #   username:
+    #   password:
+    #   maxRetries:
+    #   db:
+    #   sentinel:
+    #     master:
+    #     addresses:
+    #     password:
+  prometheus:
+    enabled: true
+    path: /metrics
+    port: 9090
   api:
     token: REDACTED
-
