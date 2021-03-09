@@ -54,16 +54,15 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 
 		if time.Until(expiresAt) < s.RenewalThreshold {
 			go func() {
-				bgCtx := context.Background()
-
-				if err := s.PreFetchSemaphore.Acquire(bgCtx, 1); err != nil {
+				if !s.PreFetchSemaphore.TryAcquire(1) {
 					return
 				}
+
 				defer s.PreFetchSemaphore.Release(1)
 
 				s.Logger.Debugf("Pre-fetching language %s format %s for project %d", languageCode, format, projectID)
 
-				_, _, err := s.fetchAndCacheTranslation(bgCtx, projectID, languageCode, format)
+				_, _, err := s.fetchAndCacheTranslation(context.Background(), projectID, languageCode, format)
 				if err != nil {
 					s.Logger.Errorf("Failed to pre-fetch language %s format %s for project %d", languageCode, format, projectID)
 				}
