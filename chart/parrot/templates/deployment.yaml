@@ -50,7 +50,7 @@ spec:
               protocol: TCP
             {{- if .Values.config.prometheus.enabled }}
             - name: prometheus
-              continerPort: {{ default 9090 .Values.config.prometheus.port }}
+              containerPort: {{ default 9090 .Values.config.prometheus.port }}
               protocol: TCP
             {{- end }}
           livenessProbe:
