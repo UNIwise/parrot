@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
-	"github.com/uniwise/parrot/internal/poedit"
+	"github.com/uniwise/parrot/pkg/poedit"
 	"golang.org/x/sync/semaphore"
 )
 

@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/metrics"
-	"github.com/uniwise/parrot/internal/poedit"
+	"github.com/uniwise/parrot/pkg/poedit"
 	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/internal/rest"
 )
