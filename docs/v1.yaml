@@ -1,27 +1,32 @@
-swagger: "2.0"
+openapi: "3.0.0"
 info:
   description: POEditor pull through cache
   title: Parrot
   version: 1.0.0
-produces:
-  - application/json
-schemes:
-  - https
+servers:
+  - url: https://api.stage.eu.wiseflow.io/i18n
+    description: Staging server
+  - url: https://api.eu.wiseflow.io/i18n
+    description: Production server
 paths:
   /v1/project/{project}/language/{language}:
     parameters:
-      - type: integer
-        format: int32
+      - schema:
+          type: integer
+          format: int32
         description: Project id in POEditor
         name: project
         in: path
         required: true
-      - type: string
+      - schema:
+          type: string
         description: Language code
         name: language
         in: path
         required: true
     get:
+      tags:
+        - project
       responses:
         "200":
           description: "Successful"
@@ -31,13 +36,16 @@ paths:
           description: "No translation found for language code"
   /v1/project/{project}/purge:
     parameters:
-      - type: integer
-        format: int32
+      - schema:
+          type: integer
+          format: int32
         description: Project id in POEditor
         name: project
         in: path
         required: true
     post:
+      tags:
+        - project
       responses:
         "200":
           description: "Successful"
@@ -45,18 +53,22 @@ paths:
           description: "Invalid project id"
   /v1/project/{project}/language/{language}/purge:
     parameters:
-      - type: integer
-        format: int32
+      - schema:
+          type: integer
+          format: int32
         description: Project id in POEditor
         name: project
         in: path
         required: true
-      - type: string
+      - schema:
+          type: string
         description: Language code
         name: language
         in: path
         required: true
     post:
+      tags:
+        - project
       responses:
         "200":
           description: "Successful"
