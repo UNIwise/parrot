@@ -14,6 +14,7 @@ import (
 type getProjectLanguageRequest struct {
 	Project  int    `param:"project" validate:"required"`
 	Language string `param:"language" validate:"required,languageCode"`
+	Format   string `query:"format" validate:"omitempty,oneof=po pot mo xls xlsx csv ini resw resx android_strings apple_strings xliff properties key_value_json json yml xlf xmb xtb arb rise_360_xliff"`
 }
 
 func getProjectLanguage(ctx echo.Context) error {
@@ -33,11 +34,16 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
+	format := "key_value_json"
+	if req.Format != "" {
+		format = req.Format
+	}
+
 	trans, err := c.ProjectService.GetTranslation(
 		ctx.Request().Context(),
 		req.Project,
 		req.Language,
-		"key_value_json",
+		format,
 	)
 	if errors.Is(err, context.Canceled) {
 		return echo.NewHTTPError(499, "client closed request")
