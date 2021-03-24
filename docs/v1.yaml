@@ -24,6 +24,34 @@ paths:
         name: language
         in: path
         required: true
+      - schema:
+          type: string
+          enum:
+            - po
+            - pot
+            - mo
+            - xls
+            - xlsx
+            - csv
+            - ini
+            - resw
+            - resx
+            - android_strings
+            - apple_strings
+            - xliff
+            - properties
+            - key_value_json
+            - json
+            - yml
+            - xlf
+            - xmb
+            - xtb
+            - arb
+            - rise_360_xliff
+        description: The format of the return data
+        name: format
+        in: query
+        required: false
     get:
       tags:
         - project
