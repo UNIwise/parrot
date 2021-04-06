@@ -21,13 +21,13 @@ components:
           items:
             type: object
             properties:
-              updatedAt:
+              updated:
                 type: integer
               code:
                 type: string
                 description: language in iso 639-1 code format
                 example: "en-gb"
-              completion:
+              percentage:
                 type: number
                 maximum: 100
                 minimum: 0
