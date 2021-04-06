@@ -8,7 +8,42 @@ servers:
     description: Staging server
   - url: https://api.eu.wiseflow.io/i18n
     description: Production server
+components:
+  schemas:
+    project:
+      type: object
+      properties:
+        id:
+          type: integer
+        updatedAt:
+          type: integer
+        languages:
+          type: array
+          description: List of languages available for the project in iso 639-1 code format
+          items:
+              type: string
 paths:
+  /v1/project/{project}:
+    parameters:
+      - schema:
+          type: integer
+          format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+    get:
+      tags:
+        - project
+      responses:
+        "200":
+          description: "Successful"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/project'
+        "400":
+          description: "Invalid project id"
   /v1/project/{project}/language/{language}:
     parameters:
       - schema:
