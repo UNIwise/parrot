@@ -6,15 +6,21 @@ This cache makes it possible to pull app translations directly from [POEditor](h
 
 # Features
 
+-  **Battle tested**: The software is in active use on the WISEflow platform with high request rates daily.
+-  **All the formats**: Parrot can provide all formats supported by POEditor.
 -   **Cache choices**: Parrot comes with a Filesystem and Redis cache to facilitate single app deployments and highly distributed deployments.
 -   **OpenAPI**: The Parrot API has been documented in OpenAPI specification which can be found in the [doc/](/docs) directory.
--   _..._
+-  **Easy deployment**: A docker image and helm chart is provided.
 
 # Deployment
 
 _TODO_
 
-# API
+# Configuration
+
+_TODO_
+
+# API specification
 
 The REST API of Parrot is documented in the OpenAPI format. The specification file can be found here [docs/api.yml](docs/api.yml) and a Swagger UI is available here [uniwise.github.io/parrot](https://uniwise.github.io/parrot).
 
