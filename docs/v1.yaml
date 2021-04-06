@@ -15,13 +15,22 @@ components:
       properties:
         id:
           type: integer
-        updatedAt:
-          type: integer
         languages:
           type: array
-          description: List of languages available for the project in iso 639-1 code format
+          description: List of languages available for the project
           items:
-              type: string
+            type: object
+            properties:
+              updatedAt:
+                type: integer
+              code:
+                type: string
+                description: language in iso 639-1 code format
+                example: "en-gb"
+              completion:
+                type: number
+                maximum: 100
+                minimum: 0
 paths:
   /v1/project/{project}:
     parameters:
