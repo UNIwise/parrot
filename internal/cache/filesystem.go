@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"golang.org/x/sys/unix"
 )
 
 type FilesystemCache struct {
@@ -149,4 +150,8 @@ func (f *FilesystemCache) removeFilesWithPrefix(prefix string) error {
 
 func (f *FilesystemCache) GetTTL() time.Duration {
 	return f.ttl
+}
+
+func (f *FilesystemCache) PingContext(ctx context.Context) error {
+	return unix.Access(f.dir, unix.W_OK)
 }

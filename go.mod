@@ -3,6 +3,7 @@ module github.com/uniwise/parrot
 go 1.15
 
 require (
+	github.com/AppsFlyer/go-sundheit v0.3.1
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/cache/v8 v8.3.0
@@ -20,6 +21,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
+	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/resty.v1 v1.12.0
 )
