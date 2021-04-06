@@ -18,7 +18,31 @@ _TODO_
 
 # Configuration
 
-_TODO_
+The server can be configured with a yaml configuration file specified with the `--config` option. Every configuration can be overridden with an environment variable, where dots are replaced by underscores, such that `API_TOKEN=xxx` will set the `api.token` value
+
+| key                            | description                                                                  | type     | default                      |
+| ------------------------------ | ---------------------------------------------------------------------------- | -------- | ---------------------------- |
+| server.port                    | port for the main http server                                                | int      | `80`                         |
+| server.gracePeriod             | grace period for the http server to shutdown                                 | duration | `10s`                        |
+| log.level                      | log level                                                                    | string   | `info`                       |
+| log.format                     | format of the log. Can be "text" or "json"                                   | string   | `json`                       |
+| cache.type                     | type of cache to use for translations                                        | string   | `filesystem`                 |
+| cache.ttl                      | time to live for cache items                                                 | duration | `1h`                         |
+| cache.renewalThreshold         | threshold at which the server will preemptively fetch a new translation      | duration | `30m`                        |
+| cache.filesystem.dir           | directory of the filesystem cache                                            | string   | default user cache directory |
+| cache.redis.mode               | mode of the redis connection to back the redis cache. "single" or "sentinel" | string   | `single`                     |
+| cache.redis.address            | address of the redis server, in case the single mode is used                 | string   |
+| cache.redis.username           | username to authenticate against redis                                       | string   |
+| cache.redis.password           | password for redis authentication                                            | string   |
+| cache.redis.maxRetries         | max retries for redis client to connect to redis. Set to -1 for infinity     | int      | `-1`                         |
+| cache.redis.db                 | redis db index                                                               | int      | `1`                          |
+| cache.redis.sentinel.master    | master name for sentinel setup                                               | string   |
+| cache.redis.sentinel.addresses | list of sentinel addresses                                                   | []string |
+| cache.redis.sentinel.password  | password for authenticating against sentinel instances                       | string   |
+| prometheus.enabled             | enable prometheus metrics                                                    | boolean  | `true`                       |
+| prometheus.path                | expose prometheus metrics under path                                         | string   | `/metrics`                   |
+| prometheus.port                | port to expose the prometheus metrics under                                  | int      | `9090`                       |
+| api.token                      | secret token to authenticating against poeditor                              | string   |
 
 # API specification
 
