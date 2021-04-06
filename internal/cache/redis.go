@@ -160,3 +160,7 @@ func (r *RedisCache) getKeysMatching(ctx context.Context, pattern string) ([]str
 func (f *RedisCache) GetTTL() time.Duration {
 	return f.ttl
 }
+
+func (r *RedisCache) PingContext(ctx context.Context) error {
+	return r.c.Ping(ctx).Err()
+}

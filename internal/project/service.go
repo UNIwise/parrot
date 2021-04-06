@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	gosundheit "github.com/AppsFlyer/go-sundheit"
+	"github.com/AppsFlyer/go-sundheit/checks"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
@@ -24,6 +26,7 @@ type Service interface {
 	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (trans *Translation, err error)
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
+	RegisterChecks(h gosundheit.Health) (err error)
 }
 
 type ServiceImpl struct {
@@ -129,4 +132,17 @@ func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID in
 	}
 
 	return data, checksum, nil
+}
+
+func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
+	c, err := checks.NewPingCheck("cache", s.Cache, time.Second*1)
+	if err != nil {
+		return errors.Wrap(err, "Failed to instantiate cache healthcheck")
+	}
+
+	if err := h.RegisterCheck(&gosundheit.Config{Check: c, ExecutionPeriod: time.Second * 10}); err != nil {
+		return errors.Wrap(err, "Failed to register cache healthcheck")
+	}
+
+	return nil
 }

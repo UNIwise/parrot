@@ -22,4 +22,5 @@ type Cache interface {
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	GetTTL() time.Duration
+	PingContext(ctx context.Context) error
 }
