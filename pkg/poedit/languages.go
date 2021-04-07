@@ -21,6 +21,9 @@ type ListAvailableLanguagesResponse struct {
 	} `json:"result"`
 }
 
+// ListAvailableLanguages Returns a comprehensive list of all languages supported by POEditor.
+//
+// https://poeditor.com/docs/api#languages_available
 func (c *ClientImpl) ListAvailableLanguages(ctx context.Context) (*ListAvailableLanguagesResponse, error) {
 	req := c.r.R()
 
@@ -66,6 +69,9 @@ type ListProjectLanguagesResponse struct {
 	} `json:"result"`
 }
 
+// ListProjectLanguages Returns project languages, percentage of translation done for each and the datetime (UTC - ISO 8601) when the last change was made.
+//
+// https://poeditor.com/docs/api#languages_list
 func (c *ClientImpl) ListProjectLanguages(ctx context.Context, r ListProjectLanguagesRequest) (*ListProjectLanguagesResponse, error) {
 	req := c.r.R()
 
@@ -107,6 +113,9 @@ type AddProjectLanguageResponse struct {
 	} `json:"response"`
 }
 
+// AddProjectLanguage Adds a new language to project.
+//
+// https://poeditor.com/docs/api#languages_add
 func (c *ClientImpl) AddProjectlanguage(ctx context.Context, r AddProjectLanguageRequest) (*AddProjectLanguageResponse, error) {
 	req := c.r.R()
 
@@ -178,6 +187,9 @@ type DeleteProjectLanguageResponse struct {
 	} `json:"response"`
 }
 
+// DeleteProjectLanguage Deletes existing language from project.
+//
+// https://poeditor.com/docs/api#languages_delete
 func (c *ClientImpl) DeleteProjectLanguage(ctx context.Context, r DeleteProjectLanguageRequest) (*DeleteProjectLanguageResponse, error) {
 	req := c.r.R()
 
