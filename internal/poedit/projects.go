@@ -8,6 +8,61 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ListProjectLanguagesRequest struct {
+	ID int
+}
+
+type ListProjectLanguagesResponse struct {
+	Response struct {
+		Status  string `json:"status"`
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"response"`
+	Result struct {
+		Languages []struct {
+			Name         string `json:"name"`
+			Code         string `json:"code"`
+			Translations int    `json:"translations"`
+			Percentage   int    `json:"percentage"`
+			Updated      string `json:"updated"`
+		} `json:"languages"`
+	} `json:"result"`
+}
+
+func (c *ClientImpl) ListProjectLanguages(ctx context.Context, r ListProjectLanguagesRequest) (*ListProjectLanguagesResponse, error) {
+	req := c.r.R()
+
+	req.SetFormData(map[string]string{
+		"id": fmt.Sprintf("%d", r.ID),
+	})
+
+	req.SetContext(ctx)
+
+	req.SetResult(&ListProjectLanguagesResponse{})
+
+	resp, err := req.Post("/v2/languages/list")
+	if err != nil {
+		return nil, err
+	}
+
+	res, ok := resp.Result().(*ListProjectLanguagesResponse)
+	if !ok {
+		return nil, ErrFailedToUnmarshalResponse
+	}
+
+	if res.Response.Code == "403" {
+		return nil, &ErrProjectPermissionDenied{
+			ProjectID: r.ID,
+		}
+	}
+
+	if res.Response.Code != "200" {
+		return nil, errors.New(res.Response.Message)
+	}
+
+	return res, nil
+}
+
 type ExportProjectRequest struct {
 	ID       int
 	Language string

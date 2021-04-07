@@ -12,6 +12,78 @@ import (
 	"github.com/uniwise/parrot/internal/poedit"
 )
 
+type getProjectRequest struct {
+	Project int `param:"project" validate:"required"`
+}
+
+type getProjectResponse struct {
+	Id        int                          `json:"id"`
+	Languages []getProjectResponseLanguage `json:"languages"`
+}
+
+type getProjectResponseLanguage struct {
+	Updated    int64   `json:"updated"`
+	Code       string  `json:"code"`
+	Percentage float64 `json:"percentage"`
+}
+
+func getProject(ctx echo.Context) error {
+	c := ctx.(*Context)
+
+	req := new(getProjectRequest)
+	if err := c.Bind(req); err != nil {
+		c.Log.WithError(err).Error("Error binding request")
+
+		return echo.ErrBadRequest
+	}
+
+	l := c.Log.WithFields(logrus.Fields{
+		"project": req.Project,
+	})
+	if err := c.Validate(req); err != nil {
+		l.WithError(err).Error("Error validating request")
+
+		return echo.ErrBadRequest
+	}
+
+	project, err := c.ProjectService.GetProjectMeta(
+		ctx.Request().Context(),
+		req.Project,
+	)
+
+	if errors.Is(err, context.Canceled) {
+		return echo.NewHTTPError(499, "client closed request")
+	}
+
+	if err != nil {
+		switch err.(type) {
+		case *poedit.ErrProjectPermissionDenied:
+			return echo.ErrBadRequest
+		default:
+			l.WithError(err).Error("Error retrieving project information")
+
+			return echo.ErrInternalServerError
+		}
+	}
+
+	languages := make([]getProjectResponseLanguage, len(project.Meta.Languages))
+	for i, l := range project.Meta.Languages {
+		languages[i] = getProjectResponseLanguage{
+			Updated:    l.Updated.Unix(),
+			Code:       l.Code,
+			Percentage: l.Percentage,
+		}
+	}
+
+	c.Response().Header().Add("Etag", project.Checksum)
+	c.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", project.TTL.Seconds()))
+
+	return ctx.JSON(http.StatusOK, &getProjectResponse{
+		Id:        req.Project,
+		Languages: languages,
+	})
+}
+
 type getProjectLanguageRequest struct {
 	Project  int    `param:"project" validate:"required"`
 	Language string `param:"language" validate:"required,languageCode"`
@@ -51,7 +123,7 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	trans, err := c.ProjectService.GetTranslation(
+	lang, err := c.ProjectService.GetLanguage(
 		ctx.Request().Context(),
 		req.Project,
 		req.Language,
@@ -74,10 +146,10 @@ func getProjectLanguage(ctx echo.Context) error {
 		}
 	}
 
-	c.Response().Header().Add("Etag", trans.Checksum)
-	c.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", trans.TTL.Seconds()))
+	c.Response().Header().Add("Etag", lang.Checksum)
+	c.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", lang.TTL.Seconds()))
 	c.Response().Header().Add("Content-Disposition", fmt.Sprintf("filename=%d-%s.%s", req.Project, req.Language, content.Extension))
 	c.Response().Header().Add("Content-Transfer-Encoding", "8bit")
 
-	return c.Stream(http.StatusOK, content.Type, bytes.NewReader(trans.Data))
+	return c.Stream(http.StatusOK, content.Type, bytes.NewReader(lang.Data))
 }

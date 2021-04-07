@@ -5,5 +5,6 @@ import (
 )
 
 func Register(g *echo.Group) {
+	g.GET("/project/:project", getProject)
 	g.GET("/project/:project/language/:language", getProjectLanguage)
 }

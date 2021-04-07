@@ -30,6 +30,7 @@ func NewServer(projectService project.Service, entry *logrus.Entry, enablePromet
 	e.Validator = NewValidator()
 
 	// Middleware
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"*"}}))
 	e.Use(middleware.Recover())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: gzipCompressionLevel,
