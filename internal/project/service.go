@@ -14,16 +14,43 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-type Translation struct {
+type Project struct {
+	TTL      time.Duration
+	Checksum string
+	Meta     ProjectMeta
+}
+
+type ProjectMeta struct {
+	Languages []ProjectMetaLanguage
+}
+
+type ProjectMetaLanguage struct {
+	Code       string
+	Updated    time.Time
+	Percentage float64
+}
+
+type Language struct {
 	TTL      time.Duration
 	Checksum string
 	Data     []byte
 }
 
 type Service interface {
-	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (trans *Translation, err error)
-	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
-	PurgeProject(ctx context.Context, projectID int) (err error)
+	// Get meta data about a project.
+	GetProjectMeta(ctx context.Context, projectID int) (meta *Project, err error)
+
+	// Clear the cached meta data for a project.
+	ClearProjectMeta(ctx context.Context, projectID int) (err error)
+
+	// Get a language in a specific format from a project.
+	GetLanguage(ctx context.Context, projectID int, languageCode, format string) (trans *Language, err error)
+
+	// Clear the cached language for a project.
+	ClearLanguage(ctx context.Context, projectID int, languageCode string) (err error)
+
+	// Clear all cached languages for a project.
+	ClearProjectLanguage(ctx context.Context, projectID int) (err error)
 }
 
 type ServiceImpl struct {
@@ -44,8 +71,38 @@ func NewService(cli poedit.Client, cache cache.Cache, renewalThreshold time.Dura
 	}
 }
 
-func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*Translation, error) {
-	item, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
+func (s *ServiceImpl) GetProjectMeta(ctx context.Context, projectID int) (project *Project, err error) {
+	res, err := s.Client.ListProjectLanguages(ctx, poedit.ListProjectLanguagesRequest{
+		ID: projectID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	languages := make([]ProjectMetaLanguage, len(res.Result.Languages))
+	for i, l := range res.Result.Languages {
+		languages[i] = ProjectMetaLanguage{
+			Code:       l.Code,
+			Updated:    time.Now(),
+			Percentage: float64(l.Percentage),
+		}
+	}
+
+	return &Project{
+		TTL:      s.Cache.GetTTL(),
+		Checksum: "",
+		Meta: ProjectMeta{
+			Languages: languages,
+		},
+	}, nil
+}
+
+func (s *ServiceImpl) ClearProjectMeta(ctx context.Context, projectID int) error {
+	return errors.New("Not implemented")
+}
+
+func (s *ServiceImpl) GetLanguage(ctx context.Context, projectID int, languageCode, format string) (*Language, error) {
+	item, err := s.Cache.GetLanguage(ctx, projectID, languageCode, format)
 	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
 		return nil, err
 	}
@@ -62,41 +119,57 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 
 				s.Logger.Debugf("Pre-fetching language %s format %s for project %d", languageCode, format, projectID)
 
-				_, _, err := s.fetchAndCacheTranslation(context.Background(), projectID, languageCode, format)
+				_, _, err := s.fetchAndCacheLanguage(context.Background(), projectID, languageCode, format)
 				if err != nil {
 					s.Logger.Errorf("Failed to pre-fetch language %s format %s for project %d", languageCode, format, projectID)
 				}
 			}()
 		}
 
-		return &Translation{
+		return &Language{
 			TTL:      s.Cache.GetTTL(),
 			Checksum: item.Checksum,
 			Data:     item.Data,
 		}, nil
 	}
 
-	data, checksum, err := s.fetchAndCacheTranslation(ctx, projectID, languageCode, format)
+	data, checksum, err := s.fetchAndCacheLanguage(ctx, projectID, languageCode, format)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Translation{
+	return &Language{
 		TTL:      s.Cache.GetTTL(),
 		Checksum: checksum,
 		Data:     data,
 	}, nil
 }
 
-func (s *ServiceImpl) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
+func (s *ServiceImpl) ClearLanguage(ctx context.Context, projectID int, languageCode string) error {
 	return errors.New("Not implemented")
 }
 
-func (s *ServiceImpl) PurgeProject(ctx context.Context, projectID int) error {
+func (s *ServiceImpl) ClearProjectLanguage(ctx context.Context, projectID int) error {
 	return errors.New("Not implemented")
 }
 
-func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
+func (s *ServiceImpl) fetchAndCacheProjectMeta(ctx context.Context, projectID int) (*Project, string, error) {
+	res, err := s.Client.ListProjectLanguages(ctx, poedit.ListProjectLanguagesRequest{
+		ID: projectID,
+	})
+	if err != nil {
+		return nil, "", err
+	}
+
+	checksum, err := s.Cache.SetProjectMeta(ctx, projectID, res)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return res, checksum, nil
+}
+
+func (s *ServiceImpl) fetchAndCacheLanguage(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
 	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
 		ID:       projectID,
 		Language: languageCode,
@@ -123,7 +196,7 @@ func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID in
 		return nil, "", err
 	}
 
-	checksum, err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, data)
+	checksum, err := s.Cache.SetLanguage(ctx, projectID, languageCode, format, data)
 	if err != nil {
 		return nil, "", err
 	}
