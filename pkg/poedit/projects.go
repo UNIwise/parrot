@@ -27,6 +27,9 @@ type ListProjectsResponse struct {
 	} `json:"result"`
 }
 
+// ListProjects returns the list of projects owned by user.
+//
+// https://poeditor.com/docs/api#projects_list
 func (c *ClientImpl) ListProjects(ctx context.Context) (*ListProjectsResponse, error) {
 	req := c.r.R()
 
@@ -75,6 +78,9 @@ type ViewProjectResponse struct {
 	} `json:"result"`
 }
 
+// ViewProject returns project's details.
+//
+// https://poeditor.com/docs/api#projects_view
 func (c *ClientImpl) ViewProject(ctx context.Context, r ViewProjectRequest) (*ViewProjectResponse, error) {
 	req := c.r.R()
 
@@ -128,6 +134,9 @@ type AddProjectResponse struct {
 	} `json:"result"`
 }
 
+// AddProject creates a new project. Returns project details (if successful).
+//
+// https://poeditor.com/docs/api#projects_add
 func (c *ClientImpl) AddProject(ctx context.Context, r AddProjectRequest) (*AddProjectResponse, error) {
 	req := c.r.R()
 
@@ -184,6 +193,10 @@ type UpdateProjectSettingsResponse struct {
 	} `json:"result"`
 }
 
+// UpdateProjectSettings Updates project settings (name, description, reference language)
+// If optional parameters are not sent, their respective fields are not updated.
+//
+// https://poeditor.com/docs/api#projects_update
 func (c *ClientImpl) UpdateProjectSettings(ctx context.Context, r UpdateProjectSettingsRequest) (*UpdateProjectSettingsResponse, error) {
 	req := c.r.R()
 
@@ -227,6 +240,10 @@ type DeleteProjectResponse struct {
 	} `json:"response"`
 }
 
+// DeleteProject Deletes the project from the account.
+// You must be the owner of the project.
+//
+// https://poeditor.com/docs/api#projects_delete
 func (c *ClientImpl) DeleteProject(ctx context.Context, r DeleteProjectRequest) (*DeleteProjectResponse, error) {
 	req := c.r.R()
 
@@ -287,6 +304,11 @@ type UploadProjectResponse struct {
 	} `json:"result"`
 }
 
+// UploadProject Updates terms / translations - No more than one request every 30 seconds.
+//
+// https://poeditor.com/docs/api#projects_upload
+//
+// NOT IMPLEMENTED In this sdk
 func (c *ClientImpl) UploadProject(ctx context.Context, r UploadProjectRequest) (*UploadProjectResponse, error) {
 	return nil, ErrNotImplemented
 }
@@ -319,6 +341,10 @@ type SyncProjectTermsResponse struct {
 	} `json:"result"`
 }
 
+// SyncProjectTerms Syncs your project with the array you send (terms that are not found in the JSON object will be deleted from project and the new ones added).
+// Please use with caution. If wrong data is sent, existing terms and their translations might be irreversibly lost.
+//
+// https://poeditor.com/docs/api#projects_sync
 func (c *ClientImpl) SyncProjectTerms(ctx context.Context, r SyncProjectTermsRequest) (*SyncProjectTermsResponse, error) {
 	req := c.r.R()
 
@@ -374,6 +400,9 @@ type ExportProjectResponse struct {
 	} `json:"result"`
 }
 
+// ExportProject Returns the link of the file (expires after 10 minutes).
+//
+// https://poeditor.com/docs/api#projects_export
 func (c *ClientImpl) ExportProject(ctx context.Context, r ExportProjectRequest) (*ExportProjectResponse, error) {
 	req := c.r.R()
 
