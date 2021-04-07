@@ -6,7 +6,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrFailedToUnmarshalResponse = errors.New("Failed to unmarshal response")
+var (
+	ErrFailedToUnmarshalResponse = errors.New("Failed to unmarshal response")
+	ErrNotImplemented            = errors.New("Method is not implemented")
+)
 
 type ErrProjectPermissionDenied struct {
 	ProjectID int
