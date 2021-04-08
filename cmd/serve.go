@@ -30,9 +30,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/metrics"
-	"github.com/uniwise/parrot/internal/poedit"
 	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/internal/rest"
+	"github.com/uniwise/parrot/pkg/poedit"
 )
 
 const (
@@ -89,7 +89,7 @@ by caching exports from poeditor`,
 
 		port := viper.GetInt(confServerPort)
 
-		logger.Infof("Server listening at :%d", port)
+		logger.Infof("REST server listening at :%d", port)
 		go func() {
 			if err := server.Start(port); err != nil && err != http.ErrServerClosed {
 				logger.Fatal("shutting down server")

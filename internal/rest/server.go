@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	gosundheit "github.com/AppsFlyer/go-sundheit"
+	healthhttp "github.com/AppsFlyer/go-sundheit/http"
 	"github.com/labstack/gommon/random"
+	"github.com/pkg/errors"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -57,12 +60,13 @@ func NewServer(projectService project.Service, entry *logrus.Entry, enablePromet
 	}
 	v1.Register(v1Group)
 
-	// Health endpoint
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(200, map[string]string{
-			"health": "ok",
-		})
-	})
+	h := gosundheit.New()
+
+	if err := projectService.RegisterChecks(h); err != nil {
+		return nil, errors.Wrap(err, "Failed to register healthchecks")
+	}
+
+	e.GET("/health", echo.WrapHandler(healthhttp.HandleHealthJSON(h)))
 
 	return &Server{
 		Echo: e,

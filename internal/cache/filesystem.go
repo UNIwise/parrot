@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"golang.org/x/sys/unix"
 )
 
 type FilesystemCache struct {
@@ -32,7 +33,20 @@ func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, e
 	}, nil
 }
 
-func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
+func (r *FilesystemCache) SetProjectMeta(ctx context.Context, projectID int, meta interface{}) (item *CacheItem, err error) {
+	return nil, errors.New("Not implemented")
+}
+
+func (r *FilesystemCache) GetProjectMeta(ctx context.Context, projectID int) (checksum string, err error) {
+	return "", errors.New("Not implemented")
+
+}
+
+func (r *FilesystemCache) ClearProjectMeta(ctx context.Context, projectID int) (err error) {
+	return errors.New("Not implemented")
+}
+
+func (f *FilesystemCache) GetLanguage(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
 	filePath := f.filePath(projectID, languageCode, format)
 
 	s, err := os.Stat(filePath)
@@ -67,7 +81,7 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 	}, nil
 }
 
-func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
+func (f *FilesystemCache) SetLanguage(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
 	if err := ioutil.WriteFile(
 		f.filePath(projectID, languageCode, format),
 		data,
@@ -90,7 +104,7 @@ func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, lan
 	return hash, nil
 }
 
-func (f *FilesystemCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
+func (f *FilesystemCache) ClearLanguage(ctx context.Context, projectID int, languageCode string) error {
 	prefix := fmt.Sprintf("%d_%s", projectID, languageCode)
 
 	err := f.removeFilesWithPrefix(prefix)
@@ -101,7 +115,7 @@ func (f *FilesystemCache) PurgeTranslation(ctx context.Context, projectID int, l
 	return nil
 }
 
-func (f *FilesystemCache) PurgeProject(ctx context.Context, projectID int) error {
+func (f *FilesystemCache) ClearProjectLanguages(ctx context.Context, projectID int) error {
 	prefix := fmt.Sprintf("%d_", projectID)
 
 	err := f.removeFilesWithPrefix(prefix)
@@ -110,6 +124,14 @@ func (f *FilesystemCache) PurgeProject(ctx context.Context, projectID int) error
 	}
 
 	return nil
+}
+
+func (f *FilesystemCache) GetTTL() time.Duration {
+	return f.ttl
+}
+
+func (f *FilesystemCache) PingContext(ctx context.Context) error {
+	return unix.Access(f.dir, unix.W_OK)
 }
 
 func (f *FilesystemCache) filePath(projectID int, languageCode, format string) string {
@@ -145,8 +167,4 @@ func (f *FilesystemCache) removeFilesWithPrefix(prefix string) error {
 
 		return nil
 	})
-}
-
-func (f *FilesystemCache) GetTTL() time.Duration {
-	return f.ttl
 }

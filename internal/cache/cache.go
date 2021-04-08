@@ -27,4 +27,5 @@ type Cache interface {
 	ClearProjectLanguages(ctx context.Context, projectID int) (err error)
 
 	GetTTL() time.Duration
+	PingContext(ctx context.Context) error
 }

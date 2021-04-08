@@ -7,10 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	gosundheit "github.com/AppsFlyer/go-sundheit"
+	"github.com/AppsFlyer/go-sundheit/checks"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
-	"github.com/uniwise/parrot/internal/poedit"
+	"github.com/uniwise/parrot/pkg/poedit"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -51,6 +53,9 @@ type Service interface {
 
 	// Clear all cached languages for a project.
 	ClearProjectLanguage(ctx context.Context, projectID int) (err error)
+
+	// Go-sundheit
+	RegisterChecks(h gosundheit.Health) (err error)
 }
 
 type ServiceImpl struct {
@@ -79,18 +84,27 @@ func (s *ServiceImpl) GetProjectMeta(ctx context.Context, projectID int) (projec
 		return nil, err
 	}
 
-	languages := make([]ProjectMetaLanguage, len(res.Result.Languages))
-	for i, l := range res.Result.Languages {
-		languages[i] = ProjectMetaLanguage{
-			Code:       l.Code,
-			Updated:    time.Now(),
-			Percentage: float64(l.Percentage),
+	var languages []ProjectMetaLanguage
+	for _, l := range res.Result.Languages {
+		if l.Updated == "" || l.Percentage == 0 {
+			continue
 		}
+
+		t, err := time.Parse(poedit.TimeFormat, l.Updated)
+		if err != nil {
+			return nil, err
+		}
+
+		languages = append(languages, ProjectMetaLanguage{
+			Code:       l.Code,
+			Updated:    t,
+			Percentage: float64(l.Percentage),
+		})
 	}
 
 	return &Project{
 		TTL:      s.Cache.GetTTL(),
-		Checksum: "",
+		Checksum: "asd", // TODO
 		Meta: ProjectMeta{
 			Languages: languages,
 		},
@@ -153,22 +167,6 @@ func (s *ServiceImpl) ClearProjectLanguage(ctx context.Context, projectID int) e
 	return errors.New("Not implemented")
 }
 
-func (s *ServiceImpl) fetchAndCacheProjectMeta(ctx context.Context, projectID int) (*Project, string, error) {
-	res, err := s.Client.ListProjectLanguages(ctx, poedit.ListProjectLanguagesRequest{
-		ID: projectID,
-	})
-	if err != nil {
-		return nil, "", err
-	}
-
-	checksum, err := s.Cache.SetProjectMeta(ctx, projectID, res)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return res, checksum, nil
-}
-
 func (s *ServiceImpl) fetchAndCacheLanguage(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
 	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
 		ID:       projectID,
@@ -202,4 +200,17 @@ func (s *ServiceImpl) fetchAndCacheLanguage(ctx context.Context, projectID int, 
 	}
 
 	return data, checksum, nil
+}
+
+func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
+	c, err := checks.NewPingCheck("cache", s.Cache, time.Second*1)
+	if err != nil {
+		return errors.Wrap(err, "Failed to instantiate cache healthcheck")
+	}
+
+	if err := h.RegisterCheck(&gosundheit.Config{Check: c, ExecutionPeriod: time.Second * 10}); err != nil {
+		return errors.Wrap(err, "Failed to register cache healthcheck")
+	}
+
+	return nil
 }

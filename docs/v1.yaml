@@ -4,6 +4,8 @@ info:
   title: Parrot
   version: 1.0.0
 servers:
+  - url: http://localhost:8100
+    description: Staging server
   - url: https://api.stage.eu.wiseflow.io/i18n
     description: Staging server
   - url: https://api.eu.wiseflow.io/i18n

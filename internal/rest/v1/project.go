@@ -9,7 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
-	"github.com/uniwise/parrot/internal/poedit"
+	"github.com/uniwise/parrot/pkg/poedit"
 )
 
 type getProjectRequest struct {
@@ -116,8 +116,8 @@ func getProjectLanguage(ctx echo.Context) error {
 		format = req.Format
 	}
 
-	content, ok := poedit.ContentMap[format]
-	if !ok {
+	contentMeta, err := poedit.GetContentMeta(format)
+	if err != nil {
 		l.Error("No extension and content type found")
 
 		return echo.ErrBadRequest
@@ -148,8 +148,8 @@ func getProjectLanguage(ctx echo.Context) error {
 
 	c.Response().Header().Add("Etag", lang.Checksum)
 	c.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", lang.TTL.Seconds()))
-	c.Response().Header().Add("Content-Disposition", fmt.Sprintf("filename=%d-%s.%s", req.Project, req.Language, content.Extension))
+	c.Response().Header().Add("Content-Disposition", fmt.Sprintf("filename=%d-%s.%s", req.Project, req.Language, contentMeta.Extension))
 	c.Response().Header().Add("Content-Transfer-Encoding", "8bit")
 
-	return c.Stream(http.StatusOK, content.Type, bytes.NewReader(lang.Data))
+	return c.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(lang.Data))
 }

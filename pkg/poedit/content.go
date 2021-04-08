@@ -1,11 +1,17 @@
 package poedit
 
-type Content struct {
+import "errors"
+
+var (
+	ErrNoExtensionMetaFound = errors.New("No extension meta found for specified format")
+)
+
+type ContentMeta struct {
 	Extension, Type string
 }
 
 var (
-	ContentMap = map[string]Content{
+	ContentMetaMap = map[string]ContentMeta{
 		"pot":             {Extension: "pot", Type: "text/plain; charset=utf-8"},
 		"po":              {Extension: "po", Type: "text/plain; charset=utf-8"},
 		"mo":              {Extension: "mo", Type: "application/octet-stream"},
@@ -29,3 +35,12 @@ var (
 		"rise_360_xliff":  {Extension: "xliff", Type: "application/xml"},
 	}
 )
+
+func GetContentMeta(ext string) (*ContentMeta, error) {
+	m, ok := ContentMetaMap[ext]
+	if !ok {
+		return nil, ErrNoExtensionMetaFound
+	}
+
+	return &m, nil
+}

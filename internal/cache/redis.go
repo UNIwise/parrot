@@ -49,7 +49,19 @@ func NewRedisCache(c *redis.Client, ttl time.Duration) *RedisCache {
 	}
 }
 
-func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
+func (r *RedisCache) SetProjectMeta(ctx context.Context, projectID int, meta interface{}) (item *CacheItem, err error) {
+	return nil, errors.New("Not implemented")
+}
+
+func (r *RedisCache) GetProjectMeta(ctx context.Context, projectID int) (checksum string, err error) {
+	return "", errors.New("Not implemented")
+}
+
+func (r *RedisCache) ClearProjectMeta(ctx context.Context, projectID int) (err error) {
+	return errors.New("Not implemented")
+}
+
+func (r *RedisCache) GetLanguage(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
 	key := r.key(projectID, languageCode, format)
 
 	var item RedisCacheItem
@@ -69,7 +81,7 @@ func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, language
 	}, nil
 }
 
-func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
+func (r *RedisCache) SetLanguage(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
 	key := r.key(projectID, languageCode, format)
 
 	hashBytes := md5.Sum(data)
@@ -92,7 +104,7 @@ func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, language
 	return checksum, nil
 }
 
-func (r *RedisCache) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {
+func (r *RedisCache) ClearLanguage(ctx context.Context, projectID int, languageCode string) error {
 	pattern := fmt.Sprintf("%d:%s:*", projectID, languageCode)
 
 	if err := r.deleteKeysMatching(ctx, pattern); err != nil {
@@ -102,7 +114,7 @@ func (r *RedisCache) PurgeTranslation(ctx context.Context, projectID int, langua
 	return nil
 }
 
-func (r *RedisCache) PurgeProject(ctx context.Context, projectID int) error {
+func (r *RedisCache) ClearProjectLanguages(ctx context.Context, projectID int) error {
 	pattern := fmt.Sprintf("%d:*", projectID)
 
 	if err := r.deleteKeysMatching(ctx, pattern); err != nil {
@@ -110,6 +122,14 @@ func (r *RedisCache) PurgeProject(ctx context.Context, projectID int) error {
 	}
 
 	return nil
+}
+
+func (f *RedisCache) GetTTL() time.Duration {
+	return f.ttl
+}
+
+func (r *RedisCache) PingContext(ctx context.Context) error {
+	return r.c.Ping(ctx).Err()
 }
 
 func (r *RedisCache) key(projectID int, languageCode, format string) string {
@@ -155,8 +175,4 @@ func (r *RedisCache) getKeysMatching(ctx context.Context, pattern string) ([]str
 	}
 
 	return allKeys, nil
-}
-
-func (f *RedisCache) GetTTL() time.Duration {
-	return f.ttl
 }
