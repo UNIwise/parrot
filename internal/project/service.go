@@ -143,7 +143,7 @@ func (s *ServiceImpl) GetLanguage(ctx context.Context, projectID int, languageCo
 		return &Language{
 			TTL:      s.Cache.GetTTL(),
 			Checksum: item.Checksum,
-			Data:     item.Data,
+			Data:     item.Data.([]byte),
 		}, nil
 	}
 

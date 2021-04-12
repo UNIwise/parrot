@@ -33,7 +33,7 @@ func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, e
 	}, nil
 }
 
-func (r *FilesystemCache) SetProjectMeta(ctx context.Context, projectID int, meta interface{}) (item *CacheItem, err error) {
+func (r *FilesystemCache) SetProjectMeta(ctx context.Context, projectID int, meta interface{}) (item *Item, err error) {
 	return nil, errors.New("Not implemented")
 }
 
@@ -46,7 +46,7 @@ func (r *FilesystemCache) ClearProjectMeta(ctx context.Context, projectID int) (
 	return errors.New("Not implemented")
 }
 
-func (f *FilesystemCache) GetLanguage(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
+func (f *FilesystemCache) GetLanguage(ctx context.Context, projectID int, languageCode, format string) (*Item, error) {
 	filePath := f.filePath(projectID, languageCode, format)
 
 	s, err := os.Stat(filePath)
@@ -74,7 +74,7 @@ func (f *FilesystemCache) GetLanguage(ctx context.Context, projectID int, langua
 		return nil, ErrCacheMiss
 	}
 
-	return &CacheItem{
+	return &Item{
 		Checksum:  string(md5),
 		Data:      b,
 		CreatedAt: s.ModTime(),

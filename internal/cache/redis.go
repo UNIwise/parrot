@@ -25,10 +25,10 @@ type RedisCache struct {
 	ttl time.Duration
 }
 
-type RedisCacheItem struct {
+type RedisItem struct {
 	CreatedAt time.Time
 	Checksum  string
-	Data      []byte
+	Data      interface{}
 }
 
 type RedisLogger struct {
@@ -49,8 +49,27 @@ func NewRedisCache(c *redis.Client, ttl time.Duration) *RedisCache {
 	}
 }
 
-func (r *RedisCache) SetProjectMeta(ctx context.Context, projectID int, meta interface{}) (item *CacheItem, err error) {
-	return nil, errors.New("Not implemented")
+func (r *RedisCache) SetProjectMeta(ctx context.Context, projectID int, data interface{}) (checksum string, err error) {
+	key := "todo"
+
+	hashBytes := md5.Sum(data)
+	checksum = hex.EncodeToString(hashBytes[:])
+
+	if err := r.rc.Set(&redisCache.Item{
+		Ctx: ctx,
+		Key: key,
+		TTL: r.ttl,
+		Value: RedisItem{
+			CreatedAt: time.Now(),
+			Checksum:  checksum,
+			Data:      data,
+		},
+		SkipLocalCache: true,
+	}); err != nil {
+		return "", errors.Wrapf(err, "Error while setting cache data for key %s", key)
+	}
+
+	return checksum, nil
 }
 
 func (r *RedisCache) GetProjectMeta(ctx context.Context, projectID int) (checksum string, err error) {
@@ -61,10 +80,10 @@ func (r *RedisCache) ClearProjectMeta(ctx context.Context, projectID int) (err e
 	return errors.New("Not implemented")
 }
 
-func (r *RedisCache) GetLanguage(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
+func (r *RedisCache) GetLanguage(ctx context.Context, projectID int, languageCode, format string) (*Item, error) {
 	key := r.key(projectID, languageCode, format)
 
-	var item RedisCacheItem
+	var item RedisItem
 	err := r.rc.Get(ctx, key, &item)
 	if err != nil {
 		if strings.Contains(err.Error(), "key is missing") {
@@ -74,7 +93,7 @@ func (r *RedisCache) GetLanguage(ctx context.Context, projectID int, languageCod
 		return nil, errors.Wrapf(err, "Could not get cache data for key %s", key)
 	}
 
-	return &CacheItem{
+	return &Item{
 		CreatedAt: item.CreatedAt,
 		Checksum:  item.Checksum,
 		Data:      item.Data,
@@ -91,7 +110,7 @@ func (r *RedisCache) SetLanguage(ctx context.Context, projectID int, languageCod
 		Ctx: ctx,
 		Key: key,
 		TTL: r.ttl,
-		Value: RedisCacheItem{
+		Value: RedisItem{
 			CreatedAt: time.Now(),
 			Checksum:  checksum,
 			Data:      data,
