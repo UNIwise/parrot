@@ -46,7 +46,7 @@ func getProjectLanguage(ctx echo.Context) error {
 
 	contentMeta, err := poedit.GetContentMeta(format)
 	if err != nil {
-		l.Errorf("No content meta found for format %s", format)
+		l.WithError(err).Errorf("No content meta found for format %s", format)
 
 		return echo.ErrBadRequest
 	}
