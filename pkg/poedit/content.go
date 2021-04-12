@@ -36,8 +36,8 @@ var (
 	}
 )
 
-func GetContentMeta(ext string) (*ContentMeta, error) {
-	m, ok := ContentMetaMap[ext]
+func GetContentMeta(format string) (*ContentMeta, error) {
+	m, ok := ContentMetaMap[format]
 	if !ok {
 		return nil, ErrNoExtensionMetaFound
 	}
