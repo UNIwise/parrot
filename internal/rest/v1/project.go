@@ -18,22 +18,21 @@ type getProjectLanguageRequest struct {
 	Format   string `query:"format" validate:"omitempty,oneof=po pot mo xls xlsx csv ini resw resx android_strings apple_strings xliff properties key_value_json json yml xlf xmb xtb arb rise_360_xliff"`
 }
 
-func getProjectLanguage(ctx echo.Context) error {
-	c := ctx.(*Context)
-
+func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 	req := new(getProjectLanguageRequest)
-	if err := c.Bind(req); err != nil {
-		c.Log.WithError(err).Error("Error binding request")
+	if err := ctx.Bind(req); err != nil {
+		l.WithError(err).Error("Error binding request")
 
 		return echo.ErrBadRequest
 	}
 
-	l := c.Log.WithFields(logrus.Fields{
+	l = l.WithFields(logrus.Fields{
 		"project":  req.Project,
 		"language": req.Language,
 		"format":   req.Format,
 	})
-	if err := c.Validate(req); err != nil {
+
+	if err := ctx.Validate(req); err != nil {
 		l.WithError(err).Error("Error validating request")
 
 		return echo.ErrBadRequest
@@ -51,7 +50,7 @@ func getProjectLanguage(ctx echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	trans, err := c.ProjectService.GetTranslation(
+	trans, err := h.ProjectService.GetTranslation(
 		ctx.Request().Context(),
 		req.Project,
 		req.Language,
@@ -74,10 +73,10 @@ func getProjectLanguage(ctx echo.Context) error {
 		}
 	}
 
-	c.Response().Header().Add("Etag", trans.Checksum)
-	c.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", trans.TTL.Seconds()))
-	c.Response().Header().Add("Content-Disposition", fmt.Sprintf("filename=%d-%s.%s", req.Project, req.Language, contentMeta.Extension))
-	c.Response().Header().Add("Content-Transfer-Encoding", "8bit")
+	ctx.Response().Header().Add("Etag", trans.Checksum)
+	ctx.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", trans.TTL.Seconds()))
+	ctx.Response().Header().Add("Content-Disposition", fmt.Sprintf("filename=%d-%s.%s", req.Project, req.Language, contentMeta.Extension))
+	ctx.Response().Header().Add("Content-Transfer-Encoding", "8bit")
 
-	return c.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(trans.Data))
+	return ctx.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(trans.Data))
 }
