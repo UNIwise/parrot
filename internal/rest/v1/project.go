@@ -12,36 +12,6 @@ import (
 	"github.com/uniwise/parrot/pkg/poedit"
 )
 
-type Content struct {
-	Extension, Type string
-}
-
-var (
-	ContentMap = map[string]Content{
-		"pot":             {Extension: "pot", Type: "text/plain; charset=utf-8"},
-		"po":              {Extension: "po", Type: "text/plain; charset=utf-8"},
-		"mo":              {Extension: "mo", Type: "application/octet-stream"},
-		"xls":             {Extension: "xls", Type: "application/vnd.ms-excel"},
-		"xlsx":            {Extension: "xlsx", Type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
-		"csv":             {Extension: "csv", Type: "text/csv; charset=utf-8"},
-		"ini":             {Extension: "ini", Type: "text/plain; charset=utf-8"},
-		"resw":            {Extension: "resw", Type: "application/xml"},
-		"resx":            {Extension: "resx", Type: "application/xml"},
-		"android_strings": {Extension: "xml", Type: "application/xml"},
-		"apple_strings":   {Extension: "strings", Type: "text/plain; charset=utf-8"},
-		"xliff":           {Extension: "xliff", Type: "application/xml"},
-		"properties":      {Extension: "properties", Type: "text/plain; charset=utf-8"},
-		"key_value_json":  {Extension: "json", Type: "application/json"},
-		"json":            {Extension: "json", Type: "application/json"},
-		"yml":             {Extension: "yml", Type: "text/plain; charset=utf-8"},
-		"xlf":             {Extension: "xlf", Type: "application/xml"},
-		"xmb":             {Extension: "xmb", Type: "application/xml"},
-		"xtb":             {Extension: "xtb", Type: "application/xml"},
-		"arb":             {Extension: "arb", Type: "application/json"},
-		"rise_360_xliff":  {Extension: "xliff", Type: "application/xml"},
-	}
-)
-
 type getProjectLanguageRequest struct {
 	Project  int    `param:"project" validate:"required"`
 	Language string `param:"language" validate:"required,languageCode"`
@@ -74,9 +44,9 @@ func getProjectLanguage(ctx echo.Context) error {
 		format = req.Format
 	}
 
-	content, ok := ContentMap[format]
-	if !ok {
-		l.Error("No extension and content type found")
+	contentMeta, err := poedit.GetContentMeta(format)
+	if err != nil {
+		l.Errorf("No content meta found for format %s", format)
 
 		return echo.ErrBadRequest
 	}
@@ -106,8 +76,8 @@ func getProjectLanguage(ctx echo.Context) error {
 
 	c.Response().Header().Add("Etag", trans.Checksum)
 	c.Response().Header().Add("Cache-Control", fmt.Sprintf("max-age=%.0f", trans.TTL.Seconds()))
-	c.Response().Header().Add("Content-Disposition", fmt.Sprintf("filename=%d-%s.%s", req.Project, req.Language, content.Extension))
+	c.Response().Header().Add("Content-Disposition", fmt.Sprintf("filename=%d-%s.%s", req.Project, req.Language, contentMeta.Extension))
 	c.Response().Header().Add("Content-Transfer-Encoding", "8bit")
 
-	return c.Stream(http.StatusOK, content.Type, bytes.NewReader(trans.Data))
+	return c.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(trans.Data))
 }
