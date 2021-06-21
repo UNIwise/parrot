@@ -30,9 +30,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/metrics"
-	"github.com/uniwise/parrot/pkg/poedit"
 	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/internal/rest"
+	"github.com/uniwise/parrot/pkg/poedit"
 )
 
 const (
@@ -82,7 +82,7 @@ by caching exports from poeditor`,
 
 		svc := project.NewService(cli, c, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
 
-		server, err := rest.NewServer(svc, logrus.NewEntry(logger), viper.GetBool(confPrometheusEnabled))
+		server, err := rest.NewServer(logrus.NewEntry(logger), svc, viper.GetBool(confPrometheusEnabled))
 		if err != nil {
 			logger.Fatal(err)
 		}
