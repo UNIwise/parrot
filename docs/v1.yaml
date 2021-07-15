@@ -1,13 +1,30 @@
 openapi: "3.0.0"
+
 info:
-  description: POEditor pull through cache
   title: Parrot
   version: 1.0.0
+  description: POEditor pull through cache
+
 servers:
-  - url: https://api.stage.eu.wiseflow.io/i18n
-    description: Staging server
   - url: https://api.eu.wiseflow.io/i18n
-    description: Production server
+    description: Production
+  - url: https://api.stage.eu.wiseflow.io/i18n
+    description: Staging
+  - url: https://api.test.eu.wiseflow.io/i18n
+    description: Testing
+  - url: "{scheme}://{host}{base}"
+    description: Custom
+    variables:
+      scheme:
+        default: "http"
+        enum:
+          - "http"
+          - "https"
+      host:
+        default: "localhost:8080"
+      base:
+        default: ""
+
 paths:
   /v1/project/{project}/language/{language}:
     parameters:
