@@ -1,6 +1,13 @@
-<img alt="Parrot logo" src="assets/parrot_banner.svg" height="150"/>
 
-Parrot the [POEditor](http://poeditor.com/) pull-through cache.
+<p align="center">
+<img alt="Parrot logo" src="assets/parrot_banner.svg" height="150"/>
+</p>
+
+<p align="center">
+  Parrot the <a href="http://poeditor.com/">POEditor</a> pull-through cache
+</p>
+
+<hr/>
 
 This cache makes it possible to pull app translations directly from [POEditor](http://poeditor.com/) instead of compiling them into your app. This means no more re-builds every time translations are updated!
 
