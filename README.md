@@ -7,6 +7,10 @@
   Parrot the <a href="http://poeditor.com/">POEditor</a> pull-through cache
 </p>
 
+<p align="center">
+  <a href="https://github.com/UNIwise/parrot/releases/latest"><img src="https://img.shields.io/github/v/release/UNIwise/parrot"></a>
+</p>
+
 <hr/>
 
 This cache makes it possible to pull app translations directly from [POEditor](http://poeditor.com/) instead of compiling them into your app. This means no more re-builds every time translations are updated!
