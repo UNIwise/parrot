@@ -135,12 +135,12 @@ func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID in
 }
 
 func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
-	c, err := checks.NewPingCheck("cache", s.Cache, time.Second*1)
+	c, err := checks.NewPingCheck("cache", s.Cache)
 	if err != nil {
 		return errors.Wrap(err, "Failed to instantiate cache healthcheck")
 	}
 
-	if err := h.RegisterCheck(&gosundheit.Config{Check: c, ExecutionPeriod: time.Second * 10}); err != nil {
+	if err := h.RegisterCheck(c, gosundheit.ExecutionPeriod(time.Second*10)); err != nil {
 		return errors.Wrap(err, "Failed to register cache healthcheck")
 	}
 
