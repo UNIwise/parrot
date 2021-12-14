@@ -23,10 +23,6 @@ This cache makes it possible to pull app translations directly from [POEditor](h
 -   **OpenAPI**: The Parrot API has been documented in OpenAPI specification which can be found in the [doc/](/docs) directory.
 -  **Easy deployment**: A docker image and helm chart is provided.
 
-# Deployment
-
-_TODO_
-
 # Configuration
 
 The server can be configured with a yaml configuration file specified with the `--config` option. Every configuration can be overridden with an environment variable, where dots are replaced by underscores, such that `API_TOKEN=xxx` will set the `api.token` value
