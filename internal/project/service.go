@@ -2,10 +2,9 @@ package project
 
 import (
 	"context"
-	"time"
-
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	gosundheit "github.com/AppsFlyer/go-sundheit"
 	"github.com/AppsFlyer/go-sundheit/checks"

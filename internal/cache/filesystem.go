@@ -22,7 +22,7 @@ type FilesystemCache struct {
 }
 
 func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, error) {
-	err := os.MkdirAll(cacheDir, 0777)
+	err := os.MkdirAll(cacheDir, 0o777)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create cache directory")
 	}
@@ -36,7 +36,7 @@ func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, e
 func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
 	filePath := f.filePath(projectID, languageCode, format)
 
-	s, err := os.Stat(filePath)
+	info, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		return nil, ErrCacheMiss
 	}
@@ -44,7 +44,7 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 		return nil, errors.Wrap(err, "Failed to get cached file state from OS")
 	}
 
-	if time.Since(s.ModTime()) > f.ttl {
+	if time.Since(info.ModTime()) > f.ttl {
 		return nil, ErrCacheMiss
 	}
 
@@ -64,7 +64,7 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 	return &CacheItem{
 		Checksum:  string(md5),
 		Data:      b,
-		CreatedAt: s.ModTime(),
+		CreatedAt: info.ModTime(),
 	}, nil
 }
 

@@ -1,0 +1,13 @@
+linters:
+  enable-all: true
+  disable:
+    - wsl
+    - gochecknoglobals
+    - exhaustivestruct
+    - wrapcheck
+
+    # Deprecated
+    - scopelint
+    - golint
+    - maligned
+    - interfacer
