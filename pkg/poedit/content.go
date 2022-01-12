@@ -2,7 +2,7 @@ package poedit
 
 import "errors"
 
-var ErrNoExtensionMetaFound = errors.New("No extension meta found for specified format")
+var ErrNoExtensionMetaFound = errors.New("no extension meta found for specified format")
 
 type ContentMeta struct {
 	Extension, Type string

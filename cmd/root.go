@@ -54,6 +54,7 @@ func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 }
 
+// nolint:gochecknoinits
 func init() {
 	cobra.OnInitialize(initConfig)
 

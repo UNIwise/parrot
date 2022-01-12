@@ -10,9 +10,8 @@ import (
 
 	redisCache "github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
-	"github.com/sirupsen/logrus"
-
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -157,8 +156,8 @@ func (r *RedisCache) getKeysMatching(ctx context.Context, pattern string) ([]str
 	return allKeys, nil
 }
 
-func (f *RedisCache) GetTTL() time.Duration {
-	return f.ttl
+func (r *RedisCache) GetTTL() time.Duration {
+	return r.ttl
 }
 
 func (r *RedisCache) PingContext(ctx context.Context) error {

@@ -22,6 +22,7 @@ func NewClient(apiToken string, httpClient *http.Client) *ClientImpl {
 	r := resty.NewWithClient(httpClient)
 	r.FormData.Add("api_token", apiToken)
 	r.SetHostURL("https://api.poeditor.com")
+
 	return &ClientImpl{
 		r: r,
 	}

@@ -58,6 +58,7 @@ type ViewProjectRequest struct {
 	ID int
 }
 
+// ViewProjectResponse is the response as it is resturned by the poeditor api.
 type ViewProjectResponse struct {
 	Response struct {
 		Status  string `json:"status"`
@@ -71,7 +72,7 @@ type ViewProjectResponse struct {
 			Description       string `json:"description"`
 			Public            int64  `json:"public"`
 			Open              int64  `json:"open"`
-			ReferenceLanguage string `json:"reference_language"`
+			ReferenceLanguage string `json:"reference_language"` // nolint:tagliatelle
 			Terms             int64  `json:"terms"`
 			Created           string `json:"created"`
 		} `json:"project"`

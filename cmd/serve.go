@@ -54,13 +54,13 @@ const (
 	confCacheRedisDB               = "cache.redis.db"
 	confCacheRedisSentinelMaster   = "cache.redis.sentinel.master"
 	confCacheRedisSentinelAddress  = "cache.redis.sentinel.addresses"
-	confCacheRedisSentinelPassword = "cache.redis.sentinel.password"
+	confCacheRedisSentinelPassword = "cache.redis.sentinel.password" //nolint:gosec
 
 	confPrometheusEnabled = "prometheus.enabled"
 	confPrometheusPath    = "prometheus.path"
 	confPrometheusPort    = "prometheus.port"
 
-	confApiToken = "api.token"
+	confAPIToken = "api.token"
 )
 
 // serveCmd represents the serve command
@@ -73,14 +73,14 @@ by caching exports from poeditor`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := instantiateLogger()
 
-		c, err := instantiateCache(logger.WithField("subsystem", "cache"))
+		cacheInstance, err := instantiateCache(logger.WithField("subsystem", "cache"))
 		if err != nil {
 			logger.Fatal(err)
 		}
 
-		cli := poedit.NewClient(viper.GetString(confApiToken), http.DefaultClient)
+		cli := poedit.NewClient(viper.GetString(confAPIToken), http.DefaultClient)
 
-		svc := project.NewService(cli, c, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
+		svc := project.NewService(cli, cacheInstance, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
 
 		server, err := rest.NewServer(logrus.NewEntry(logger), svc, viper.GetBool(confPrometheusEnabled))
 		if err != nil {
@@ -91,7 +91,7 @@ by caching exports from poeditor`,
 
 		logger.Infof("Server listening at :%d", port)
 		go func() {
-			if err := server.Start(port); err != nil && err != http.ErrServerClosed {
+			if err := server.Start(port); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				logger.Fatal("shutting down server")
 			}
 		}()
@@ -114,6 +114,7 @@ by caching exports from poeditor`,
 	},
 }
 
+// nolint:gochecknoinits
 func init() {
 	cDir, err := os.UserCacheDir()
 	if err != nil {
