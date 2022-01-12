@@ -25,7 +25,6 @@ func Register(e *echo.Echo, l *logrus.Entry, projectService project.Service, ena
 	}
 
 	g.GET("/project/:project/language/:language", wrap(h.getProjectLanguage, l))
-
 }
 
 func wrap(fn HandlerFunction, logger *logrus.Entry) echo.HandlerFunc {

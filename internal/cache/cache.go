@@ -6,9 +6,7 @@ import (
 	"time"
 )
 
-var (
-	ErrCacheMiss = errors.New("Cache miss")
-)
+var ErrCacheMiss = errors.New("Cache miss")
 
 type CacheItem struct {
 	CreatedAt time.Time

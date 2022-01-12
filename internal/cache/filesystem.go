@@ -22,7 +22,7 @@ type FilesystemCache struct {
 }
 
 func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, error) {
-	err := os.MkdirAll(cacheDir, 0777)
+	err := os.MkdirAll(cacheDir, 0o777)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create cache directory")
 	}
