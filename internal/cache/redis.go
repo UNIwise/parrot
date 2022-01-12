@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -49,8 +50,8 @@ func NewRedisCache(c *redis.Client, ttl time.Duration) *RedisCache {
 	}
 }
 
-func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
-	key := r.key(projectID, languageCode, format)
+func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string, tags []string) (*CacheItem, error) {
+	key := r.key(projectID, languageCode, format, tags)
 
 	var item RedisCacheItem
 	err := r.rc.Get(ctx, key, &item)
@@ -69,8 +70,8 @@ func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, language
 	}, nil
 }
 
-func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
-	key := r.key(projectID, languageCode, format)
+func (r *RedisCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, tags []string, data []byte) (string, error) {
+	key := r.key(projectID, languageCode, format, tags)
 
 	hashBytes := md5.Sum(data)
 	checksum := hex.EncodeToString(hashBytes[:])
@@ -112,8 +113,12 @@ func (r *RedisCache) PurgeProject(ctx context.Context, projectID int) error {
 	return nil
 }
 
-func (r *RedisCache) key(projectID int, languageCode, format string) string {
-	return fmt.Sprintf("%d:%s:%s", projectID, languageCode, format)
+func (r *RedisCache) key(projectID int, languageCode, format string, tags []string) string {
+	if len(tags) == 0 {
+		return fmt.Sprintf("%d:%s:%s", projectID, languageCode, format)
+	}
+	sort.Strings(tags)
+	return fmt.Sprintf("%d:%s:%s:%s", projectID, languageCode, format, strings.Join(tags, "_"))
 }
 
 func (r *RedisCache) deleteKeysMatching(ctx context.Context, pattern string) error {

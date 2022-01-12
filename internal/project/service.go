@@ -23,7 +23,7 @@ type Translation struct {
 }
 
 type Service interface {
-	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (trans *Translation, err error)
+	GetTranslation(ctx context.Context, projectID int, languageCode, format string, ) (trans *Translation, err error)
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
@@ -47,8 +47,8 @@ func NewService(cli poedit.Client, cache cache.Cache, renewalThreshold time.Dura
 	}
 }
 
-func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*Translation, error) {
-	item, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
+func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string, tags []string) (*Translation, error) {
+	item, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format, tags)
 	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 
 				s.Logger.Debugf("Pre-fetching language %s format %s for project %d", languageCode, format, projectID)
 
-				_, _, err := s.fetchAndCacheTranslation(context.Background(), projectID, languageCode, format)
+				_, _, err := s.fetchAndCacheTranslation(context.Background(), projectID, languageCode, format, tags)
 				if err != nil {
 					s.Logger.Errorf("Failed to pre-fetch language %s format %s for project %d", languageCode, format, projectID)
 				}
@@ -79,7 +79,7 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 		}, nil
 	}
 
-	data, checksum, err := s.fetchAndCacheTranslation(ctx, projectID, languageCode, format)
+	data, checksum, err := s.fetchAndCacheTranslation(ctx, projectID, languageCode, format, tags)
 	if err != nil {
 		return nil, err
 	}
@@ -99,12 +99,13 @@ func (s *ServiceImpl) PurgeProject(ctx context.Context, projectID int) error {
 	return errors.New("Not implemented")
 }
 
-func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
+func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID int, languageCode, format string, tags []string) ([]byte, string, error) {
 	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
 		ID:       projectID,
 		Language: languageCode,
 		Type:     format,
 		Filters:  []string{"translated"},
+		Tags:     tags,
 	})
 	if err != nil {
 		return nil, "", err
@@ -126,7 +127,7 @@ func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID in
 		return nil, "", err
 	}
 
-	checksum, err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, data)
+	checksum, err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, tags, data)
 	if err != nil {
 		return nil, "", err
 	}
