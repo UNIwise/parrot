@@ -35,4 +35,5 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: latest
-          repo-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          only-new-issues: true
