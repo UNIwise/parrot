@@ -95,7 +95,7 @@ func (c *CachedClientImpl) GetTranslation(ctx context.Context, language string) 
 		// Handle 200 OK by storing the response in the cache
 		data, ok := resp.Result().(*response)
 		if !ok || data == nil {
-			return nil, errors.Errorf("Failed to parse response: '%s'", data)
+			return nil, errors.Errorf("Failed to parse response: '%s'", resp.Body())
 		}
 		result := mapResponse(*data)
 		c.cache[key] = cacheItem{
