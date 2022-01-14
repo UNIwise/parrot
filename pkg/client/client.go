@@ -15,6 +15,8 @@ import (
 type Client interface {
 	// GetTranslation returns a map of terms for the given language.
 	GetTranslation(ctx context.Context, language string) (map[string]string, error)
+	// GetTerm returns a specific term for a given language.
+	GetTerm(ctx context.Context, language, term string) (string, error)
 }
 
 // CachedClientImpl is a client that caches translations in memory.
@@ -48,6 +50,21 @@ type cacheItem struct {
 type response []struct {
 	Term       string `json:"term"`
 	Definition string `json:"definition"`
+}
+
+// GetTerm returns a specific term for a given language.
+func (c *CachedClientImpl) GetTerm(ctx context.Context, language, term string) (string, error) {
+	translation, err := c.GetTranslation(ctx, language)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to fetch translation")
+	}
+
+	term, ok := translation[term]
+	if !ok {
+		return "", errors.Errorf("Term '%s' not found in translation for language '%s'", term, language)
+	}
+
+	return term, nil
 }
 
 // GetTranslation returns a map of terms for the given language. It will return cached data
