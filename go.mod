@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/cache/v8 v8.4.3
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/golang/mock v1.6.0
 	github.com/johngb/langreg v0.0.0-20150123211413-5c6abc6d19d2
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.6.1
