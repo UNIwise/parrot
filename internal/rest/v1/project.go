@@ -60,6 +60,12 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 		return echo.NewHTTPError(499, "client closed request")
 	}
 
+	if ctx.Request() == nil {
+		l.Error("Request is nil")
+
+		return errors.New("request is nil")
+	}
+
 	if ctx.Request().Header.Get("If-None-Match") == trans.Checksum {
 		return ctx.NoContent(http.StatusNotModified)
 	}
