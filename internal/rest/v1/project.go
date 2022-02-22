@@ -60,16 +60,6 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 		return echo.NewHTTPError(499, "client closed request")
 	}
 
-	if ctx.Request() == nil {
-		l.Error("Request is nil")
-
-		return errors.New("request is nil")
-	}
-
-	if ctx.Request().Header.Get("If-None-Match") == trans.Checksum {
-		return ctx.NoContent(http.StatusNotModified)
-	}
-
 	if err != nil {
 		switch err.(type) {
 		case *poedit.ErrProjectPermissionDenied:
@@ -81,6 +71,16 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 
 			return echo.ErrInternalServerError
 		}
+	}
+
+	if ctx.Request() == nil {
+		l.Error("Request is nil")
+
+		return errors.New("request is nil")
+	}
+
+	if ctx.Request().Header.Get("If-None-Match") == trans.Checksum {
+		return ctx.NoContent(http.StatusNotModified)
 	}
 
 	ctx.Response().Header().Add("Etag", trans.Checksum)
