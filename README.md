@@ -10,6 +10,10 @@
 <p align="center">
   <a href="https://github.com/UNIwise/parrot/releases/latest"><img src="https://img.shields.io/github/v/release/UNIwise/parrot"></a>
 </p>
+<p align="center">
+  <img src="https://api.stage.eu.wiseflow.io/badges/v1/namespace/parrot/deployment/parrot?text=stage">
+  <img src="https://api.eu.wiseflow.io/badges/v1/namespace/parrot/deployment/parrot?text=prod">
+</p>
 
 <hr/>
 
