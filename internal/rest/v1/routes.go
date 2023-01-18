@@ -21,7 +21,12 @@ func Register(e *echo.Echo, l *logrus.Entry, projectService project.Service, ena
 	g := e.Group("/v1")
 
 	if enablePrometheus {
-		g.Use(eprom.Prometheus())
+		prom, err := eprom.Prometheus()
+		if err != nil {
+			l.WithError(err).Fatal("failed to create prometheus middleware")
+		}
+
+		g.Use(prom)
 	}
 
 	g.GET("/project/:project/language/:language", wrap(h.getProjectLanguage, l))
