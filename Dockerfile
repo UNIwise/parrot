@@ -1,7 +1,7 @@
 ############################
 # STEP 1 build base
 ############################
-FROM golang:1.16-alpine3.13 as build-base
+FROM golang:1.19-alpine3.17 as build-base
 RUN apk add --update --no-cache git ca-certificates build-base
 WORKDIR /build
 ENV GO111MODULE=on
@@ -12,7 +12,7 @@ RUN go mod download -x
 ############################
 # STEP 2 image base
 ############################
-FROM alpine:3.13 as image-base
+FROM alpine:3.17 as image-base
 WORKDIR /app
 COPY --from=build-base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 ENTRYPOINT ["/app/parrot", "serve"]
