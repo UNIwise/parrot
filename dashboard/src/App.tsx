@@ -4,9 +4,11 @@ import { CssVarsProvider } from '@mui/joy/styles';
 import Typography from '@mui/joy/Typography';
 
 import Header from './components/Header';
-import OrderTable from './components/ProjectsTable';
 
-export default function JoyOrderDashboardTemplate() {
+import { FC } from 'react';
+import ProjectsOverview from './views/ProjectsOverview';
+
+export const Parrot: FC = () => {
     return (
         <CssVarsProvider disableTransitionOnChange>
             <CssBaseline />
@@ -47,9 +49,9 @@ export default function JoyOrderDashboardTemplate() {
                             Orders
                         </Typography>
                     </Box>
-                    <OrderTable />
+                    <ProjectsOverview />
                 </Box>
             </Box>
         </CssVarsProvider>
     );
-}
+};

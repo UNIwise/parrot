@@ -1,23 +1,36 @@
-import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
-import { Divider, Dropdown, IconButton, Menu, MenuButton, MenuItem } from '@mui/joy';
+import { Delete } from '@mui/icons-material';
+import { Typography } from '@mui/joy';
+import { FC } from 'react';
+import { Project } from '../../../../interfaces/projects';
 
-export const RowMenu = () => {
+interface ProjectTableRowProps {
+    projectInfo: Project;
+}
+
+export const ProjectTableRow: FC<ProjectTableRowProps> = ({ projectInfo }) => {
+    const formatIsoDateToLocaleString = (isoDate: string) => {
+        return new Date(isoDate).toLocaleString();
+    };
+
+    const createdAtDate = formatIsoDateToLocaleString(projectInfo.createdAt);
+
     return (
-        <Dropdown>
-            <MenuButton
-                slots={{ root: IconButton }}
-                slotProps={{ root: { variant: 'plain', color: 'neutral', size: 'sm' } }}
-            >
-                <MoreHorizRoundedIcon />
-            </MenuButton>
+        <tr>
+            <td style={{ paddingLeft: '1.5rem' }}>
+                <Typography level="body-xs">{projectInfo.name}</Typography>
+            </td>
 
-            <Menu size="sm" sx={{ minWidth: 140 }}>
-                <MenuItem>Edit</MenuItem>
-                <MenuItem>Rename</MenuItem>
-                <MenuItem>Move</MenuItem>
-                <Divider />
-                <MenuItem color="danger">Delete</MenuItem>
-            </Menu>
-        </Dropdown>
+            <td style={{ paddingLeft: '0.5rem' }}>
+                <Typography level="body-xs">{projectInfo.numberOfVersions}</Typography>
+            </td>
+
+            <td style={{ paddingLeft: '0.5rem' }}>
+                <Typography level="body-xs">{createdAtDate}</Typography>
+            </td>
+
+            <td style={{ textAlign: 'end', padding: '0.5rem 5rem', verticalAlign: 'center' }}>
+                <Delete />
+            </td>
+        </tr>
     );
 };

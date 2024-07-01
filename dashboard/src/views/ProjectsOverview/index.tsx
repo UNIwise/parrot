@@ -1,5 +1,13 @@
+import ProjectsOverviewTable from './components/Table';
+import PaginationSection from './components/Table/PaginationSection';
+
 const ProjectsOverview = () => {
-    return <div>ProjectsOverview</div>;
+    return (
+        <>
+            <ProjectsOverviewTable />
+            <PaginationSection />
+        </>
+    );
 };
 
 export default ProjectsOverview;

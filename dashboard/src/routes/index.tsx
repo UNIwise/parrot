@@ -1,14 +1,14 @@
 import { Route, Routes as RouterRoutes } from 'react-router-dom';
 import ProjectsOverview from '../views/ProjectsOverview';
-import VersionOverview from '../views/VersionOverview';
+import VersionsOverview from '../views/VersionsOverview';
 import { Frame } from './Frame';
 
 const Routes: React.FC = () => {
     return (
         <RouterRoutes>
-            <Route path="he" element={<Frame />}>
+            <Route element={<Frame />}>
                 <Route path="projects" element={<ProjectsOverview />}>
-                    <Route path="/:projectId/version/:versionId" element={<VersionOverview />} />
+                    <Route path=":projectId/versions" element={<VersionsOverview />} />
                 </Route>
             </Route>
         </RouterRoutes>

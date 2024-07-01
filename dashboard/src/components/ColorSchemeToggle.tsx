@@ -35,8 +35,8 @@ export default function ColorSchemeToggle(props: IconButtonProps) {
             }}
             sx={[
                 mode === 'dark'
-                    ? { '& > *:first-child': { display: 'none' } }
-                    : { '& > *:first-child': { display: 'initial' } },
+                    ? { '& > *:first-of-type': { display: 'none' } }
+                    : { '& > *:first-of-type': { display: 'initial' } },
                 mode === 'light'
                     ? { '& > *:last-child': { display: 'none' } }
                     : { '& > *:last-child': { display: 'initial' } },
