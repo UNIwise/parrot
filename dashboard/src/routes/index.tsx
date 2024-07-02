@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { Route, Routes as RouterRoutes } from 'react-router-dom';
 import ProjectsOverview from '../views/ProjectsOverview';
-import VersionOverview from '../views/VersionOverview';
+import VersionsOverview from '../views/ProjectsOverview/VersionsOverview';
 import { Frame } from './Frame';
 
 const Routes: FC = () => {
@@ -9,7 +9,7 @@ const Routes: FC = () => {
         <RouterRoutes>
             <Route path="he" element={<Frame />}>
                 <Route path="projects" element={<ProjectsOverview />}>
-                    <Route path="/:projectId/version/:versionId" element={<VersionOverview />} />
+                    <Route path="/:projectId/version/:versionId" element={<VersionsOverview />} />
                 </Route>
             </Route>
         </RouterRoutes>

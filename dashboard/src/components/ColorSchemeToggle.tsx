@@ -10,7 +10,7 @@ enum colorMode {
     DARK = 'dark',
 }
 
-export default function ColorSchemeToggle(props: IconButtonProps) {
+export const ColorSchemeToggle = (props: IconButtonProps) => {
     const { onClick, sx, ...other } = props;
     const { mode, setMode } = useColorScheme();
     const [mounted, setMounted] = useState(false);

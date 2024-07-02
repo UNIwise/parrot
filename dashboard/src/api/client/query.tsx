@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { FC, ReactNode } from 'react';
 import { toast } from 'react-toastify';
 
-export interface GeneralAPIResponse {
+interface GeneralAPIResponse {
     error?: {
         code: number;
         message: string;
