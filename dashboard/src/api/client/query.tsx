@@ -1,10 +1,10 @@
 import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { StatusCodes } from 'http-status-codes';
-import React from 'react';
+import { FC, ReactNode } from 'react';
 import { toast } from 'react-toastify';
 
-export interface GeneralAPIResponse {
+interface GeneralAPIResponse {
     error?: {
         code: number;
         message: string;
@@ -48,9 +48,8 @@ const queryClient = new QueryClient({
     }),
 });
 
-
 // TODO: definitely not the way to o it(children) but will figure out later
-const ReactQueryClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ReactQueryClientProvider: FC<{ children: ReactNode }> = ({ children }) => {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 };
 
