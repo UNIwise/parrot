@@ -6,7 +6,7 @@ import Typography from '@mui/joy/Typography';
 import Header from './components/Header';
 import OrderTable from './components/ProjectsTable';
 
-export default function JoyOrderDashboardTemplate() {
+export const JoyOrderDashboardTemplate = () => {
     return (
         <CssVarsProvider disableTransitionOnChange>
             <CssBaseline />
@@ -52,4 +52,4 @@ export default function JoyOrderDashboardTemplate() {
             </Box>
         </CssVarsProvider>
     );
-}
+};

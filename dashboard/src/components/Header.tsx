@@ -1,6 +1,6 @@
 import { Sheet, Typography } from '@mui/joy';
 import { FC } from 'react';
-import ColorSchemeToggle from './ColorSchemeToggle';
+import { ColorSchemeToggle } from './ColorSchemeToggle';
 
 const Header: FC = () => {
     return (
