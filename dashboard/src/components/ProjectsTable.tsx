@@ -16,7 +16,6 @@ import Sheet from '@mui/joy/Sheet';
 import { ColorPaletteProp } from '@mui/joy/styles';
 import Table from '@mui/joy/Table';
 import Typography from '@mui/joy/Typography';
-import * as React from 'react';
 
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
@@ -26,6 +25,7 @@ import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
 import SearchIcon from '@mui/icons-material/Search';
+import { useState } from 'react';
 
 const rows = [
     {
@@ -252,10 +252,10 @@ function RowMenu() {
     );
 }
 export default function OrderTable() {
-    const [order, setOrder] = React.useState<Order>('desc');
+    const [order, setOrder] = useState<Order>('desc');
 
     return (
-        <React.Fragment>
+        <>
             <Box
                 className="SearchAndFilters-tabletUp"
                 sx={{
@@ -414,6 +414,6 @@ export default function OrderTable() {
                     Next
                 </Button>
             </Box>
-        </React.Fragment>
+        </>
     );
 }

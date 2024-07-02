@@ -1,9 +1,10 @@
+import { FC } from 'react';
 import { Route, Routes as RouterRoutes } from 'react-router-dom';
 import ProjectsOverview from '../views/ProjectsOverview';
 import VersionOverview from '../views/VersionOverview';
 import { Frame } from './Frame';
 
-const Routes: React.FC = () => {
+const Routes: FC = () => {
     return (
         <RouterRoutes>
             <Route path="he" element={<Frame />}>
