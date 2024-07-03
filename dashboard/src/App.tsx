@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import Box from '@mui/joy/Box';
+import CssBaseline from '@mui/joy/CssBaseline';
+import { CssVarsProvider } from '@mui/joy/styles';
+import Typography from '@mui/joy/Typography';
 
-function App() {
-  const [count, setCount] = useState(0)
+import Header from './components/Header';
+import OrderTable from './components/ProjectsTable';
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+export const JoyOrderDashboardTemplate = () => {
+    return (
+        <CssVarsProvider disableTransitionOnChange>
+            <CssBaseline />
+            <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
+                <Box
+                    component="main"
+                    className="MainContent"
+                    sx={{
+                        px: { xs: 2, md: 10 },
+                        pt: {
+                            xs: 'calc(12px + var(--Header-height))',
+                            sm: 'calc(12px + var(--Header-height))',
+                            md: 3,
+                        },
+                        pb: { xs: 2, sm: 2, md: 3 },
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        minWidth: 0,
+                        height: '100dvh',
+                        gap: 1,
+                    }}
+                >
+                    <Header />
 
-export default App
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            mb: 1,
+                            gap: 1,
+                            flexDirection: { xs: 'column', sm: 'row' },
+                            alignItems: { xs: 'start', sm: 'center' },
+                            flexWrap: 'wrap',
+                            justifyContent: 'space-between',
+                        }}
+                    >
+                        <Typography level="h2" component="h1">
+                            Orders
+                        </Typography>
+                    </Box>
+                    <OrderTable />
+                </Box>
+            </Box>
+        </CssVarsProvider>
+    );
+};
