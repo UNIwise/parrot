@@ -5,6 +5,7 @@ import { getProjectsResponse } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components/Row";
 import { PaginationSection } from "./components/PaginationSection/PaginationSection";
 import SearchIcon from '@mui/icons-material/Search';
+import { ENV } from "../../constants/env";
 
 
 export const ProjectsOverview = () => {
@@ -14,6 +15,8 @@ export const ProjectsOverview = () => {
   const [projectsList, setProjectsList] = useState<getProjectsResponse>(
     mockedProjectsResponse,
   );
+
+  console.log(ENV, 'ENV');
 
   useEffect(() => {
     if (searchBar === "") {
