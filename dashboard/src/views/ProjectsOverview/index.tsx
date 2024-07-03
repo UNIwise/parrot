@@ -1,7 +1,8 @@
 import { ProjectsOverviewTable } from "./components/Table";
-import PaginationSection from "./components/Table/PaginationSection";
+import { PaginationSection } from "./components/Table/PaginationSection";
 
-const ProjectsOverview = () => {
+
+export const ProjectsOverview = () => {
   return (
     <>
       <ProjectsOverviewTable />
@@ -10,4 +11,3 @@ const ProjectsOverview = () => {
   );
 };
 
-export default ProjectsOverview;

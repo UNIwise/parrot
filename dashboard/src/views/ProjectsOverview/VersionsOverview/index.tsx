@@ -1,5 +1,5 @@
-const VersionsOverview = () => {
+export const VersionsOverview = () => {
   return <div>VersionsOverview</div>;
 };
 
-export default VersionsOverview;
+

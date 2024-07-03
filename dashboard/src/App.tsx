@@ -2,11 +2,10 @@ import Box from "@mui/joy/Box";
 import CssBaseline from "@mui/joy/CssBaseline";
 import { CssVarsProvider } from "@mui/joy/styles";
 import Typography from "@mui/joy/Typography";
-
-import Header from "./components/Header";
-
 import { FC } from "react";
-import ProjectsOverview from "./views/ProjectsOverview";
+import { Header } from "./components/Header";
+import { ProjectsOverview } from "./views/ProjectsOverview";
+
 
 export const Parrot: FC = () => {
   return (

@@ -2,7 +2,7 @@ import { Sheet, Typography } from "@mui/joy";
 import { FC } from "react";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 
-const Header: FC = () => {
+export const Header: FC = () => {
   return (
     <Sheet
       component="header"
@@ -39,5 +39,3 @@ const Header: FC = () => {
     </Sheet>
   );
 };
-
-export default Header;
