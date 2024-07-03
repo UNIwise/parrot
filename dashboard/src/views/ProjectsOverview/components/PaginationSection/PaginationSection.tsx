@@ -38,6 +38,7 @@ export const PaginationSection = () => {
         </IconButton>
       ))}
       <Box sx={{ flex: 1 }} />
+
       <Button
         size="sm"
         variant="outlined"
