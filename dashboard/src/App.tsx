@@ -45,7 +45,7 @@ export const Parrot: FC = () => {
             }}
           >
             <Typography level="h2" component="h1">
-              Orders
+              Projects
             </Typography>
           </Box>
           <ProjectsOverview />
