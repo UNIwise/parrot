@@ -1,6 +1,6 @@
 import { Box, FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
 import { useEffect, useState } from "react";
-import { mockedProjectsResponse } from "../../API/mocks/projects.mock";
+import { mockedProjectsResponse } from "../../api/mocks/projects.mock";
 import { getProjectsResponse } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components/Row";
 import { PaginationSection } from "./components/PaginationSection/PaginationSection";

@@ -4,7 +4,7 @@ import { CssVarsProvider } from "@mui/joy/styles";
 import Typography from "@mui/joy/Typography";
 import { FC } from "react";
 import { Header } from "./components/Header";
-import { ProjectsOverview } from "./views/ProjectsOverview";
+import { ProjectsOverview } from "./views/Projects";
 
 
 export const Parrot: FC = () => {

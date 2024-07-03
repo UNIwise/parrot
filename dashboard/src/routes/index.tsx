@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Route, Routes as RouterRoutes } from "react-router-dom";
-import { ProjectsOverview } from "../views/ProjectsOverview";
-import { VersionsOverview } from "../views/ProjectsOverview/VersionsOverview";
+import { ProjectsOverview } from "../views/Projects";
+import { VersionsOverview } from "../views/Projects/Versions";
 import { Frame } from "./Frame";
 
 const Routes: FC = () => {
