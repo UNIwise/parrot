@@ -1,9 +1,9 @@
 export interface GetVersionsResponse {
-    versions: Version[];
+  versions: Version[];
 }
 
 export interface Version {
-    id: number;
-    name: string;
-    createdAt: string; // ISO 8601
+  id: number;
+  name: string;
+  createdAt: string; // ISO 8601
 }
