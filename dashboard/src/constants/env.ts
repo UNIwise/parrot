@@ -26,19 +26,19 @@ const ENV: Environment = {
 
 // eslint-disable-next-line
 const covertToType = (value: any) => {
-  if (value === 'true') {
+  if (value === "true") {
     return true;
   }
 
-  if (value === 'false') {
+  if (value === "false") {
     return false;
   }
 
-  if (value === 'null') {
+  if (value === "null") {
     return null;
   }
 
-  if (value === 'undefined') {
+  if (value === "undefined") {
     return undefined;
   }
 

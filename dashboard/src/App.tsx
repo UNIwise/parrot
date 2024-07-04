@@ -6,7 +6,6 @@ import { FC } from "react";
 import { Header } from "./components/Header";
 import { ProjectsOverview } from "./views/Projects";
 
-
 export const Parrot: FC = () => {
   return (
     <CssVarsProvider disableTransitionOnChange>

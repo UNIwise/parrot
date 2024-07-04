@@ -1,12 +1,10 @@
+import SearchIcon from "@mui/icons-material/Search";
 import { Box, FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { mockedProjectsResponse } from "../../api/mocks/projects.mock";
 import { getProjectsResponse } from "../../interfaces/projects";
-import { ProjectTableRow } from "./components/Row";
 import { PaginationSection } from "./components/PaginationSection/PaginationSection";
-import SearchIcon from '@mui/icons-material/Search';
-import { ENV } from "../../constants/env";
-
+import { ProjectTableRow } from "./components/Row";
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
@@ -15,8 +13,6 @@ export const ProjectsOverview = () => {
   const [projectsList, setProjectsList] = useState<getProjectsResponse>(
     mockedProjectsResponse,
   );
-
-  console.log(ENV, 'ENV');
 
   useEffect(() => {
     if (searchBar === "") {
@@ -122,5 +118,3 @@ export const ProjectsOverview = () => {
     </>
   );
 };
-
-
