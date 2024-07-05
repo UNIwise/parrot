@@ -1,11 +1,9 @@
 import Box from "@mui/joy/Box";
 import CssBaseline from "@mui/joy/CssBaseline";
 import { CssVarsProvider } from "@mui/joy/styles";
-import Typography from "@mui/joy/Typography";
 import { FC } from "react";
-import { Header } from "./components/Header";
-import { ProjectsOverview } from "./views/Projects";
-
+import { BrowserRouter } from "react-router-dom";
+import Routes from "./routes";
 
 export const Parrot: FC = () => {
   return (
@@ -14,7 +12,6 @@ export const Parrot: FC = () => {
       <Box sx={{ display: "flex", minHeight: "100dvh" }}>
         <Box
           component="main"
-          className="MainContent"
           sx={{
             px: { xs: 2, md: 10 },
             pt: {
@@ -31,24 +28,9 @@ export const Parrot: FC = () => {
             gap: 1,
           }}
         >
-          <Header />
-
-          <Box
-            sx={{
-              display: "flex",
-              mb: 1,
-              gap: 1,
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: { xs: "start", sm: "center" },
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography level="h2" component="h1">
-              Projects
-            </Typography>
-          </Box>
-          <ProjectsOverview />
+          <BrowserRouter>
+            <Routes />
+          </BrowserRouter>
         </Box>
       </Box>
     </CssVarsProvider>

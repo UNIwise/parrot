@@ -6,7 +6,6 @@ export const PaginationSection = () => {
   //TODO: Implement pagination logic. Try to use cached data from query hook using query key
   return (
     <Box
-      className="Pagination-laptopUp"
       sx={{
         pt: 2,
         gap: 1,
