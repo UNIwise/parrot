@@ -1,27 +1,9 @@
 interface Environment {
   MOCKED: boolean;
-
-  FAVICON?: string;
-
-  // API_HOST: string;
-
-  // SENTRY_ENV?: string;
-  // SENTRY_RELEASE?: string;
-  // SENTRY_TRACE_SAMPLE_RATE?: number;
-  // SENTRY_TRACE_ORIGINS?: string[];
 }
 
 const ENV: Environment = {
   MOCKED: false,
-
-  FAVICON: undefined,
-
-  // API_HOST: '',
-
-  // SENTRY_ENV: undefined,
-  // SENTRY_RELEASE: undefined,
-  // SENTRY_TRACE_SAMPLE_RATE: 0.1,
-  // SENTRY_TRACE_ORIGINS: ['europe.wiseflow.net'],
 };
 
 // eslint-disable-next-line
