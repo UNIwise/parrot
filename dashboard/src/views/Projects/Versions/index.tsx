@@ -69,7 +69,7 @@ export const VersionsOverview = () => {
 
           <Input
             size="sm"
-            placeholder="Enter version name..."
+            placeholder="Look up for version name"
             startDecorator={<SearchIcon />}
             onChange={(e) => {
               setSearchBar(e.target.value);
@@ -80,7 +80,7 @@ export const VersionsOverview = () => {
         </FormControl>
       </Box>
 
-      <Button sx={{ mb: "0.5rem" }}>Create New Version</Button>
+      <Button sx={{ mb: "0.5rem" }}>Add New Version</Button>
 
       <Sheet
         variant="outlined"

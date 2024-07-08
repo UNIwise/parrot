@@ -50,11 +50,19 @@ export const ProjectsOverview = () => {
           },
         }}
       >
-        <Typography level="h2" component="h1">
+        <Typography
+          level="h2"
+          component="h1"
+          style={{
+            alignSelf: "center",
+            fontSize: "3rem",
+            marginRight: "1.5rem",
+          }}
+        >
           Projects
         </Typography>
 
-        <FormControl sx={{ flex: 1 }} size="sm">
+        <FormControl sx={{ flex: 1, pb: "1.1rem"  }} size="sm">
           <FormLabel>Search for project</FormLabel>
 
           <Input
