@@ -28,8 +28,14 @@ export const VersionsOverview = () => {
     if (searchBar === "") {
       return;
     }
-    setVersionsList(versionsList);
-  }, [versionsList, searchBar]);
+
+    setVersionsList((prevList) => {
+      if (prevList !== versionsList) {
+        return versionsList;
+      }
+      return prevList;
+    });
+  }, [searchBar, versionsList]);
 
   const versionSearchHandle = (search: string) => {
     const filteredVersions = versions.filter((version) =>
