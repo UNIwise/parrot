@@ -19,7 +19,13 @@ export const ProjectsOverview = () => {
     if (searchBar === "") {
       return;
     }
-    setProjectsList(projectsList);
+
+    setProjectsList((prevList) => {
+      if (prevList !== projectsList) {
+        return projectsList;
+      }
+      return prevList;
+    });
   }, [projectsList, searchBar]);
 
   const projectSearchHandle = (projectName: string) => {
@@ -119,5 +125,3 @@ export const ProjectsOverview = () => {
     </>
   );
 };
-
-
