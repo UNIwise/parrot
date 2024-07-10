@@ -1,10 +1,9 @@
 import axios from 'axios';
-
-
-import registerAuthorizationInterceptor from '../interceptors/authorization';
-import registerLoggerInterceptor from '../interceptors/logger';
-import { ENV } from '../../constants/env';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { ENV } from '../../constants/env';
+
+import registerLoggerInterceptor from '../interceptors/logger';
+import registerAuthorizationInterceptor from '../interceptors/authorization';
 
 // Mock axios instance
 const mockInstance = axios.create();
