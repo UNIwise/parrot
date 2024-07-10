@@ -1,6 +1,6 @@
-import { getProjectsResponse } from "../../interfaces/projects";
+import { GetProjectsResponse } from "../../interfaces/projects";
 
-export const mockedProjectsResponse: getProjectsResponse = {
+export const mockedProjectsResponse: GetProjectsResponse = {
   projects: [
     {
       id: 1,

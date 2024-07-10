@@ -1,17 +1,17 @@
+import SearchIcon from '@mui/icons-material/Search';
 import { Box, FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { mockedProjectsResponse } from "../../api/mocks/projects.mock";
-import { getProjectsResponse } from "../../interfaces/projects";
-import { ProjectTableRow } from "./components/Row";
+import { GetProjectsResponse } from "../../interfaces/projects";
 import { PaginationSection } from "./components/PaginationSection/PaginationSection";
-import SearchIcon from '@mui/icons-material/Search';
+import { ProjectTableRow } from "./components/Row";
 
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
   //TODO: replace mocked data with the response from the API when react query hooks are implemented
   const projects = mockedProjectsResponse;
-  const [projectsList, setProjectsList] = useState<getProjectsResponse>(
+  const [projectsList, setProjectsList] = useState<GetProjectsResponse>(
     mockedProjectsResponse,
   );
 
