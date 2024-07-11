@@ -1,7 +1,8 @@
 import SearchIcon from '@mui/icons-material/Search';
 import { Box, FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
 import { useEffect, useState } from "react";
-import { mockedProjectsResponse } from "../../api/mocks/projects.mock";
+
+import { useGetProjects } from '../../api/hooks/useGetProjects';
 import { GetProjectsResponse } from "../../interfaces/projects";
 import { PaginationSection } from "./components/PaginationSection/PaginationSection";
 import { ProjectTableRow } from "./components/Row";
@@ -10,25 +11,37 @@ import { ProjectTableRow } from "./components/Row";
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
   //TODO: replace mocked data with the response from the API when react query hooks are implemented
-  const projects = mockedProjectsResponse;
-  const [projectsList, setProjectsList] = useState<GetProjectsResponse>(
-    mockedProjectsResponse,
-  );
+  const { data: projects } = useGetProjects();
+  const [projectsList, setProjectsList] = useState<GetProjectsResponse>();
+
+  console.log(projects);
+
+  // useEffect(() => {
+  //   if (searchBar === "") {
+  //     return;
+  //   }
+
+  //   if (!projects) {
+  //     return;
+  //   }
+
+  //   setProjectsList((prevList) => {
+  //     if (prevList !== projectsList) {
+  //       return projectsList;
+  //     }
+  //     return prevList;
+  //   });
+  // }, [projectsList, searchBar, projects]);
 
   useEffect(() => {
-    if (searchBar === "") {
+    setProjectsList(projects);
+  }, [projects]);
+
+  const projectSearchHandle = (projectName: string) => {
+    if (!projects) {
       return;
     }
 
-    setProjectsList((prevList) => {
-      if (prevList !== projectsList) {
-        return projectsList;
-      }
-      return prevList;
-    });
-  }, [projectsList, searchBar]);
-
-  const projectSearchHandle = (projectName: string) => {
     const filteredProjects = projects.projects.filter((project) =>
       project.name.toLowerCase().includes(projectName.toLowerCase()),
     );
@@ -113,11 +126,13 @@ export const ProjectsOverview = () => {
             </tr>
           </thead>
 
-          <tbody>
-            {projectsList.projects.map((project) => (
-              <ProjectTableRow key={project.id} projectInfo={project} />
-            ))}
-          </tbody>
+          {projectsList && (
+            <tbody>
+              {projectsList.projects.map((project) => (
+                <ProjectTableRow key={project.id} projectInfo={project} />
+              ))}
+            </tbody>
+          )}
         </Table>
       </Sheet>
 

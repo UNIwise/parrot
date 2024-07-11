@@ -1,4 +1,5 @@
 import { GetProjectsResponse } from "../../interfaces/projects";
+import { mock } from "../client";
 
 export const mockedProjectsResponse: GetProjectsResponse = {
   projects: [
@@ -154,3 +155,5 @@ export const mockedProjectsResponse: GetProjectsResponse = {
     },
   ],
 };
+
+mock.onGet(/^\/parrot\/v1\/projects$/).reply(200, mockedProjectsResponse);
