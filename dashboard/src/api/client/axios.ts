@@ -5,7 +5,6 @@ import registerLoggerInterceptor from '../interceptors/logger';
 
 // Mock axios instance
 const mockInstance = axios.create();
-
 registerLoggerInterceptor(mockInstance);
 
 export const mock = new AxiosMockAdapter(mockInstance, {

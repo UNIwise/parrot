@@ -17,7 +17,7 @@ export const Header: FC = () => {
                   rgba(0, 0, 255, 0.7),
                   rgba(128, 0, 128, 0.7)
                 )`,
-        mb: 3,
+        mb: 6,
         display: "flex",
         justifyContent: "center",
         borderRadius: "5px",

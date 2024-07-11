@@ -1,12 +1,18 @@
-import SearchIcon from '@mui/icons-material/Search';
-import { Box, FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  Sheet,
+  Table,
+  Typography,
+} from "@mui/joy";
 import { useEffect, useState } from "react";
-
-import { useGetProjects } from '../../api/hooks/useGetProjects';
+import { useGetProjects } from "../../api/hooks/useGetProjects";
+import { PaginationSection } from "../../components/TablePaginationSection";
+import { TableRow } from "../../components/TableRow";
 import { GetProjectsResponse } from "../../interfaces/projects";
-import { PaginationSection } from "./components/PaginationSection/PaginationSection";
-import { ProjectTableRow } from "./components/Row";
-
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
@@ -51,10 +57,9 @@ export const ProjectsOverview = () => {
   return (
     <>
       <Box
-        className="SearchAndFilters-tabletUp"
         sx={{
           borderRadius: "sm",
-          py: 2,
+          py: 0.5,
           display: { xs: "none", sm: "flex" },
           flexWrap: "wrap",
           gap: 1.5,
@@ -63,7 +68,19 @@ export const ProjectsOverview = () => {
           },
         }}
       >
-        <FormControl sx={{ flex: 1 }} size="sm">
+        <Typography
+          level="h2"
+          component="h1"
+          style={{
+            alignSelf: "center",
+            fontSize: "3rem",
+            marginRight: "1.5rem",
+          }}
+        >
+          Projects
+        </Typography>
+
+        <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
           <FormLabel>Search for project</FormLabel>
 
           <Input
@@ -80,7 +97,6 @@ export const ProjectsOverview = () => {
       </Box>
 
       <Sheet
-        className="OrderTableContainer"
         variant="outlined"
         sx={{
           display: { xs: "none", sm: "initial" },
@@ -129,7 +145,12 @@ export const ProjectsOverview = () => {
           {projectsList && (
             <tbody>
               {projectsList.projects.map((project) => (
-                <ProjectTableRow key={project.id} projectInfo={project} />
+                <TableRow
+                  key={project.id}
+                  name={project.name}
+                  createdAt={project.createdAt}
+                  numberOfVersions={project.numberOfVersions}
+                />
               ))}
             </tbody>
           )}
