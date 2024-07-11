@@ -16,28 +16,8 @@ import { GetProjectsResponse } from "../../interfaces/projects";
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
-  //TODO: replace mocked data with the response from the API when react query hooks are implemented
   const { data: projects } = useGetProjects();
   const [projectsList, setProjectsList] = useState<GetProjectsResponse>();
-
-  console.log(projects);
-
-  // useEffect(() => {
-  //   if (searchBar === "") {
-  //     return;
-  //   }
-
-  //   if (!projects) {
-  //     return;
-  //   }
-
-  //   setProjectsList((prevList) => {
-  //     if (prevList !== projectsList) {
-  //       return projectsList;
-  //     }
-  //     return prevList;
-  //   });
-  // }, [projectsList, searchBar, projects]);
 
   useEffect(() => {
     setProjectsList(projects);
@@ -145,8 +125,9 @@ export const ProjectsOverview = () => {
           {projectsList && (
             <tbody>
               {projectsList.projects.map((project) => (
-                <TableRow
+                <TaleRow
                   key={project.id}
+                  id={project.id}
                   name={project.name}
                   createdAt={project.createdAt}
                   numberOfVersions={project.numberOfVersions}

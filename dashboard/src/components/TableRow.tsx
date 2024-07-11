@@ -1,14 +1,17 @@
 import { Delete } from "@mui/icons-material";
-import { Typography } from "@mui/joy";
+import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
+import { Link } from "react-router-dom";
 
 interface ProjectTableRowProps {
+  id?: number;
   name: string;
   numberOfVersions?: number;
   createdAt: string;
 }
 
 export const TableRow: FC<ProjectTableRowProps> = ({
+  id,
   name,
   numberOfVersions,
   createdAt,
@@ -35,7 +38,7 @@ export const TableRow: FC<ProjectTableRowProps> = ({
         <Typography level="body-xs">{createdAtDate}</Typography>
       </td>
 
-      {!numberOfVersions && (
+      {!numberOfVersions ? (
         <td
           style={{
             textAlign: "end",
@@ -43,7 +46,19 @@ export const TableRow: FC<ProjectTableRowProps> = ({
             verticalAlign: "center",
           }}
         >
-          <Delete />
+          <Button sx={{ mb: "0.5rem" }}>Delete <Delete /></Button>
+        </td>
+      ) : (
+        <td
+          style={{
+            textAlign: "end",
+            padding: "0.5rem 5rem",
+            verticalAlign: "center",
+          }}
+          >
+            <Link to={`/projects/${id}/versions`}>
+              <Button sx={{ mb: "0.5rem" }} href="">See all versions</Button>
+            </Link>
         </td>
       )}
     </tr>
