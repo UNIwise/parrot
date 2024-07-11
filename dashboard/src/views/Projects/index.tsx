@@ -125,7 +125,7 @@ export const ProjectsOverview = () => {
           {projectsList && (
             <tbody>
               {projectsList.projects.map((project) => (
-                <TaleRow
+                <TableRow
                   key={project.id}
                   id={project.id}
                   name={project.name}
