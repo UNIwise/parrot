@@ -50,7 +50,7 @@ export const TableRow: FC<ProjectTableRowProps> = ({
             verticalAlign: "center",
           }}
         >
-          <Button sx={{ mb: "0.5rem" }} onClick={() => handleDeleteVersion()}>Delete <Delete /></Button>
+          <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} onClick={() => handleDeleteVersion()}>Delete <Delete /></Button>
         </td>
       ) : (
         <td
@@ -61,7 +61,7 @@ export const TableRow: FC<ProjectTableRowProps> = ({
           }}
         >
           <Link to={`/projects/${id}/versions`}>
-            <Button sx={{ mb: "0.5rem" }} href="">See all versions</Button>
+            <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
           </Link>
         </td>
       )}

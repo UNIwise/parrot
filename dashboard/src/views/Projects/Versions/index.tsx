@@ -51,30 +51,22 @@ export const VersionsOverview = () => {
           "& > *": {
             minWidth: { xs: "120px", md: "160px" },
           },
+          flexDirection: 'column',
         }}
       >
         <Typography
           level="h2"
           component="h1"
-          style={{
+          sx={{
             alignSelf: "center",
             fontSize: "3rem",
             marginRight: "1.5rem",
+            backgroundColor: '#0078ff',
+            p: '1rem 5rem',
+            borderRadius: "sm",
           }}
         >
-          {project?.name}
-        </Typography>
-
-        <Typography
-          level="h2"
-          component="h1"
-          style={{
-            alignSelf: "center",
-            fontSize: "3rem",
-            marginRight: "1.5rem",
-          }}
-        >
-          Versions
+          {project?.name} versions
         </Typography>
 
         <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
@@ -93,7 +85,7 @@ export const VersionsOverview = () => {
         </FormControl>
       </Box>
 
-      <Button sx={{ mb: "0.5rem" }}>Add New Version</Button>
+      <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }}>Add New Version</Button>
 
       <Sheet
         variant="outlined"
