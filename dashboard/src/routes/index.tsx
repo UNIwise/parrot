@@ -8,7 +8,8 @@ const Routes: FC = () => {
   return (
     <RouterRoutes>
       <Route element={<Frame />}>
-        <Route path="projects" element={<ProjectsOverview />}>
+        <Route path="projects">
+          <Route index element={<ProjectsOverview />} />
           <Route path=":projectId/versions" element={<VersionsOverview />} />
         </Route>
       </Route>

@@ -1,17 +1,27 @@
-import IconButton, { IconButtonProps } from "@mui/joy/IconButton";
-import { useColorScheme } from "@mui/joy/styles";
-import { useEffect, useState } from "react";
-
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import IconButton, { IconButtonProps } from "@mui/joy/IconButton";
+import { styled, useColorScheme } from "@mui/joy/styles";
+import { useEffect, useState } from "react";
 
-enum colorMode {
+enum ColorMode {
   LIGHT = "light",
   DARK = "dark",
 }
 
+const StyledColorSchemeToggle = styled(IconButton)({
+  '&[data-mode="dark"]': {
+    '& > *:first-of-type': { display: 'none' },
+    '& > *:last-child': { display: 'initial' },
+  },
+  '&[data-mode="light"]': {
+    '& > *:first-of-type': { display: 'initial' },
+    '& > *:last-child': { display: 'none' },
+  },
+});
+
 export const ColorSchemeToggle = (props: IconButtonProps) => {
-  const { onClick, sx, ...other } = props;
+  const { onClick, ...other } = props;
   const { mode, setMode } = useColorScheme();
   const [mounted, setMounted] = useState(false);
 
@@ -21,44 +31,35 @@ export const ColorSchemeToggle = (props: IconButtonProps) => {
 
   if (!mounted) {
     return (
-      <IconButton
+      <StyledColorSchemeToggle
         size="sm"
         variant="outlined"
         color="neutral"
         {...other}
-        sx={sx}
         disabled
       />
     );
   }
 
   return (
-    <IconButton
+    <StyledColorSchemeToggle
       id="toggle-mode"
       size="sm"
       variant="soft"
       color="neutral"
       {...other}
       onClick={(event) => {
-        if (mode === colorMode.LIGHT) {
-          setMode(colorMode.DARK);
+        if (mode === ColorMode.LIGHT) {
+          setMode(ColorMode.DARK);
         } else {
-          setMode(colorMode.LIGHT);
+          setMode(ColorMode.LIGHT);
         }
         onClick?.(event);
       }}
-      sx={[
-        mode === colorMode.DARK
-          ? { "& > *:first-child": { display: "none" } }
-          : { "& > *:first-child": { display: "initial" } },
-        mode === colorMode.LIGHT
-          ? { "& > *:last-child": { display: "none" } }
-          : { "& > *:last-child": { display: "initial" } },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+      data-mode={mode}
     >
       <DarkModeRoundedIcon />
       <LightModeIcon />
-    </IconButton>
+    </StyledColorSchemeToggle>
   );
 };

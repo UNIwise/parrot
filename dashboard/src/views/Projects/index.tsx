@@ -1,11 +1,18 @@
-import { Box, FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  Sheet,
+  Table,
+  Typography,
+} from "@mui/joy";
 import { useEffect, useState } from "react";
 import { mockedProjectsResponse } from "../../api/mocks/projects.mock";
+import { PaginationSection } from "../../components/TablePaginationSection";
+import { TableRow } from "../../components/TableRow";
 import { getProjectsResponse } from "../../interfaces/projects";
-import { ProjectTableRow } from "./components/Row";
-import { PaginationSection } from "../../components/PaginationSection";
-import SearchIcon from '@mui/icons-material/Search';
-
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
@@ -19,7 +26,13 @@ export const ProjectsOverview = () => {
     if (searchBar === "") {
       return;
     }
-    setProjectsList(projectsList);
+
+    setProjectsList((prevList) => {
+      if (prevList !== projectsList) {
+        return projectsList;
+      }
+      return prevList;
+    });
   }, [projectsList, searchBar]);
 
   const projectSearchHandle = (projectName: string) => {
@@ -32,10 +45,9 @@ export const ProjectsOverview = () => {
   return (
     <>
       <Box
-        className="SearchAndFilters-tabletUp"
         sx={{
           borderRadius: "sm",
-          py: 2,
+          py: 0.5,
           display: { xs: "none", sm: "flex" },
           flexWrap: "wrap",
           gap: 1.5,
@@ -44,7 +56,19 @@ export const ProjectsOverview = () => {
           },
         }}
       >
-        <FormControl sx={{ flex: 1 }} size="sm">
+        <Typography
+          level="h2"
+          component="h1"
+          style={{
+            alignSelf: "center",
+            fontSize: "3rem",
+            marginRight: "1.5rem",
+          }}
+        >
+          Projects
+        </Typography>
+
+        <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
           <FormLabel>Search for project</FormLabel>
 
           <Input
@@ -61,7 +85,6 @@ export const ProjectsOverview = () => {
       </Box>
 
       <Sheet
-        className="OrderTableContainer"
         variant="outlined"
         sx={{
           display: { xs: "none", sm: "initial" },
@@ -109,7 +132,12 @@ export const ProjectsOverview = () => {
 
           <tbody>
             {projectsList.projects.map((project) => (
-              <ProjectTableRow key={project.id} projectInfo={project} />
+              <TableRow
+                key={project.id}
+                name={project.name}
+                createdAt={project.createdAt}
+                numberOfVersions={project.numberOfVersions}
+              />
             ))}
           </tbody>
         </Table>
@@ -119,5 +147,3 @@ export const ProjectsOverview = () => {
     </>
   );
 };
-
-
