@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import { Box, CssBaseline, CssVarsProvider } from "@mui/joy";
 import { BrowserRouter } from "react-router-dom";
+import { ReactQueryClientProvider } from "./api/client";
 import "./index.css";
 import Routes from "./routes";
 
@@ -29,9 +30,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             gap: 1,
           }}
         >
-          <BrowserRouter>
-            <Routes />
-          </BrowserRouter>
+          <ReactQueryClientProvider>
+            <BrowserRouter>
+              <Routes />
+            </BrowserRouter>
+          </ReactQueryClientProvider>
         </Box>
       </Box>
     </CssVarsProvider>

@@ -9,33 +9,23 @@ import {
   Typography,
 } from "@mui/joy";
 import { useEffect, useState } from "react";
-import { mockedProjectsResponse } from "../../api/mocks/projects.mock";
+import { useGetProjects } from "../../api/hooks/useGetProjects";
 import { PaginationSection } from "../../components/TablePaginationSection";
 import { TableRow } from "../../components/TableRow";
-import { getProjectsResponse } from "../../interfaces/projects";
+import { GetProjectsResponse } from "../../interfaces/projects";
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
-  //TODO: replace mocked data with the response from the API when react query hooks are implemented
-  const projects = mockedProjectsResponse;
-  const [projectsList, setProjectsList] = useState<getProjectsResponse>(
-    mockedProjectsResponse,
-  );
+  const { data: projects } = useGetProjects();
+  const [projectsList, setProjectsList] = useState<GetProjectsResponse>();
 
   useEffect(() => {
-    if (searchBar === "") {
-      return;
-    }
-
-    setProjectsList((prevList) => {
-      if (prevList !== projectsList) {
-        return projectsList;
-      }
-      return prevList;
-    });
-  }, [projectsList, searchBar]);
+    setProjectsList(projects);
+  }, [projects]);
 
   const projectSearchHandle = (projectName: string) => {
+    if (!projects) return;
+
     const filteredProjects = projects.projects.filter((project) =>
       project.name.toLowerCase().includes(projectName.toLowerCase()),
     );
@@ -130,16 +120,19 @@ export const ProjectsOverview = () => {
             </tr>
           </thead>
 
-          <tbody>
-            {projectsList.projects.map((project) => (
-              <TableRow
-                key={project.id}
-                name={project.name}
-                createdAt={project.createdAt}
-                numberOfVersions={project.numberOfVersions}
-              />
-            ))}
-          </tbody>
+          {projectsList && (
+            <tbody>
+              {projectsList.projects.map((project) => (
+                <TableRow
+                  key={project.id}
+                  id={project.id}
+                  name={project.name}
+                  createdAt={project.createdAt}
+                  numberOfVersions={project.numberOfVersions}
+                />
+              ))}
+            </tbody>
+          )}
         </Table>
       </Sheet>
 
