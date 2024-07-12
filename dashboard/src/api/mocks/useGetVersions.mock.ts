@@ -1,4 +1,5 @@
 import { GetVersionsResponse } from "../../interfaces/versions";
+import { mock } from "../client";
 
 export const mockedVersionsResponse: GetVersionsResponse = {
   versions: [
@@ -129,3 +130,5 @@ export const mockedVersionsResponse: GetVersionsResponse = {
     },
   ],
 };
+
+mock.onGet(/^\/api\/v1\/projects\/\d+\/versions$/).reply(200, mockedVersionsResponse);

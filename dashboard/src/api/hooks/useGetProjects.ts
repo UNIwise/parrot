@@ -1,15 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { GetProjectsResponse } from '../../interfaces/projects';
 import client from '../client';
-import '../mocks/projects.mock';
+import '../mocks/useGetProjects.mock';
 
 const getProjects = async () => {
   const response = await client.get<GetProjectsResponse>(
-    `/parrot/v1/projects`,
-    {
-      // TODO: replace with the real one
-      baseURL: '',
-    },
+    `/api/v1/projects`,
   );
 
   return response.data;
@@ -17,7 +13,7 @@ const getProjects = async () => {
 
 export const useGetProjects = () => {
   return useQuery({
-    queryKey: ['parrot', 'projects'],
+    queryKey: ['api', 'projects'],
     queryFn: () => getProjects(),
   });
 };

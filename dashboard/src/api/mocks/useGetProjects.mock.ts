@@ -156,4 +156,4 @@ export const mockedProjectsResponse: GetProjectsResponse = {
   ],
 };
 
-mock.onGet(/^\/parrot\/v1\/projects$/).reply(200, mockedProjectsResponse);
+mock.onGet(/^\/api\/v1\/projects$/).reply(200, mockedProjectsResponse);

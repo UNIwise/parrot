@@ -24,9 +24,7 @@ export const ProjectsOverview = () => {
   }, [projects]);
 
   const projectSearchHandle = (projectName: string) => {
-    if (!projects) {
-      return;
-    }
+    if (!projects) return;
 
     const filteredProjects = projects.projects.filter((project) =>
       project.name.toLowerCase().includes(projectName.toLowerCase()),
