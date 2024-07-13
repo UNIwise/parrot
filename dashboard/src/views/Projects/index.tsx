@@ -10,14 +10,19 @@ import {
 } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
-import { PaginationSection } from "../../components/TablePaginationSection";
+import { TablePaginationSection } from "../../components/TablePaginationSection";
 import { TableRow } from "../../components/TableRow";
-import { GetProjectsResponse } from "../../interfaces/projects";
+import { GetProjectsResponse, Project } from "../../interfaces/projects";
+
+const ITEMS_PER_PAGE = 20;
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
   const { data: projects } = useGetProjects();
   const [projectsList, setProjectsList] = useState<GetProjectsResponse>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const [paginatedVersions, setPaginatedVersions] = useState<Project[]>();
 
   useEffect(() => {
     setProjectsList(projects);
@@ -30,6 +35,22 @@ export const ProjectsOverview = () => {
       project.name.toLowerCase().includes(projectName.toLowerCase()),
     );
     setProjectsList({ projects: filteredProjects });
+  };
+
+  useEffect(() => {
+    if (!projectsList || !projectsList.projects) return;
+
+    const pageCount = Math.ceil(projectsList.projects.length / ITEMS_PER_PAGE);
+    const paginatedVersions = projectsList.projects.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+    );
+    setPageCount(pageCount);
+    setPaginatedVersions(paginatedVersions);
+  }, [projectsList, currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   return (
@@ -120,9 +141,9 @@ export const ProjectsOverview = () => {
             </tr>
           </thead>
 
-          {projectsList && (
+          {paginatedVersions && (
             <tbody>
-              {projectsList.projects.map((project) => (
+              {paginatedVersions.map((project) => (
                 <TableRow
                   key={project.id}
                   id={project.id}
@@ -136,7 +157,11 @@ export const ProjectsOverview = () => {
         </Table>
       </Sheet>
 
-      <PaginationSection />
+      <TablePaginationSection
+        currentPage={currentPage}
+        pageCount={pageCount}
+        onPageChange={handlePageChange}
+      />
     </>
   );
 };

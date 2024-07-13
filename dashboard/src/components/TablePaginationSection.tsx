@@ -2,8 +2,41 @@ import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { Box, Button, IconButton, iconButtonClasses } from "@mui/joy";
 
-export const PaginationSection = () => {
-  //TODO: Implement pagination logic. Try to use cached data from query hook using query key
+interface TablePaginationSectionProps {
+  currentPage: number;
+  pageCount: number;
+  onPageChange: (page: number) => void;
+}
+
+export const TablePaginationSection: React.FC<TablePaginationSectionProps> = ({
+  currentPage,
+  pageCount,
+  onPageChange,
+}) => {
+  const generatePageNumbers = () => {
+    const pageNumbers = [];
+    if (pageCount <= 7) {
+      for (let i = 1; i <= pageCount; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("...", pageCount);
+      } else if (currentPage >= pageCount - 3) {
+        pageNumbers.push(1, "...");
+        for (let i = pageCount - 4; i <= pageCount; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        pageNumbers.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", pageCount);
+      }
+    }
+    return pageNumbers;
+  };
+
   return (
     <Box
       sx={{
@@ -21,17 +54,21 @@ export const PaginationSection = () => {
         variant="outlined"
         color="neutral"
         startDecorator={<KeyboardArrowLeftIcon />}
+        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        disabled={currentPage === 1}
       >
         Previous
       </Button>
 
       <Box sx={{ flex: 1 }} />
-      {["1", "2", "3", "…", "8", "9", "10"].map((page) => (
+      {generatePageNumbers().map((page, index) => (
         <IconButton
-          key={page}
+          key={index}
           size="sm"
-          variant={Number(page) ? "outlined" : "plain"}
+          variant={typeof page === 'number' ? "outlined" : "plain"}
           color="neutral"
+          onClick={() => typeof page === 'number' && onPageChange(page)}
+          disabled={page === currentPage || typeof page !== 'number'}
         >
           {page}
         </IconButton>
@@ -43,6 +80,8 @@ export const PaginationSection = () => {
         variant="outlined"
         color="neutral"
         endDecorator={<KeyboardArrowRightIcon />}
+        onClick={() => onPageChange(Math.min(pageCount, currentPage + 1))}
+        disabled={currentPage === pageCount}
       >
         Next
       </Button>

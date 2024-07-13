@@ -13,9 +13,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
-import { PaginationSection } from "../../../components/TablePaginationSection";
+import { TablePaginationSection } from "../../../components/TablePaginationSection";
 import { TableRow } from "../../../components/TableRow";
-import { GetVersionsResponse } from "../../../interfaces/versions";
+import { GetVersionsResponse, Version } from "../../../interfaces/versions";
+
+const ITEMS_PER_PAGE = 20;
 
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
@@ -23,6 +25,9 @@ export const VersionsOverview = () => {
   const { data: project } = useGetProject(projectId);
   const { data: versionsData } = useGetVersions(projectId);
   const [versionsList, setVersionsList] = useState<GetVersionsResponse>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const [paginatedVersions, setPaginatedVersions] = useState<Version[]>();
 
   useEffect(() => {
     if (!versionsData) return;
@@ -37,6 +42,23 @@ export const VersionsOverview = () => {
       version.name.toLowerCase().includes(versionName.toLowerCase()),
     );
     setVersionsList({ versions: filteredVersions });
+  };
+
+  useEffect(() => {
+    if (!versionsList || !versionsList.versions
+    ) return;
+
+    const pageCount = Math.ceil(versionsList.versions.length / ITEMS_PER_PAGE);
+    const paginatedVersions = versionsList.versions.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+    );
+    setPageCount(pageCount);
+    setPaginatedVersions(paginatedVersions);
+  }, [versionsList, currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   return (
@@ -130,9 +152,9 @@ export const VersionsOverview = () => {
             </tr>
           </thead>
 
-          {versionsList && (
+          {paginatedVersions && (
             <tbody>
-              {versionsList.versions.map((version) => (
+              {paginatedVersions.map((version) => (
                 <TableRow
                   key={version.id}
                   id={version.id}
@@ -145,7 +167,11 @@ export const VersionsOverview = () => {
         </Table>
       </Sheet>
 
-      <PaginationSection />
+      <TablePaginationSection
+        currentPage={currentPage}
+        pageCount={pageCount}
+        onPageChange={handlePageChange}
+      />
     </>
   );
 };
