@@ -146,7 +146,7 @@ export const ProjectsOverview = () => {
               {paginatedVersions.map((project) => (
                 <TableRow
                   key={project.id}
-                  id={project.id}
+                  projectId={project.id}
                   name={project.name}
                   createdAt={project.createdAt}
                   numberOfVersions={project.numberOfVersions}

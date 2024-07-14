@@ -2,6 +2,10 @@ export interface GetProjectsResponse {
   projects: Project[];
 }
 
+export interface postProjectRequest {
+  name: string;
+}
+
 export interface Project {
   id: number;
   name: string;

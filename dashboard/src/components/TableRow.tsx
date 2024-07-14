@@ -1,18 +1,19 @@
-import { Delete } from "@mui/icons-material";
 import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useDeleteVersion } from "../api/hooks/useDeleteVersion";
+import { Link } from "react-router-dom";
+import { ManageVersionModal } from "./Modal";
 
 interface ProjectTableRowProps {
-  id?: number;
+  projectId: number;
+  versionId?: number;
   name: string;
   numberOfVersions?: number;
   createdAt: string;
 }
 
 export const TableRow: FC<ProjectTableRowProps> = ({
-  id,
+  projectId,
+  versionId,
   name,
   numberOfVersions,
   createdAt,
@@ -20,9 +21,6 @@ export const TableRow: FC<ProjectTableRowProps> = ({
   const formatIsoDateToLocaleString = (isoDate: string) => {
     return new Date(isoDate).toLocaleString();
   };
-
-  const { projectId } = useParams();
-  const { mutate: handleDeleteVersion } = useDeleteVersion(projectId, id);
 
   const createdAtDate = formatIsoDateToLocaleString(createdAt);
 
@@ -42,7 +40,7 @@ export const TableRow: FC<ProjectTableRowProps> = ({
         <Typography level="body-xs">{createdAtDate}</Typography>
       </td>
 
-      {!numberOfVersions ? (
+      {numberOfVersions ? (
         <td
           style={{
             textAlign: "end",
@@ -50,7 +48,9 @@ export const TableRow: FC<ProjectTableRowProps> = ({
             verticalAlign: "center",
           }}
         >
-          <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} onClick={() => handleDeleteVersion()}>Delete <Delete /></Button>
+          <Link to={`/projects/${projectId}/versions`}>
+            <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
+          </Link>
         </td>
       ) : (
         <td
@@ -60,11 +60,9 @@ export const TableRow: FC<ProjectTableRowProps> = ({
             verticalAlign: "center",
           }}
         >
-          <Link to={`/projects/${id}/versions`}>
-            <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
-          </Link>
+          <ManageVersionModal versionId={versionId} projectId={projectId!} versionName={name} />
         </td>
       )}
-    </tr>
+    </tr >
   );
 };
