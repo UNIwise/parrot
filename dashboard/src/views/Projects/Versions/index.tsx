@@ -9,37 +9,33 @@ import {
   Table,
   Typography,
 } from "@mui/joy";
-
 import { useEffect, useState } from "react";
-import { mockedVersionsResponse } from "../../../api/mocks/versions.mock";
+import { useParams } from "react-router";
+import { useGetProject } from "../../../api/hooks/useGetProject";
+import { useGetVersions } from "../../../api/hooks/useGetVersions";
 import { PaginationSection } from "../../../components/TablePaginationSection";
-import { TableRow } from "../../../components/TableRow";
 import { GetVersionsResponse } from "../../../interfaces/versions";
+import { VersionTableRow } from "./components";
+
 
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
-  //TODO: replace mocked data with the response from the API when react query hooks are implemented
-  const versions = mockedVersionsResponse.versions;
-  const [versionsList, setVersionsList] = useState<GetVersionsResponse>(
-    mockedVersionsResponse,
-  );
+  const { projectId } = useParams();
+  const { data: project } = useGetProject(projectId);
+  const { data: versionsData } = useGetVersions(projectId);
+  const [versionsList, setVersionsList] = useState<GetVersionsResponse>();
 
   useEffect(() => {
-    if (searchBar === "") {
-      return;
-    }
+    if (!versionsData) return;
 
-    setVersionsList((prevList) => {
-      if (prevList !== versionsList) {
-        return versionsList;
-      }
-      return prevList;
-    });
-  }, [searchBar, versionsList]);
+    setVersionsList(versionsData);
+  }, [versionsData]);
 
-  const versionSearchHandle = (search: string) => {
-    const filteredVersions = versions.filter((version) =>
-      version.name.toLowerCase().includes(search.toLowerCase()),
+  const versionSearchHandle = (versionName: string) => {
+    if (!versionsData) return;
+
+    const filteredVersions = versionsData.versions.filter((version) =>
+      version.name.toLowerCase().includes(versionName.toLowerCase()),
     );
     setVersionsList({ versions: filteredVersions });
   };
@@ -56,18 +52,22 @@ export const VersionsOverview = () => {
           "& > *": {
             minWidth: { xs: "120px", md: "160px" },
           },
+          flexDirection: 'column',
         }}
       >
         <Typography
           level="h2"
           component="h1"
-          style={{
+          sx={{
             alignSelf: "center",
             fontSize: "3rem",
             marginRight: "1.5rem",
+            backgroundColor: '#0078ff',
+            p: '1rem 5rem',
+            borderRadius: "sm",
           }}
         >
-          Versions
+          {project?.name} versions
         </Typography>
 
         <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
@@ -86,7 +86,7 @@ export const VersionsOverview = () => {
         </FormControl>
       </Box>
 
-      <Button sx={{ mb: "0.5rem" }}>Add New Version</Button>
+      <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }}>Add New Version</Button>
 
       <Sheet
         variant="outlined"
@@ -131,15 +131,18 @@ export const VersionsOverview = () => {
             </tr>
           </thead>
 
-          <tbody>
-            {versionsList.versions.map((version) => (
-              <TableRow
-                key={version.id}
-                name={version.name}
-                createdAt={version.createdAt}
-              />
-            ))}
-          </tbody>
+          {versionsList && (
+            <tbody>
+              {versionsList.versions.map((version) => (
+                <VersionTableRow
+                  key={version.id}
+                  versionId={version.id}
+                  versionName={version.name}
+                  createdAt={version.createdAt}
+                />
+              ))}
+            </tbody>
+          )}
         </Table>
       </Sheet>
 

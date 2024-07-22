@@ -1,4 +1,4 @@
-export interface getProjectsResponse {
+export interface GetProjectsResponse {
   projects: Project[];
 }
 
