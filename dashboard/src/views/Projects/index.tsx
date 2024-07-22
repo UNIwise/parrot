@@ -11,8 +11,8 @@ import {
 import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
 import { PaginationSection } from "../../components/TablePaginationSection";
-import { TableRow } from "../../components/TableRow";
-import { GetProjectsResponse } from "../../interfaces/projects";
+import { GetProjectsResponse, Project } from "../../interfaces/projects";
+import { ProjectTableRow } from "./components";
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
@@ -26,7 +26,7 @@ export const ProjectsOverview = () => {
   const projectSearchHandle = (projectName: string) => {
     if (!projects) return;
 
-    const filteredProjects = projects.projects.filter((project) =>
+    const filteredProjects = projects.projects.filter((project: Project) =>
       project.name.toLowerCase().includes(projectName.toLowerCase()),
     );
     setProjectsList({ projects: filteredProjects });
@@ -123,7 +123,7 @@ export const ProjectsOverview = () => {
           {projectsList && (
             <tbody>
               {projectsList.projects.map((project) => (
-                <TableRow
+                <ProjectTableRow
                   key={project.id}
                   id={project.id}
                   name={project.name}

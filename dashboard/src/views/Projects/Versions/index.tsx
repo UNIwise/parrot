@@ -14,8 +14,8 @@ import { useParams } from "react-router";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
 import { PaginationSection } from "../../../components/TablePaginationSection";
-import { TableRow } from "../../../components/TableRow";
 import { GetVersionsResponse } from "../../../interfaces/versions";
+import { ProjectTableRow } from "../components";
 
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
@@ -133,7 +133,7 @@ export const VersionsOverview = () => {
           {versionsList && (
             <tbody>
               {versionsList.versions.map((version) => (
-                <TableRow
+                <ProjectTableRow
                   key={version.id}
                   id={version.id}
                   name={version.name}
