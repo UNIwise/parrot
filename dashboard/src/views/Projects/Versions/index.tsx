@@ -15,7 +15,8 @@ import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
 import { PaginationSection } from "../../../components/TablePaginationSection";
 import { GetVersionsResponse } from "../../../interfaces/versions";
-import { ProjectTableRow } from "../components";
+import { VersionTableRow } from "./components";
+
 
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
@@ -133,10 +134,10 @@ export const VersionsOverview = () => {
           {versionsList && (
             <tbody>
               {versionsList.versions.map((version) => (
-                <ProjectTableRow
+                <VersionTableRow
                   key={version.id}
-                  id={version.id}
-                  name={version.name}
+                  versionId={version.id}
+                  versionName={version.name}
                   createdAt={version.createdAt}
                 />
               ))}
