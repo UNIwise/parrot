@@ -1,8 +1,8 @@
 import { Delete } from "@mui/icons-material";
 import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
-import { useParams } from "react-router-dom";
 import { useDeleteVersion } from "../../../../api/hooks/useDeleteVersion";
+import { useGetPageParams } from "../../../../api/hooks/useGetPageParams";
 
 
 interface VersionTableRowProps {
@@ -20,7 +20,7 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
     return new Date(isoDate).toLocaleString();
   };
 
-  const { projectId } = useParams();
+  const { projectId } = useGetPageParams();
   const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId);
 
   const createdAtDate = formatIsoDateToLocaleString(createdAt);

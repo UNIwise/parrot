@@ -14,8 +14,9 @@ import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
 import { ManageVersionModal } from "../../../components/Modal";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
-import { TableRow } from "../../../components/TableRow";
+
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";
+import { VersionTableRow } from "./components";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -157,11 +158,10 @@ export const VersionsOverview = () => {
           {paginatedVersions && projectId && (
             <tbody>
               {paginatedVersions.map((version) => (
-                <TableRow
+                <VersionTableRow
                   key={version.id}
-                  projectId={projectId}
                   versionId={version.id}
-                  name={version.name}
+                  versionName={version.name}
                   createdAt={version.createdAt}
                 />
               ))}
