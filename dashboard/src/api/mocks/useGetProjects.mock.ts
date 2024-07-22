@@ -153,7 +153,6 @@ export const mockedProjectsResponse: GetProjectsResponse = {
       numberOfVersions: 3,
       createdAt: "2021-09-25T00:00:00.000Z",
     },
-    // add 75 more projects
     {
       id: 26,
       name: "Project 26",
