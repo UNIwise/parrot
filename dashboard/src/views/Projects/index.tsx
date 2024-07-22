@@ -11,8 +11,8 @@ import {
 import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
-import { TableRow } from "../../components/TableRow";
 import { GetProjectsResponse, Project } from "../../interfaces/projects";
+import { ProjectTableRow } from "./components";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -31,7 +31,7 @@ export const ProjectsOverview = () => {
   const projectSearchHandle = (projectName: string) => {
     if (!projects) return;
 
-    const filteredProjects = projects.projects.filter((project) =>
+    const filteredProjects = projects.projects.filter((project: Project) =>
       project.name.toLowerCase().includes(projectName.toLowerCase()),
     );
     setProjectsList({ projects: filteredProjects });
@@ -144,7 +144,7 @@ export const ProjectsOverview = () => {
           {paginatedVersions && (
             <tbody>
               {paginatedVersions.map((project) => (
-                <TableRow
+                <ProjectTableRow
                   key={project.id}
                   id={project.id}
                   name={project.name}

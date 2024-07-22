@@ -14,8 +14,8 @@ import { useParams } from "react-router";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
-import { TableRow } from "../../../components/TableRow";
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";
+import { VersionTableRow } from "./components";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -155,10 +155,10 @@ export const VersionsOverview = () => {
           {paginatedVersions && (
             <tbody>
               {paginatedVersions.map((version) => (
-                <TableRow
+                <VersionTableRow
                   key={version.id}
-                  id={version.id}
-                  name={version.name}
+                  versionId={version.id}
+                  versionName={version.name}
                   createdAt={version.createdAt}
                 />
               ))}
