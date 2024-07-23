@@ -160,6 +160,7 @@ export const VersionsOverview = () => {
               {paginatedVersions.map((version) => (
                 <VersionTableRow
                   key={version.id}
+                  projectId={projectId}
                   versionId={version.id}
                   versionName={version.name}
                   createdAt={version.createdAt}

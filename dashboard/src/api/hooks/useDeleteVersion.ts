@@ -3,7 +3,7 @@ import { GetVersionsResponse } from '../../interfaces/versions';
 import client from '../client';
 import '../mocks/useDeleteVersion.mock';
 
-const deleteVersion = async (projectId?: number, versionId?: number) => {
+const deleteVersion = async (projectId: number, versionId: number) => {
   const response = await client.delete<GetVersionsResponse>(
     `/api/v1/projects/${projectId}/versions/${versionId}`,
   );
@@ -11,7 +11,7 @@ const deleteVersion = async (projectId?: number, versionId?: number) => {
   return response.data;
 };
 
-export const useDeleteVersion = (projectId?: number, versionId?: number) => {
+export const useDeleteVersion = (projectId: number, versionId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({

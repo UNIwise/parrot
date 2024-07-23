@@ -2,16 +2,16 @@ import { Delete } from "@mui/icons-material";
 import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
 import { useDeleteVersion } from "../../../../api/hooks/useDeleteVersion";
-import { useGetPageParams } from "../../../../api/hooks/useGetPageParams";
-
 
 interface VersionTableRowProps {
+  projectId: number;
   versionId: number;
   versionName: string;
   createdAt: string;
 }
 
 export const VersionTableRow: FC<VersionTableRowProps> = ({
+  projectId,
   versionId,
   versionName,
   createdAt,
@@ -20,7 +20,6 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
     return new Date(isoDate).toLocaleString();
   };
 
-  const { projectId } = useGetPageParams();
   const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId);
 
   const createdAtDate = formatIsoDateToLocaleString(createdAt);
