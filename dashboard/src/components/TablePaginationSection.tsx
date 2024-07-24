@@ -1,6 +1,7 @@
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { Box, Button, IconButton, iconButtonClasses } from "@mui/joy";
+import { FC } from "react";
 
 interface TablePaginationSectionProps {
   currentPage: number;
@@ -8,7 +9,7 @@ interface TablePaginationSectionProps {
   onPageChange: (page: number) => void;
 }
 
-export const TablePaginationSection: React.FC<TablePaginationSectionProps> = ({
+export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
   currentPage,
   pageCount,
   onPageChange,

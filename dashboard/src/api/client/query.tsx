@@ -55,7 +55,6 @@ const queryClient = new QueryClient({
   }),
 });
 
-// TODO: definitely not the way to o it(children) but will figure out later
 const ReactQueryClientProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
