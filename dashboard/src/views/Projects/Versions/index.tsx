@@ -7,12 +7,13 @@ import {
   Input,
   Sheet,
   Table,
-  Typography,
+  Typography
 } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
+import { Placeholder } from "../../../components/placeholder";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";
 import { VersionTableRow } from "./components";
@@ -22,8 +23,8 @@ const ITEMS_PER_PAGE = 20;
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
   const { projectId } = useParams();
-  const { data: project } = useGetProject(projectId);
-  const { data: versionsData } = useGetVersions(projectId);
+  const { data: project, isLoading: isProjectLoading } = useGetProject(projectId);
+  const { data: versionsData, isLoading: isVersionsDataLoading } = useGetVersions(projectId);
   const [versionsList, setVersionsList] = useState<GetVersionsResponse>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -60,6 +61,12 @@ export const VersionsOverview = () => {
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
+
+  if (isProjectLoading || isVersionsDataLoading) {
+    return (
+      <Placeholder />
+    )
+  }
 
   return (
     <>

@@ -25,7 +25,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            minWidth: 0,
+            minWidth: "100dvw",
             height: "100dvh",
             gap: 1,
           }}
