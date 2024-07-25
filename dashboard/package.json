@@ -27,7 +27,7 @@
     "react-dom": "^18.2.0",
     "react-router": "^6.24.0",
     "react-router-dom": "^6.24.0",
-    "react-toastify": "^10.0.5"
+    "sass": "^1.77.8"
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.43.1",

@@ -4,7 +4,6 @@ import { FC } from "react";
 import { useParams } from "react-router-dom";
 import { useDeleteVersion } from "../../../../api/hooks/useDeleteVersion";
 
-
 interface VersionTableRowProps {
   versionId: number;
   versionName: string;
@@ -42,7 +41,13 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} onClick={() => deleteVersion()}>Delete <Delete /></Button>
+        <Button
+          sx={{ mb: "0.5rem" }}
+          onClick={() => deleteVersion()}
+          color="danger"
+        >
+          Delete <Delete />
+        </Button>
       </td>
     </tr>
   );

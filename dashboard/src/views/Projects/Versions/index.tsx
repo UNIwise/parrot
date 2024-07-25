@@ -7,13 +7,13 @@ import {
   Input,
   Sheet,
   Table,
-  Typography
+  Typography,
 } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
-import { Placeholder } from "../../../components/placeholder";
+import { Placeholder } from "../../../components/Placeholder";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";
 import { VersionTableRow } from "./components";
@@ -23,8 +23,10 @@ const ITEMS_PER_PAGE = 20;
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
   const { projectId } = useParams();
-  const { data: project, isLoading: isProjectLoading } = useGetProject(projectId);
-  const { data: versionsData, isLoading: isVersionsDataLoading } = useGetVersions(projectId);
+  const { data: project, isLoading: isProjectLoading } =
+    useGetProject(projectId);
+  const { data: versionsData, isLoading: isVersionsDataLoading } =
+    useGetVersions(projectId);
   const [versionsList, setVersionsList] = useState<GetVersionsResponse>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -46,13 +48,12 @@ export const VersionsOverview = () => {
   };
 
   useEffect(() => {
-    if (!versionsList || !versionsList.versions
-    ) return;
+    if (!versionsList || !versionsList.versions) return;
 
     const pageCount = Math.ceil(versionsList.versions.length / ITEMS_PER_PAGE);
     const paginatedVersions = versionsList.versions.slice(
       (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
+      currentPage * ITEMS_PER_PAGE,
     );
     setPageCount(pageCount);
     setPaginatedVersions(paginatedVersions);
@@ -63,9 +64,7 @@ export const VersionsOverview = () => {
   };
 
   if (isProjectLoading || isVersionsDataLoading) {
-    return (
-      <Placeholder />
-    )
+    return <Placeholder />;
   }
 
   return (
@@ -80,7 +79,7 @@ export const VersionsOverview = () => {
           "& > *": {
             minWidth: { xs: "120px", md: "160px" },
           },
-          flexDirection: 'column',
+          flexDirection: "column",
         }}
       >
         <Typography
@@ -90,8 +89,8 @@ export const VersionsOverview = () => {
             alignSelf: "center",
             fontSize: "3rem",
             marginRight: "1.5rem",
-            backgroundColor: '#0078ff',
-            p: '1rem 5rem',
+            backgroundColor: (t) => t.palette.primary[400],
+            p: "1rem 5rem",
             borderRadius: "sm",
           }}
         >
@@ -114,7 +113,9 @@ export const VersionsOverview = () => {
         </FormControl>
       </Box>
 
-      <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }}>Add New Version</Button>
+      <Button sx={{ mb: "0.5rem" }} color="primary">
+        Add New Version
+      </Button>
 
       <Sheet
         variant="outlined"

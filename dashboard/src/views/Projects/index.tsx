@@ -1,4 +1,4 @@
-import SearchIcon from '@mui/icons-material/Search';
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
   FormControl,
@@ -6,11 +6,11 @@ import {
   Input,
   Sheet,
   Table,
-  Typography
+  Typography,
 } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
-import { Placeholder } from '../../components/placeholder';
+import { Placeholder } from "../../components/Placeholder";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
 import { GetProjectsResponse, Project } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components";
@@ -44,7 +44,7 @@ export const ProjectsOverview = () => {
     const pageCount = Math.ceil(projectsList.projects.length / ITEMS_PER_PAGE);
     const paginatedVersions = projectsList.projects.slice(
       (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
+      currentPage * ITEMS_PER_PAGE,
     );
     setPageCount(pageCount);
     setPaginatedVersions(paginatedVersions);
@@ -55,9 +55,7 @@ export const ProjectsOverview = () => {
   };
 
   if (isProjectsLoading) {
-    return (
-      <Placeholder />
-    )
+    return <Placeholder />;
   }
 
   return (

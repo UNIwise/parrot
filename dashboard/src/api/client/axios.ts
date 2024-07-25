@@ -1,7 +1,7 @@
-import axios from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { ENV } from '../../constants/env';
-import registerLoggerInterceptor from '../interceptors/logger';
+import axios from "axios";
+import AxiosMockAdapter from "axios-mock-adapter";
+import { ENV } from "../../constants/env";
+import registerLoggerInterceptor from "../interceptors/logger";
 
 // Mock axios instance
 const mockInstance = axios.create();
@@ -15,7 +15,7 @@ export const mock = new AxiosMockAdapter(mockInstance, {
 const realInstance = axios.create();
 
 if (ENV.MOCKED) {
-  console.debug('Using mocked axios client');
+  console.debug("Using mocked axios client");
 }
 
 export default ENV.MOCKED ? mockInstance : realInstance;

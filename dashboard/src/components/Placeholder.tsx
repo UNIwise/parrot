@@ -1,12 +1,29 @@
-import { Box, Skeleton } from "@mui/joy"
-import { FC } from "react"
+import { Box, Skeleton } from "@mui/joy";
+import { FC } from "react";
 
 export const Placeholder: FC = () => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
-      <Skeleton variant="rectangular" width={1750} height={70} sx={{ mt: 10 }} />
-      <Skeleton sx={{ borderRadius: '50%', width: 150, height: 150, mt: 10, ml: 100 }} />
-      <Skeleton variant="rectangular" width={1750} height={70} sx={{ mt: 70 }} />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-around",
+      }}
+    >
+      <Skeleton variant="rectangular" height={70} sx={{ mt: 10 }} />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: 150,
+          marginTop: 25,
+          marginBottom: 25,
+        }}
+      >
+        <Skeleton sx={{ borderRadius: "50%", width: 150, height: 150 }} />
+      </Box>
+      <Skeleton variant="rectangular" height={70} />
     </Box>
-  )
-}
+  );
+};
