@@ -13,7 +13,6 @@ import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
-<<<<<<<< < Temporary merge branch 1
 
 import { ManageVersionModal } from "../../../components/Modal";
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";

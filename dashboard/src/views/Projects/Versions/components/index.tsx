@@ -3,7 +3,7 @@ import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
 import { useDeleteVersion } from "../../../../api/hooks/useDeleteVersion";
 
-interface VersionTableRowProps {
+type VersionTableRowProps = {
   projectId: number;
   versionId: number;
   versionName: string;

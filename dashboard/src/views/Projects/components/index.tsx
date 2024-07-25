@@ -2,7 +2,7 @@ import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
 import { Link } from "react-router-dom";
 
-interface ProjectTableRowProps {
+type ProjectTableRowProps = {
   projectId: number;
   projectName: string;
   createdAt: string;

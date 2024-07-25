@@ -14,7 +14,7 @@ import React, { FC, useState } from 'react';
 import { useDeleteVersion } from '../api/hooks/useDeleteVersion';
 import { usePostVersion } from '../api/hooks/usePostVersion';
 
-interface ManageVersionModalProps {
+type ManageVersionModalProps = {
   projectId: number;
   versionId?: number;
   versionName?: string;
@@ -24,7 +24,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
   const [open, setOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
 
-  const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId);
+  const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId!);
   const { mutate: postNewVersion } = usePostVersion(projectId);
 
   return (
