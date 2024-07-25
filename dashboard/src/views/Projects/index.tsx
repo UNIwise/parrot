@@ -19,7 +19,7 @@ const ITEMS_PER_PAGE = 20;
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
-  const { data: projects, isLoading } = useGetProjects();
+  const { data: projects, isLoading: isProjectsLoading } = useGetProjects();
   const [projectsList, setProjectsList] = useState<GetProjectsResponse>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -54,7 +54,7 @@ export const ProjectsOverview = () => {
     setCurrentPage(newPage);
   };
 
-  if (isLoading) {
+  if (isProjectsLoading) {
     return (
       <Placeholder />
     )
