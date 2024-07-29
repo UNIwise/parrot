@@ -2,16 +2,16 @@ import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
 import { Link } from "react-router-dom";
 
-interface ProjectTableRowProps {
-  id: number;
-  name: string;
+type ProjectTableRowProps = {
+  projectId: number;
+  projectName: string;
   createdAt: string;
   numberOfVersions: number;
 }
 
 export const ProjectTableRow: FC<ProjectTableRowProps> = ({
-  id,
-  name,
+  projectId,
+  projectName,
   numberOfVersions,
   createdAt,
 }) => {
@@ -24,7 +24,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
   return (
     <tr>
       <td style={{ paddingLeft: "1.5rem" }}>
-        <Typography level="body-xs">{name}</Typography>
+        <Typography level="body-xs">{projectName}</Typography>
       </td>
 
       <td style={{ paddingLeft: "0.5rem" }}>
@@ -42,7 +42,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <Link to={`/projects/${id}/versions`}>
+        <Link to={`/projects/${projectId}/versions`}>
           <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
         </Link>
       </td>

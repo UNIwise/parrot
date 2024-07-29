@@ -1,19 +1,20 @@
 import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
-  Button,
   FormControl,
   FormLabel,
   Input,
   Sheet,
   Table,
-  Typography,
+  Typography
 } from "@mui/joy";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
+
+import { ManageVersionModal } from "../../../components/Modal";
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";
 import { VersionTableRow } from "./components";
 
@@ -21,7 +22,7 @@ const ITEMS_PER_PAGE = 20;
 
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
-  const { projectId } = useParams();
+  const { projectId } = useGetPageParams();
   const { data: project } = useGetProject(projectId);
   const { data: versionsData } = useGetVersions(projectId);
   const [versionsList, setVersionsList] = useState<GetVersionsResponse>();
@@ -107,7 +108,9 @@ export const VersionsOverview = () => {
         </FormControl>
       </Box>
 
-      <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }}>Add New Version</Button>
+      {projectId &&
+        <ManageVersionModal projectId={projectId} />
+      }
 
       <Sheet
         variant="outlined"
@@ -152,11 +155,12 @@ export const VersionsOverview = () => {
             </tr>
           </thead>
 
-          {paginatedVersions && (
+          {paginatedVersions && projectId && (
             <tbody>
               {paginatedVersions.map((version) => (
                 <VersionTableRow
                   key={version.id}
+                  projectId={projectId}
                   versionId={version.id}
                   versionName={version.name}
                   createdAt={version.createdAt}

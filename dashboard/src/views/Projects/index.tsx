@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
+
 import { GetProjectsResponse, Project } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components";
 
@@ -145,9 +146,9 @@ export const ProjectsOverview = () => {
             <tbody>
               {paginatedVersions.map((project) => (
                 <ProjectTableRow
+                  projectId={project.id}
                   key={project.id}
-                  id={project.id}
-                  name={project.name}
+                  projectName={project.name}
                   createdAt={project.createdAt}
                   numberOfVersions={project.numberOfVersions}
                 />

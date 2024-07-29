@@ -8,7 +8,7 @@ import { StatusCodes } from "http-status-codes";
 import { FC, ReactNode } from "react";
 import { toast } from "react-toastify";
 
-interface GeneralAPIResponse {
+type GeneralAPIResponse = {
   error?: {
     code: number;
     message: string;
