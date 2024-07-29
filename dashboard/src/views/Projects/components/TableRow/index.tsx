@@ -1,6 +1,5 @@
 import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
-import { Link } from "react-router-dom";
 
 interface ProjectTableRowProps {
   id: number;
@@ -22,7 +21,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
   const createdAtDate = formatIsoDateToLocaleString(createdAt);
 
   return (
-    <tr>
+    <tr onClick={() => window.location.href = `/projects/${id}/versions`}>
       <td style={{ paddingLeft: "1.5rem" }}>
         <Typography level="body-xs">{name}</Typography>
       </td>
@@ -42,11 +41,10 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <Link to={`/projects/${id}/versions`}>
-          <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
-        </Link>
-      </td>
 
+        <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
+      </td>
     </tr>
+
   );
 };

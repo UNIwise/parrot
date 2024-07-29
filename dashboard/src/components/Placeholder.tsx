@@ -10,7 +10,7 @@ export const Placeholder: FC = () => {
         justifyContent: "space-around",
       }}
     >
-      <Skeleton variant="rectangular" height={70} sx={{ mt: 10 }} />
+      <Skeleton variant="rectangular" height={70} />
       <Box
         sx={{
           display: "flex",
@@ -21,7 +21,7 @@ export const Placeholder: FC = () => {
           marginBottom: 25,
         }}
       >
-        <Skeleton sx={{ borderRadius: "50%", width: 150, height: 150 }} />
+        <Skeleton sx={{ borderRadius: "50%", width: 150, height: 150, position: "relative" }} />
       </Box>
       <Skeleton variant="rectangular" height={70} />
     </Box>

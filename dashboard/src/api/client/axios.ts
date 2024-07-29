@@ -8,7 +8,7 @@ const mockInstance = axios.create();
 registerLoggerInterceptor(mockInstance);
 
 export const mock = new AxiosMockAdapter(mockInstance, {
-  delayResponse: 200,
+  delayResponse: 2000000,
 });
 
 // Real axios instance

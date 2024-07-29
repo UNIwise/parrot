@@ -10,10 +10,10 @@ import {
 } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
-import { Placeholder } from "../../components/Placeholder";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
 import { GetProjectsResponse, Project } from "../../interfaces/projects";
-import { ProjectTableRow } from "./components";
+import { ProjectTableRow } from "./components/TableRow";
+import { Placeholder } from '../../components/Placeholder';
 
 const ITEMS_PER_PAGE = 20;
 
