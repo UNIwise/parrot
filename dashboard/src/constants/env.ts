@@ -1,4 +1,4 @@
-interface Environment {
+type Environment = {
   MOCKED: boolean;
 }
 

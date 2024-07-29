@@ -7,7 +7,7 @@ import { AxiosError } from "axios";
 import { StatusCodes } from "http-status-codes";
 import { FC, ReactNode } from "react";
 
-interface GeneralAPIResponse {
+type GeneralAPIResponse = {
   error?: {
     code: number;
     message: string;

@@ -1,16 +1,16 @@
 import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
 
-interface ProjectTableRowProps {
-  id: number;
-  name: string;
+type ProjectTableRowProps = {
+  projectId: number;
+  projectName: string;
   createdAt: string;
   numberOfVersions: number;
 }
 
 export const ProjectTableRow: FC<ProjectTableRowProps> = ({
-  id,
-  name,
+  projectId,
+  projectName,
   numberOfVersions,
   createdAt,
 }) => {
@@ -21,9 +21,9 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
   const createdAtDate = formatIsoDateToLocaleString(createdAt);
 
   return (
-    <tr onClick={() => window.location.href = `/projects/${id}/versions`}>
+    <tr onClick={() => window.location.href = `/projects/${projectId}/versions`}>
       <td style={{ paddingLeft: "1.5rem" }}>
-        <Typography level="body-xs">{name}</Typography>
+        <Typography level="body-xs">{projectName}</Typography>
       </td>
 
       <td style={{ paddingLeft: "0.5rem" }}>
@@ -41,7 +41,6 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-
         <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
       </td>
     </tr>

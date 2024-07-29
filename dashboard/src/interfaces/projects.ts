@@ -1,8 +1,12 @@
-export interface GetProjectsResponse {
+export type GetProjectsResponse = {
   projects: Project[];
 }
 
-export interface Project {
+export type postProjectRequest = {
+  name: string;
+}
+
+export type Project = {
   id: number;
   name: string;
   numberOfVersions: number;
