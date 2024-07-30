@@ -41,7 +41,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <Button sx={{ backgroundColor: '#0078ff' }} href="">All versions</Button>
+        <Button sx={{ backgroundColor: (t) => t.palette.primary[400] }}>All versions</Button>
       </td>
     </tr >
 
