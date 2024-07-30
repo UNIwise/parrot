@@ -8,8 +8,5 @@ mock.onGet(/^\/api\/v1\/projects\/\d+$/).reply((req) => {
     (project) => project.id === projectId
   );
 
-  return [
-    200,
-    project
-  ];
+  return [200, project];
 });

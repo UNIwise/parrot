@@ -147,7 +147,7 @@ export const ProjectsOverview = () => {
           </thead>
 
           {paginatedVersions && (
-            <tbody style={{ fontSize: "1rem" }}>
+            <tbody>
               {paginatedVersions.map((project) => (
                 <ProjectTableRow
                   projectId={project.id}

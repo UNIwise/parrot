@@ -89,7 +89,7 @@ export const VersionsOverview = () => {
             alignSelf: "center",
             fontSize: "3rem",
             color: (t) => t.palette.primary[400],
-            marginRight: "1.5rem",
+            m: '0 1.5rem 2rem 0',
             border: '1px solid',
             borderColor: (t) => t.palette.primary[400],
             p: "1rem 5rem",

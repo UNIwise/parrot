@@ -22,7 +22,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
 
   return (
     <tr onClick={() => window.location.href = `/projects/${projectId}/versions`}>
-      <td style={{ paddingLeft: "1.5rem", fontSize: "0.9rem", }}>
+      <td style={{ paddingLeft: "1.5rem" }}>
         <Typography level="body-xs" fontSize={'0.9rem'} >{projectName}</Typography>
       </td>
 
@@ -37,7 +37,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
       <td
         style={{
           textAlign: "end",
-          padding: "0.5rem 1rem",
+          padding: "0.5rem 1.5rem",
           verticalAlign: "center",
         }}
       >
