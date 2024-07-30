@@ -12,9 +12,9 @@ import { useEffect, useState } from "react";
 import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
+import { ManageVersionModal } from "../../../components/Modal";
 import { Placeholder } from "../../../components/Placeholder";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
-import { ManageVersionModal } from "../../../components/Modal";
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";
 import { VersionTableRow } from "./components";
 
@@ -88,8 +88,10 @@ export const VersionsOverview = () => {
           sx={{
             alignSelf: "center",
             fontSize: "3rem",
+            color: (t) => t.palette.primary[400],
             marginRight: "1.5rem",
-            backgroundColor: (t) => t.palette.primary[400],
+            border: '1px solid',
+            borderColor: (t) => t.palette.primary[400],
             p: "1rem 5rem",
             borderRadius: "sm",
           }}
@@ -155,7 +157,6 @@ export const VersionsOverview = () => {
                   textAlign: "end",
                 }}
               >
-                Delete
               </th>
             </tr>
           </thead>

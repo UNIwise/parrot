@@ -22,28 +22,28 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
 
   return (
     <tr onClick={() => window.location.href = `/projects/${projectId}/versions`}>
-      <td style={{ paddingLeft: "1.5rem" }}>
-        <Typography level="body-xs">{projectName}</Typography>
+      <td style={{ paddingLeft: "1.5rem", fontSize: "0.9rem", }}>
+        <Typography level="body-xs" fontSize={'0.9rem'} >{projectName}</Typography>
+      </td>
+
+      <td style={{ paddingLeft: "0.5rem", }}>
+        <Typography level="body-xs" fontSize={'0.9rem'} fontWeight={400}>{numberOfVersions}</Typography>
       </td>
 
       <td style={{ paddingLeft: "0.5rem" }}>
-        <Typography level="body-xs">{numberOfVersions}</Typography>
-      </td>
-
-      <td style={{ paddingLeft: "0.5rem" }}>
-        <Typography level="body-xs">{createdAtDate}</Typography>
+        <Typography level="body-xs" fontSize={'0.9rem'} fontWeight={400}>{createdAtDate}</Typography>
       </td>
 
       <td
         style={{
           textAlign: "end",
-          padding: "0.5rem 5rem",
+          padding: "0.5rem 1rem",
           verticalAlign: "center",
         }}
       >
-        <Button sx={{ mb: "0.5rem", backgroundColor: '#0078ff' }} href="">See all versions</Button>
+        <Button sx={{ backgroundColor: '#0078ff' }} href="">All versions</Button>
       </td>
-    </tr>
+    </tr >
 
   );
 };

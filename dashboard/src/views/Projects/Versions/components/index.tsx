@@ -27,11 +27,11 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
   return (
     <tr>
       <td style={{ paddingLeft: "1.5rem" }}>
-        <Typography level="body-xs">{versionName}</Typography>
+        <Typography level="body-xs" fontSize={'0.9rem'}>{versionName}</Typography>
       </td>
 
       <td style={{ paddingLeft: "0.5rem" }}>
-        <Typography level="body-xs">{createdAtDate}</Typography>
+        <Typography level="body-xs" fontSize={'0.9rem'} fontWeight={400}>{createdAtDate}</Typography>
       </td>
 
       <td
@@ -42,7 +42,6 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
         }}
       >
         <Button
-          sx={{ mb: "0.5rem" }}
           onClick={() => deleteVersion()}
           color="danger"
         >

@@ -12,9 +12,9 @@ import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
 
+import { Placeholder } from '../../components/Placeholder';
 import { GetProjectsResponse, Project } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components/TableRow";
-import { Placeholder } from '../../components/Placeholder';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -142,13 +142,12 @@ export const ProjectsOverview = () => {
                   textAlign: "end",
                 }}
               >
-                Delete
               </th>
             </tr>
           </thead>
 
           {paginatedVersions && (
-            <tbody>
+            <tbody style={{ fontSize: "1rem" }}>
               {paginatedVersions.map((project) => (
                 <ProjectTableRow
                   projectId={project.id}
