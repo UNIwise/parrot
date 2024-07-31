@@ -6,7 +6,6 @@ import {
 import { AxiosError } from "axios";
 import { StatusCodes } from "http-status-codes";
 import { FC, ReactNode } from "react";
-import { toast } from "react-toastify";
 
 type GeneralAPIResponse = {
   error?: {
@@ -51,7 +50,7 @@ const queryClient = new QueryClient({
     },
   },
   queryCache: new QueryCache({
-    onError: (error) => toast.error(`Something went wrong: ${error.message}`),
+    onError: (error) => console.error(`Something went wrong: ${error.message}`),
   }),
 });
 

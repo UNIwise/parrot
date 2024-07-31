@@ -1,5 +1,6 @@
 import { Sheet, Typography } from "@mui/joy";
 import { FC } from "react";
+import { Link } from "react-router-dom";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 
 export const Header: FC = () => {
@@ -26,6 +27,8 @@ export const Header: FC = () => {
       }}
     >
       <Typography
+        component={Link}
+        to={"/"}
         level="h4"
         sx={{
           fontWeight: "bold",

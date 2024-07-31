@@ -12,14 +12,15 @@ import { useEffect, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
 
+import { Placeholder } from '../../components/Placeholder';
 import { GetProjectsResponse, Project } from "../../interfaces/projects";
-import { ProjectTableRow } from "./components";
+import { ProjectTableRow } from "./components/TableRow";
 
 const ITEMS_PER_PAGE = 20;
 
 export const ProjectsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
-  const { data: projects } = useGetProjects();
+  const { data: projects, isLoading: isProjectsLoading } = useGetProjects();
   const [projectsList, setProjectsList] = useState<GetProjectsResponse>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -44,7 +45,7 @@ export const ProjectsOverview = () => {
     const pageCount = Math.ceil(projectsList.projects.length / ITEMS_PER_PAGE);
     const paginatedVersions = projectsList.projects.slice(
       (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
+      currentPage * ITEMS_PER_PAGE,
     );
     setPageCount(pageCount);
     setPaginatedVersions(paginatedVersions);
@@ -53,6 +54,10 @@ export const ProjectsOverview = () => {
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
+
+  if (isProjectsLoading) {
+    return <Placeholder />;
+  }
 
   return (
     <>
@@ -137,7 +142,6 @@ export const ProjectsOverview = () => {
                   textAlign: "end",
                 }}
               >
-                Delete
               </th>
             </tr>
           </thead>

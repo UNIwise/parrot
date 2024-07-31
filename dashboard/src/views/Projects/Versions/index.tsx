@@ -12,9 +12,9 @@ import { useEffect, useState } from "react";
 import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
-import { TablePaginationSection } from "../../../components/TablePaginationSection";
-
 import { ManageVersionModal } from "../../../components/Modal";
+import { Placeholder } from "../../../components/Placeholder";
+import { TablePaginationSection } from "../../../components/TablePaginationSection";
 import { GetVersionsResponse, Version } from "../../../interfaces/versions";
 import { VersionTableRow } from "./components";
 
@@ -23,8 +23,10 @@ const ITEMS_PER_PAGE = 20;
 export const VersionsOverview = () => {
   const [searchBar, setSearchBar] = useState("");
   const { projectId } = useGetPageParams();
-  const { data: project } = useGetProject(projectId);
-  const { data: versionsData } = useGetVersions(projectId);
+  const { data: project, isLoading: isProjectLoading } =
+    useGetProject(projectId);
+  const { data: versionsData, isLoading: isVersionsDataLoading } =
+    useGetVersions(projectId);
   const [versionsList, setVersionsList] = useState<GetVersionsResponse>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -46,13 +48,12 @@ export const VersionsOverview = () => {
   };
 
   useEffect(() => {
-    if (!versionsList || !versionsList.versions
-    ) return;
+    if (!versionsList || !versionsList.versions) return;
 
     const pageCount = Math.ceil(versionsList.versions.length / ITEMS_PER_PAGE);
     const paginatedVersions = versionsList.versions.slice(
       (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
+      currentPage * ITEMS_PER_PAGE,
     );
     setPageCount(pageCount);
     setPaginatedVersions(paginatedVersions);
@@ -61,6 +62,10 @@ export const VersionsOverview = () => {
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
+
+  if (isProjectLoading || isVersionsDataLoading) {
+    return <Placeholder />;
+  }
 
   return (
     <>
@@ -74,7 +79,7 @@ export const VersionsOverview = () => {
           "& > *": {
             minWidth: { xs: "120px", md: "160px" },
           },
-          flexDirection: 'column',
+          flexDirection: "column",
         }}
       >
         <Typography
@@ -83,9 +88,11 @@ export const VersionsOverview = () => {
           sx={{
             alignSelf: "center",
             fontSize: "3rem",
-            marginRight: "1.5rem",
-            backgroundColor: '#0078ff',
-            p: '1rem 5rem',
+            color: (t) => t.palette.primary[400],
+            m: '0 1.5rem 2rem 0',
+            border: '1px solid',
+            borderColor: (t) => t.palette.primary[400],
+            p: "1rem 5rem",
             borderRadius: "sm",
           }}
         >
@@ -150,7 +157,6 @@ export const VersionsOverview = () => {
                   textAlign: "end",
                 }}
               >
-                Delete
               </th>
             </tr>
           </thead>
