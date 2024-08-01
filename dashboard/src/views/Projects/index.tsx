@@ -8,56 +8,35 @@ import {
   Table,
   Typography,
 } from "@mui/joy";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
-import { TablePaginationSection } from "../../components/TablePaginationSection";
-
 import { Placeholder } from '../../components/Placeholder';
-import { GetProjectsResponse, Project } from "../../interfaces/projects";
+import { TablePaginationSection } from "../../components/TablePaginationSection";
+import { Project } from '../../interfaces/projects';
 import { ProjectTableRow } from "./components/TableRow";
 
 const ITEMS_PER_PAGE = 20;
 
 export const ProjectsOverview = () => {
-  const [searchBar, setSearchBar] = useState("");
-  const { data: projects, isLoading: isProjectsLoading } = useGetProjects();
-  const [projectsList, setProjectsList] = useState<GetProjectsResponse>();
+  const [searchTerm, setSearchTerm] = useState("");
+  const { data: projects, isLoading } = useGetProjects();
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
-  const [paginatedVersions, setPaginatedVersions] = useState<Project[]>();
 
-  useEffect(() => {
-    setProjectsList(projects);
-  }, [projects]);
-
-  const projectSearchHandle = (projectName: string) => {
-    if (!projects) return;
-
-    const filteredProjects = projects.projects.filter((project: Project) =>
-      project.name.toLowerCase().includes(projectName.toLowerCase()),
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    return projects.projects.filter((project: Project) =>
+      project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setProjectsList({ projects: filteredProjects });
-  };
+  }, [projects, searchTerm]);
 
-  useEffect(() => {
-    if (!projectsList || !projectsList.projects) return;
+  const pageCount = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
 
-    const pageCount = Math.ceil(projectsList.projects.length / ITEMS_PER_PAGE);
-    const paginatedVersions = projectsList.projects.slice(
-      (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE,
-    );
-    setPageCount(pageCount);
-    setPaginatedVersions(paginatedVersions);
-  }, [projectsList, currentPage]);
+  const paginatedProjects = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProjects.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProjects, currentPage]);
 
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
-
-  if (isProjectsLoading) {
-    return <Placeholder />;
-  }
+  if (isLoading) return <Placeholder />;
 
   return (
     <>
@@ -71,15 +50,21 @@ export const ProjectsOverview = () => {
           "& > *": {
             minWidth: { xs: "120px", md: "160px" },
           },
+          flexDirection: "column",
         }}
       >
         <Typography
           level="h2"
           component="h1"
-          style={{
+          sx={{
             alignSelf: "center",
             fontSize: "3rem",
-            marginRight: "1.5rem",
+            color: (t) => t.palette.primary[400],
+            m: '0 1.5rem 2rem 0',
+            border: '1px solid',
+            borderColor: (t) => t.palette.primary[400],
+            p: "1rem 5rem",
+            borderRadius: "sm",
           }}
         >
           Projects
@@ -87,16 +72,12 @@ export const ProjectsOverview = () => {
 
         <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
           <FormLabel>Search for project</FormLabel>
-
           <Input
             size="sm"
             placeholder="Enter your favorite project name... Like FlowUI or WISEflow"
             startDecorator={<SearchIcon />}
-            onChange={(e) => {
-              setSearchBar(e.target.value);
-              projectSearchHandle(e.target.value);
-            }}
-            value={searchBar}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm}
           />
         </FormControl>
       </Box>
@@ -117,11 +98,9 @@ export const ProjectsOverview = () => {
           stickyHeader
           hoverRow
           sx={{
-            "--TableCell-headBackground":
-              "var(--joy-palette-background-level1)",
+            "--TableCell-headBackground": "var(--joy-palette-background-level1)",
             "--Table-headerUnderlineThickness": "1px",
-            "--TableRow-hoverBackground":
-              "var(--joy-palette-background-level1)",
+            "--TableRow-hoverBackground": "var(--joy-palette-background-level1)",
             "--TableCell-paddingY": "4px",
             "--TableCell-paddingX": "8px",
           }}
@@ -145,27 +124,24 @@ export const ProjectsOverview = () => {
               </th>
             </tr>
           </thead>
-
-          {paginatedVersions && (
-            <tbody>
-              {paginatedVersions.map((project) => (
-                <ProjectTableRow
-                  projectId={project.id}
-                  key={project.id}
-                  projectName={project.name}
-                  createdAt={project.createdAt}
-                  numberOfVersions={project.numberOfVersions}
-                />
-              ))}
-            </tbody>
-          )}
+          <tbody>
+            {paginatedProjects.map((project) => (
+              <ProjectTableRow
+                key={project.id}
+                projectId={project.id}
+                projectName={project.name}
+                createdAt={project.createdAt}
+                numberOfVersions={project.numberOfVersions}
+              />
+            ))}
+          </tbody>
         </Table>
       </Sheet>
 
       <TablePaginationSection
         currentPage={currentPage}
         pageCount={pageCount}
-        onPageChange={handlePageChange}
+        onPageChange={setCurrentPage}
       />
     </>
   );

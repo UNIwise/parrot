@@ -32,16 +32,17 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
       {versionId ? (
         <Button
           variant="outlined"
-          color="neutral"
-          startDecorator={<Delete />}
+          color="danger"
+          sx={{ color: (t) => t.palette.danger[500] }}
+          endDecorator={<Delete />}
           onClick={() => setOpen(true)}
         >
-          Delete Version
+          Delete
         </Button>
       ) : (
         <Button
           variant="outlined"
-          color="neutral"
+          color="primary"
           startDecorator={<Add />}
           onClick={() => setOpen(true)}
         >
@@ -69,7 +70,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
             {versionId ? (
               <Stack spacing={2}>
                 <Typography level="body-xs">Are you sure you want to delete {versionName} version?</Typography>
-                <Button type="submit" >Delete</Button>
+                <Button type="submit" color="danger">Delete</Button>
               </Stack>
             ) : (
               <Stack spacing={2}>

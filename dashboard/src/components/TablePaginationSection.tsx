@@ -30,7 +30,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
       <Button
         size="sm"
         variant="outlined"
-        color="neutral"
+        color="primary"
         startDecorator={<KeyboardArrowLeftIcon />}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
@@ -44,7 +44,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
           key={index}
           size="sm"
           variant={typeof page === 'number' ? "outlined" : "plain"}
-          color="neutral"
+          color="primary"
           onClick={() => typeof page === 'number' && onPageChange(page)}
           disabled={page === currentPage || typeof page !== 'number'}
         >
@@ -56,7 +56,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
       <Button
         size="sm"
         variant="outlined"
-        color="neutral"
+        color="primary"
         endDecorator={<KeyboardArrowRightIcon />}
         onClick={() => onPageChange(Math.min(pageCount, currentPage + 1))}
         disabled={currentPage === pageCount}

@@ -8,60 +8,38 @@ import {
   Table,
   Typography
 } from "@mui/joy";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
-import { ManageVersionModal } from "../../../components/Modal";
+import { ManageVersionModal } from "../../../components/ManageVersionModal";
 import { Placeholder } from "../../../components/Placeholder";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
-import { GetVersionsResponse, Version } from "../../../interfaces/versions";
+import { Version } from "../../../interfaces/versions";
 import { VersionTableRow } from "./components";
 
 const ITEMS_PER_PAGE = 20;
 
 export const VersionsOverview = () => {
-  const [searchBar, setSearchBar] = useState("");
-  const { projectId } = useGetPageParams();
-  const { data: project, isLoading: isProjectLoading } =
-    useGetProject(projectId);
-  const { data: versionsData, isLoading: isVersionsDataLoading } =
-    useGetVersions(projectId);
-  const [versionsList, setVersionsList] = useState<GetVersionsResponse>();
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
-  const [paginatedVersions, setPaginatedVersions] = useState<Version[]>();
+  const { projectId } = useGetPageParams();
+  const { data: project, isLoading: isProjectLoading } = useGetProject(projectId);
+  const { data: versionsData, isLoading: isVersionsDataLoading } = useGetVersions(projectId);
 
-  useEffect(() => {
-    if (!versionsData) return;
-
-    setVersionsList(versionsData);
-  }, [versionsData]);
-
-  const versionSearchHandle = (versionName: string) => {
-    if (!versionsData) return;
-
-    const filteredVersions = versionsData.versions.filter((version) =>
-      version.name.toLowerCase().includes(versionName.toLowerCase()),
+  const filteredVersions = useMemo(() => {
+    if (!versionsData) return [];
+    return versionsData.versions.filter((version) =>
+      version.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setVersionsList({ versions: filteredVersions });
-  };
+  }, [versionsData, searchTerm]);
 
-  useEffect(() => {
-    if (!versionsList || !versionsList.versions) return;
+  const pageCount = Math.ceil(filteredVersions.length / ITEMS_PER_PAGE);
 
-    const pageCount = Math.ceil(versionsList.versions.length / ITEMS_PER_PAGE);
-    const paginatedVersions = versionsList.versions.slice(
-      (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE,
-    );
-    setPageCount(pageCount);
-    setPaginatedVersions(paginatedVersions);
-  }, [versionsList, currentPage]);
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
+  const paginatedVersions = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredVersions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredVersions, currentPage]);
 
   if (isProjectLoading || isVersionsDataLoading) {
     return <Placeholder />;
@@ -99,25 +77,21 @@ export const VersionsOverview = () => {
           {project?.name} versions
         </Typography>
 
-        <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
+
+        <FormControl sx={{ flex: 1, pb: "1rem" }} size="sm">
           <FormLabel>Search for version</FormLabel>
 
           <Input
             size="sm"
             placeholder="Look up for version name"
             startDecorator={<SearchIcon />}
-            onChange={(e) => {
-              setSearchBar(e.target.value);
-              versionSearchHandle(e.target.value);
-            }}
-            value={searchBar}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm}
           />
         </FormControl>
       </Box>
 
-      {projectId &&
-        <ManageVersionModal projectId={projectId} />
-      }
+      {projectId && <ManageVersionModal projectId={projectId} />}
 
       <Sheet
         variant="outlined"
@@ -135,11 +109,9 @@ export const VersionsOverview = () => {
           stickyHeader
           hoverRow
           sx={{
-            "--TableCell-headBackground":
-              "var(--joy-palette-background-level1)",
+            "--TableCell-headBackground": "var(--joy-palette-background-level1)",
             "--Table-headerUnderlineThickness": "1px",
-            "--TableRow-hoverBackground":
-              "var(--joy-palette-background-level1)",
+            "--TableRow-hoverBackground": "var(--joy-palette-background-level1)",
             "--TableCell-paddingY": "4px",
             "--TableCell-paddingX": "8px",
           }}
@@ -147,23 +119,14 @@ export const VersionsOverview = () => {
           <thead>
             <tr>
               <th style={{ width: 240, padding: "0.7rem 1.5rem" }}>Name</th>
-              <th style={{ width: 340, padding: "0.7rem 0.5rem" }}>
-                Created At
-              </th>
-              <th
-                style={{
-                  width: 140,
-                  padding: "0.7rem 4.5rem",
-                  textAlign: "end",
-                }}
-              >
-              </th>
+              <th style={{ width: 340, padding: "0.7rem 0.5rem" }}>Created At</th>
+              <th style={{ width: 140, padding: "0.7rem 4.5rem", textAlign: "end" }}></th>
             </tr>
           </thead>
 
-          {paginatedVersions && projectId && (
+          {projectId && (
             <tbody>
-              {paginatedVersions.map((version) => (
+              {paginatedVersions.map((version: Version) => (
                 <VersionTableRow
                   key={version.id}
                   projectId={projectId}
@@ -180,7 +143,7 @@ export const VersionsOverview = () => {
       <TablePaginationSection
         currentPage={currentPage}
         pageCount={pageCount}
-        onPageChange={handlePageChange}
+        onPageChange={setCurrentPage}
       />
     </>
   );

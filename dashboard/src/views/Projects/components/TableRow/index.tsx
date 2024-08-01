@@ -1,3 +1,4 @@
+import { KeyboardArrowRight } from "@mui/icons-material";
 import { Button, Typography } from "@mui/joy";
 import { FC } from "react";
 
@@ -41,7 +42,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <Button sx={{ backgroundColor: (t) => t.palette.primary[400] }}>All versions</Button>
+        <Button variant="outlined" endDecorator={<KeyboardArrowRight />} sx={{ color: (t) => t.palette.primary[400] }}>All versions</Button>
       </td>
     </tr >
 

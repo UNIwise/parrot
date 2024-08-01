@@ -1,7 +1,6 @@
-import { Delete } from "@mui/icons-material";
-import { Button, Typography } from "@mui/joy";
+import { Typography } from "@mui/joy";
 import { FC } from "react";
-import { useDeleteVersion } from "../../../../api/hooks/useDeleteVersion";
+import { ManageVersionModal } from "../../../../components/ManageVersionModal";
 
 type VersionTableRowProps = {
   projectId: number;
@@ -19,8 +18,6 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
   const formatIsoDateToLocaleString = (isoDate: string) => {
     return new Date(isoDate).toLocaleString();
   };
-
-  const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId);
 
   const createdAtDate = formatIsoDateToLocaleString(createdAt);
 
@@ -41,12 +38,7 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <Button
-          onClick={() => deleteVersion()}
-          color="danger"
-        >
-          Delete <Delete />
-        </Button>
+        <ManageVersionModal projectId={projectId} versionId={versionId} versionName={versionName} />
       </td>
     </tr>
   );
