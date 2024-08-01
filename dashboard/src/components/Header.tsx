@@ -17,7 +17,7 @@ const rainbowGradient = `linear-gradient(
 )`;
 
 const AnimatedSheet = styled(Sheet, { label: 'styledComponent' }) <{ isblue: boolean, isanimating: boolean }>`
-  transition: background 1s linear;
+  transition: background 0.5s linear;
   background-size: 100% 100%;
   background-position: ${props => props.isblue ? "left bottom" : "right bottom"};
   background-color: ${props =>
@@ -37,7 +37,7 @@ const AnimatedSheet = styled(Sheet, { label: 'styledComponent' }) <{ isblue: boo
 `
 
 export const Header: React.FC = () => {
-  const [isBlue, setIsBlue] = useState(false);
+  const [isBlue, setIsBlue] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 

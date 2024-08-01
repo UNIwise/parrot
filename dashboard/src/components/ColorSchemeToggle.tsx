@@ -10,6 +10,7 @@ enum ColorMode {
 }
 
 const StyledColorSchemeToggle = styled(IconButton)({
+  borderRadius: "12%",
   '&[data-mode="dark"]': {
     '& > *:first-of-type': { display: 'none' },
     '& > *:last-child': { display: 'initial' },
@@ -44,7 +45,7 @@ export const ColorSchemeToggle = (props: IconButtonProps) => {
   return (
     <StyledColorSchemeToggle
       id="toggle-mode"
-      size="sm"
+      size="md"
       variant="soft"
       color="neutral"
       {...other}
