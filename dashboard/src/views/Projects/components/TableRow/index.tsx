@@ -24,7 +24,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
   return (
     <tr onClick={() => window.location.href = `/projects/${projectId}/versions`}>
       <td style={{ paddingLeft: "1.5rem" }}>
-        <Typography level="body-xs" fontSize={'0.9rem'} >{projectName}</Typography>
+        <Typography level="body-xs" fontSize={'0.9rem'} sx={{ maxWidth: 490, overflowX: 'hidden' }}>{projectName}</Typography>
       </td>
 
       <td style={{ paddingLeft: "0.5rem", }}>
@@ -44,6 +44,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
       >
         <Button variant="outlined" endDecorator={<KeyboardArrowRight />} sx={{ color: (t) => t.palette.primary[400] }}>All versions</Button>
       </td>
+
     </tr >
 
   );
