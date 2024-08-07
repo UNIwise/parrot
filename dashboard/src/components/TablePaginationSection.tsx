@@ -28,6 +28,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
       }}
     >
       <Button
+        data-testid="pagination-previous-button"
         size="sm"
         variant="outlined"
         color="primary"
@@ -41,6 +42,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
       <Box sx={{ flex: 1 }} />
       {generatePageNumbers(pageCount, currentPage).map((page, index) => (
         <IconButton
+          data-testid={`pagination-page-${page}`}
           key={index}
           size="sm"
           variant={typeof page === 'number' ? "outlined" : "plain"}
@@ -54,6 +56,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
       <Box sx={{ flex: 1 }} />
 
       <Button
+        data-testid="pagination-next-button"
         size="sm"
         variant="outlined"
         color="primary"
