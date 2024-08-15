@@ -3,14 +3,17 @@ package project
 import (
 	"context"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
 	gosundheit "github.com/AppsFlyer/go-sundheit"
 	"github.com/AppsFlyer/go-sundheit/checks"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
+	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/poedit"
 	"golang.org/x/sync/semaphore"
 )
@@ -26,6 +29,7 @@ type Service interface {
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
+	GetData(ctx context.Context)
 }
 
 type ServiceImpl struct {
@@ -34,15 +38,17 @@ type ServiceImpl struct {
 	Cache             cache.Cache
 	RenewalThreshold  time.Duration
 	PreFetchSemaphore *semaphore.Weighted
+	storage           storage.Storage
 }
 
-func NewService(cli poedit.Client, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
+func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
 	return &ServiceImpl{
 		Logger:            entry,
 		Client:            cli,
 		Cache:             cache,
 		RenewalThreshold:  renewalThreshold,
 		PreFetchSemaphore: semaphore.NewWeighted(1),
+		storage:           storage,
 	}
 }
 
@@ -144,4 +150,17 @@ func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
 	}
 
 	return nil
+}
+
+func (s *ServiceImpl) GetData(ctx context.Context) {
+	ListObjectsV2Input, err := s.storage.ListObjectsV2(ctx)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("first page results:")
+	for _, object := range ListObjectsV2Input.Contents {
+		log.Printf("key=%s size=%d", aws.ToString(object.Key), object.Size)
+	}
 }

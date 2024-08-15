@@ -4,6 +4,10 @@ go 1.16
 
 require (
 	github.com/AppsFlyer/go-sundheit v0.5.0
+	github.com/aws/aws-sdk-go-v2 v1.30.3 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.27.27 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.27 // indirect
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.58.3 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/cache/v8 v8.4.4
