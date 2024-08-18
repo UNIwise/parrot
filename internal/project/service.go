@@ -3,13 +3,11 @@ package project
 import (
 	"context"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
 	gosundheit "github.com/AppsFlyer/go-sundheit"
 	"github.com/AppsFlyer/go-sundheit/checks"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
@@ -29,7 +27,6 @@ type Service interface {
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
-	GetData(ctx context.Context)
 }
 
 type ServiceImpl struct {
@@ -150,17 +147,4 @@ func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
 	}
 
 	return nil
-}
-
-func (s *ServiceImpl) GetData(ctx context.Context) {
-	ListObjectsV2Input, err := s.storage.ListObjectsV2(ctx)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("first page results:")
-	for _, object := range ListObjectsV2Input.Contents {
-		log.Printf("key=%s size=%d", aws.ToString(object.Key), object.Size)
-	}
 }

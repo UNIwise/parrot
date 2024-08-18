@@ -20,6 +20,4 @@ func NewService(ctx context.Context, storage Storage) *ServiceImpl {
 	}
 }
 
-func (s *ServiceImpl) ListObjectsV2(ctx context.Context)  (*s3.ListObjectsV2Output, error) {
-	return s.storage.ListObjectsV2(ctx)
-}
+// TODO: Add methods to implement

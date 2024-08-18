@@ -32,15 +32,4 @@ func NewS3Client(ctx context.Context, conf S3StorageConfig) (*S3ClientImpl, erro
 	}, nil
 }
 
-func (s *S3ClientImpl) ListObjectsV2(ctx context.Context) (*s3.ListObjectsV2Output, error) {
-	
-	response, err := s.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: &s.config.Bucket,
-	})
-
-	if err != nil {
-		return &s3.ListObjectsV2Output{}, errors.Wrap(err, "failed to get data")
-	}
-
-	return response, nil
-}
+//TODO: Add methods to implement

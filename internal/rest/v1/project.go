@@ -90,12 +90,3 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 
 	return ctx.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(trans.Data))
 }
-
-func (h *Handlers) getData(ctx echo.Context, l *logrus.Entry) error {
-
-
-	h.ProjectService.GetData(ctx.Request().Context())
-
-
-	return ctx.Stream(http.StatusOK, "application/json", bytes.NewReader([]byte("")))
-}
