@@ -65,12 +65,12 @@ export const VersionsOverview = () => {
           component="h1"
           sx={{
             alignSelf: "center",
-            fontSize: "3rem",
+            fontSize: "2rem",
             color: (t) => t.palette.primary[400],
             m: '0 1.5rem 2rem 0',
             border: '1px solid',
             borderColor: (t) => t.palette.primary[400],
-            p: "1rem 5rem",
+            p: "1rem 2.5rem",
             borderRadius: "sm",
           }}
         >

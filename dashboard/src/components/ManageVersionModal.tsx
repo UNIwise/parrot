@@ -1,11 +1,9 @@
 import { Delete } from '@mui/icons-material';
 import Add from '@mui/icons-material/Add';
-import { Typography } from '@mui/joy';
 import Button from '@mui/joy/Button';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogTitle from '@mui/joy/DialogTitle';
 import FormControl from '@mui/joy/FormControl';
-import FormLabel from '@mui/joy/FormLabel';
 import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
@@ -26,6 +24,30 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
 
   const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId!);
   const { mutate: postNewVersion } = usePostVersion(projectId);
+
+  const onProjectNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const regex = new RegExp('^[a-zA-Z0-9_\\-\\.]+$');
+
+    if (!regex.test(event.target.value)) {
+      return;
+    }
+
+    setNewProjectName(event.target.value);
+  }
+
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    if (versionId) {
+      deleteVersion();
+    } else {
+      postNewVersion({ name: newProjectName });
+    }
+
+    event.preventDefault();
+    setOpen(false);
+  }
+
+
+
 
   return (
     <React.Fragment>
@@ -52,35 +74,26 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
 
       <Modal open={open} onClose={() => setOpen(false)}>
         <ModalDialog>
-          <DialogTitle>New version</DialogTitle>
-          <DialogContent>Fill in the name of the new translation version</DialogContent>
-
           <form
-            onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
-              if (versionId) {
-                deleteVersion();
-              } else {
-                postNewVersion({ name: newProjectName });
-              }
-
-              event.preventDefault();
-              setOpen(false);
-            }}
+            onSubmit={onSubmit}
           >
             {versionId ? (
               <Stack spacing={2}>
-                <Typography level="body-xs">Are you sure you want to delete {versionName} version?</Typography>
+                <DialogTitle>Delete version</DialogTitle>
+                <DialogContent>Are you sure you want to delete {versionName} version?</DialogContent>
+
                 <Button type="submit" color="danger">Delete</Button>
               </Stack>
             ) : (
               <Stack spacing={2}>
-                <FormControl>
-                  <FormLabel>Name</FormLabel>
+                <DialogTitle>New version</DialogTitle>
+                <DialogContent>Fill in the name of the new translation version</DialogContent>
 
+                <FormControl >
                   <Input
                     autoFocus
                     required
-                    onChange={(e) => setNewProjectName(e.target.value)}
+                    onChange={onProjectNameChange}
                     value={newProjectName}
                   />
                 </FormControl>

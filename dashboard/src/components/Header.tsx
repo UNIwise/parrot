@@ -64,7 +64,7 @@ export const Header: React.FC = () => {
       isanimating={isAnimating}
       sx={{
         p: 2,
-        mb: 6,
+        mb: 4,
         display: "flex",
         justifyContent: "space-between",
         borderRadius: "5px",
