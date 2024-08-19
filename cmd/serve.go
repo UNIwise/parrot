@@ -34,6 +34,7 @@ import (
 	"github.com/uniwise/parrot/internal/rest"
 	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/poedit"
+	"github.com/uniwise/parrot/pkg/connectors/database"
 )
 
 const (
@@ -65,6 +66,9 @@ const (
 
 	confAWSRegion = "aws.region"
 	confAWSBucket = "aws.bucket.name"
+	
+	confDatabaseDSN = "database.dsn"
+	confDatabaseDebug = "database.debug"
 )
 
 // serveCmd represents the serve command
@@ -97,7 +101,16 @@ by caching exports from poeditor`,
 
 		storageService := storage.NewService(context.Background(), s3Client)
 
-		svc := project.NewService(cli, storageService, cacheInstance, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
+		dbConfig := database.Config{
+			DSN:   viper.GetString(confDatabaseDSN),
+			Debug: viper.GetBool(confDatabaseDebug),
+		}
+
+		db, err := database.NewClient(context.Background(), dbConfig)
+
+		projectRepository := project.NewRepository(db)
+
+		svc := project.NewService(cli, storageService, projectRepository, cacheInstance, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
 
 		server, err := rest.NewServer(logrus.NewEntry(logger), svc, viper.GetBool(confPrometheusEnabled))
 		if err != nil {
@@ -156,6 +169,8 @@ func init() {
 	viper.SetDefault(confPrometheusPort, 9090)
 	viper.SetDefault(confPrometheusPath, "/metrics")
 	viper.SetDefault(confAWSRegion, "eu-west-1")
+	viper.SetDefault(confDatabaseDSN, "gorm:gorm@tcp(localhost:3306)/gorm?charset=utf8&parseTime=True")
+	viper.SetDefault(confDatabaseDebug, false)
 
 	rootCmd.AddCommand(serveCmd)
 }
