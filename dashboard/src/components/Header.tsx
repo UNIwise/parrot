@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { Button, Sheet, Typography } from "@mui/joy";
-import React, { useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 
@@ -36,7 +36,7 @@ const AnimatedSheet = styled(Sheet, { label: 'styledComponent' }) <{ isblue: boo
   };
 `
 
-export const Header: React.FC = () => {
+export const Header: FC = () => {
   const [isBlue, setIsBlue] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -92,6 +92,7 @@ export const Header: React.FC = () => {
           disabled={isAnimating}
 
         />
+
         <ColorSchemeToggle sx={{ ml: "2rem" }} />
       </div>
       <audio ref={audioRef} src={soundEffect} />

@@ -8,7 +8,7 @@ import Input from '@mui/joy/Input';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import Stack from '@mui/joy/Stack';
-import React, { FC, useState } from 'react';
+import { ChangeEvent, FC, FormEvent, useState } from 'react';
 import { useDeleteVersion } from '../api/hooks/useDeleteVersion';
 import { usePostVersion } from '../api/hooks/usePostVersion';
 
@@ -25,7 +25,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
   const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId!);
   const { mutate: postNewVersion } = usePostVersion(projectId);
 
-  const onProjectNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onProjectNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const regex = new RegExp('^[a-zA-Z0-9_\\-\\.]+$');
 
     if (!regex.test(event.target.value)) {
@@ -35,7 +35,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
     setNewProjectName(event.target.value);
   }
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     if (versionId) {
       deleteVersion();
     } else {
@@ -47,7 +47,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
   }
 
   return (
-    <React.Fragment>
+    <>
       {versionId ? (
         <Button
           variant="outlined"
@@ -101,6 +101,6 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
           </form>
         </ModalDialog>
       </Modal>
-    </React.Fragment>
+    </>
   );
 }
