@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
+	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/poedit"
 	"golang.org/x/sync/semaphore"
 )
@@ -34,15 +35,17 @@ type ServiceImpl struct {
 	Cache             cache.Cache
 	RenewalThreshold  time.Duration
 	PreFetchSemaphore *semaphore.Weighted
+	storage           storage.Storage
 }
 
-func NewService(cli poedit.Client, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
+func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
 	return &ServiceImpl{
 		Logger:            entry,
 		Client:            cli,
 		Cache:             cache,
 		RenewalThreshold:  renewalThreshold,
 		PreFetchSemaphore: semaphore.NewWeighted(1),
+		storage:           storage,
 	}
 }
 
