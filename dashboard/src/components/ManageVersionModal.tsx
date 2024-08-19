@@ -46,9 +46,6 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
     setOpen(false);
   }
 
-
-
-
   return (
     <React.Fragment>
       {versionId ? (
@@ -97,6 +94,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({ projectId, ver
                     value={newProjectName}
                   />
                 </FormControl>
+
                 <Button type="submit">Add version</Button>
               </Stack>
             )}
