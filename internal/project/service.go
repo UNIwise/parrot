@@ -36,9 +36,10 @@ type ServiceImpl struct {
 	RenewalThreshold  time.Duration
 	PreFetchSemaphore *semaphore.Weighted
 	storage           storage.Storage
+	repo              Repository
 }
 
-func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
+func NewService(cli poedit.Client, storage storage.Storage, repo Repository, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
 	return &ServiceImpl{
 		Logger:            entry,
 		Client:            cli,
@@ -46,6 +47,7 @@ func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, r
 		RenewalThreshold:  renewalThreshold,
 		PreFetchSemaphore: semaphore.NewWeighted(1),
 		storage:           storage,
+		repo:              repo,
 	}
 }
 
