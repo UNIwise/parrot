@@ -1,3 +1,5 @@
+//go:generate mockgen --source=service.go -destination=service_mock.go -package=project
+
 package project
 
 import (
@@ -27,6 +29,7 @@ type Service interface {
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
+	GetAllProjects(ctx context.Context) (*[]Project, error)
 }
 
 type ServiceImpl struct {
@@ -149,4 +152,14 @@ func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
 	}
 
 	return nil
+}
+
+func (s *ServiceImpl) GetAllProjects(ctx context.Context) (*[]Project, error) {
+	projects, err := s.repo.GetAllProjects(ctx)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get projects")
+	}
+
+	return projects, nil
 }

@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
+	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/pkg/poedit"
 )
 
@@ -89,4 +91,48 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 	ctx.Response().Header().Add("Content-Transfer-Encoding", "8bit")
 
 	return ctx.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(trans.Data))
+}
+
+type GetProjectItemResponse struct {
+	ID               uint      `json:"id"`
+	Name             string    `json:"name"`
+	NumberOfVersions uint      `json:"numberOfVersions"`
+	CreatedAt        time.Time `json:"createdAt"`
+}
+
+type GetAllProjectsResponse struct {
+	Projects []GetProjectItemResponse `json:"projects"`
+}
+
+func (h *Handlers) getAllProjects(ctx echo.Context, l *logrus.Entry) error {
+	projects, err := h.ProjectService.GetAllProjects(ctx.Request().Context())
+	if err != nil {
+		l.WithError(err).Error("Error retrieving projects")
+
+		return echo.ErrInternalServerError
+	}
+
+	response := h.newGetAllProjectsResponse(*projects)
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+func (h *Handlers) newGetAllProjectsResponse(
+	projects []project.Project,
+) *GetAllProjectsResponse {
+	response := &GetAllProjectsResponse{
+		Projects: make([]GetProjectItemResponse, len(projects)),
+	}
+
+	for i, project := range projects {
+
+		response.Projects[i] = GetProjectItemResponse{
+			ID:               project.ID,
+			Name:             project.Name,
+			NumberOfVersions: project.NumberOfVersions,
+			CreatedAt:        project.CreatedAt,
+		}
+	}
+
+	return response
 }
