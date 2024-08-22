@@ -29,9 +29,9 @@ type Service interface {
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
-	GetAllProjects(ctx context.Context) (*[]Project, error)
+	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
-	GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error)
+	GetProjectVersions(ctx context.Context, projectID int) ([]Version, error)
 }
 
 type ServiceImpl struct {
@@ -156,9 +156,8 @@ func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
 	return nil
 }
 
-func (s *ServiceImpl) GetAllProjects(ctx context.Context) (*[]Project, error) {
+func (s *ServiceImpl) GetAllProjects(ctx context.Context) ([]Project, error) {
 	projects, err := s.repo.GetAllProjects(ctx)
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get projects")
 	}
@@ -168,7 +167,6 @@ func (s *ServiceImpl) GetAllProjects(ctx context.Context) (*[]Project, error) {
 
 func (s *ServiceImpl) GetProjectByID(ctx context.Context, id int) (*Project, error) {
 	project, err := s.repo.GetProjectByID(ctx, id)
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get project")
 	}
@@ -176,9 +174,8 @@ func (s *ServiceImpl) GetProjectByID(ctx context.Context, id int) (*Project, err
 	return project, nil
 }
 
-func (s *ServiceImpl) GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error) {
+func (s *ServiceImpl) GetProjectVersions(ctx context.Context, projectID int) ([]Version, error) {
 	versions, err := s.repo.GetProjectVersions(ctx, projectID)
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get project versions")
 	}

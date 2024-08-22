@@ -34,11 +34,11 @@ func TestRepositoryGetAllProjects(t *testing.T) {
 		projects, err := repository.GetAllProjects(context.Background())
 
 		assert.NoError(t, err)
-		assert.Len(t, *projects, 1)
-		assert.Equal(t, testID, (*projects)[0].ID)
-		assert.Equal(t, "testName", (*projects)[0].Name)
-		assert.Equal(t, testNumberOfVersions, (*projects)[0].NumberOfVersions)
-		assert.Equal(t, timestamp, (*projects)[0].CreatedAt)
+		assert.Len(t, projects, 1)
+		assert.Equal(t, testID, projects[0].ID)
+		assert.Equal(t, "testName", projects[0].Name)
+		assert.Equal(t, testNumberOfVersions, projects[0].NumberOfVersions)
+		assert.Equal(t, timestamp, projects[0].CreatedAt)
 		assert.NoError(t, sql.ExpectationsWereMet())
 	})
 
@@ -105,11 +105,11 @@ func TestRepositoryGetProjectVersions(t *testing.T) {
 		versions, err := repository.GetProjectVersions(context.Background(), int(testProjectID))
 
 		assert.NoError(t, err)
-		assert.Len(t, *versions, 1)
-		assert.Equal(t, testID, (*versions)[0].ID)
-		assert.Equal(t, "testName", (*versions)[0].Name)
-		assert.Equal(t, testProjectID, (*versions)[0].ProjectID)
-		assert.Equal(t, timestamp, (*versions)[0].CreatedAt)
+		assert.Len(t, versions, 1)
+		assert.Equal(t, testID, versions[0].ID)
+		assert.Equal(t, "testName", versions[0].Name)
+		assert.Equal(t, testProjectID, versions[0].ProjectID)
+		assert.Equal(t, timestamp, versions[0].CreatedAt)
 		assert.NoError(t, sql.ExpectationsWereMet())
 	})
 

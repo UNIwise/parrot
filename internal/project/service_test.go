@@ -28,7 +28,7 @@ func TestServiceGetAllProjects(t *testing.T) {
 	service := NewService(nil, nil, repository, nil, testRenewalThreshold, nil)
 
 	t.Run("Success", func(t *testing.T) {
-		repository.EXPECT().GetAllProjects(testCtx).Return(&[]Project{{
+		repository.EXPECT().GetAllProjects(testCtx).Return([]Project{{
 			ID:               testID,
 			Name:             testName,
 			NumberOfVersions: testNumberOfVersions,
@@ -39,10 +39,10 @@ func TestServiceGetAllProjects(t *testing.T) {
 		projects, err := service.GetAllProjects(testCtx)
 
 		assert.NoError(t, err)
-		assert.Equal(t, testID, (*projects)[0].ID)
-		assert.Equal(t, testName, (*projects)[0].Name)
-		assert.Equal(t, testNumberOfVersions, (*projects)[0].NumberOfVersions)
-		assert.Equal(t, testCreatedAt, (*projects)[0].CreatedAt)
+		assert.Equal(t, testID, projects[0].ID)
+		assert.Equal(t, testName, projects[0].Name)
+		assert.Equal(t, testNumberOfVersions, projects[0].NumberOfVersions)
+		assert.Equal(t, testCreatedAt, projects[0].CreatedAt)
 	})
 
 	t.Run("Not found", func(t *testing.T) {
@@ -117,7 +117,7 @@ func TestServiceGetProjectVersions(t *testing.T) {
 	service := NewService(nil, nil, repository, nil, testRenewalThreshold, nil)
 
 	t.Run("Success", func(t *testing.T) {
-		repository.EXPECT().GetProjectVersions(testCtx, int(testProjectID)).Return(&[]Version{{
+		repository.EXPECT().GetProjectVersions(testCtx, int(testProjectID)).Return([]Version{{
 			ID:        testID,
 			Name:      testName,
 			ProjectID: testProjectID,
@@ -128,10 +128,10 @@ func TestServiceGetProjectVersions(t *testing.T) {
 		versions, err := service.GetProjectVersions(testCtx, int(testProjectID))
 
 		assert.NoError(t, err)
-		assert.Equal(t, testID, (*versions)[0].ID)
-		assert.Equal(t, testName, (*versions)[0].Name)
-		assert.Equal(t, testProjectID, (*versions)[0].ProjectID)
-		assert.Equal(t, testCreatedAt, (*versions)[0].CreatedAt)
+		assert.Equal(t, testID, versions[0].ID)
+		assert.Equal(t, testName, versions[0].Name)
+		assert.Equal(t, testProjectID, versions[0].ProjectID)
+		assert.Equal(t, testCreatedAt, versions[0].CreatedAt)
 	})
 
 	t.Run("Not found", func(t *testing.T) {

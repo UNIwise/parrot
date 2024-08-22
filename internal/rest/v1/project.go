@@ -93,15 +93,15 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 	return ctx.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(trans.Data))
 }
 
-type GetProjectItemResponse struct {
+type getProjectItemResponse struct {
 	ID               uint      `json:"id"`
 	Name             string    `json:"name"`
 	NumberOfVersions uint      `json:"numberOfVersions"`
 	CreatedAt        time.Time `json:"createdAt"`
 }
 
-type GetAllProjectsResponse struct {
-	Projects []GetProjectItemResponse `json:"projects"`
+type getAllProjectsResponse struct {
+	Projects []getProjectItemResponse `json:"projects"`
 }
 
 func (h *Handlers) getAllProjects(ctx echo.Context, l *logrus.Entry) error {
@@ -112,21 +112,21 @@ func (h *Handlers) getAllProjects(ctx echo.Context, l *logrus.Entry) error {
 		return echo.ErrInternalServerError
 	}
 
-	response := h.newGetAllProjectsResponse(*projects)
+	response := h.newGetAllProjectsResponse(projects)
 
 	return ctx.JSON(http.StatusOK, response)
 }
 
 func (h *Handlers) newGetAllProjectsResponse(
 	projects []project.Project,
-) *GetAllProjectsResponse {
-	response := &GetAllProjectsResponse{
-		Projects: make([]GetProjectItemResponse, len(projects)),
+) *getAllProjectsResponse {
+	response := &getAllProjectsResponse{
+		Projects: make([]getProjectItemResponse, len(projects)),
 	}
 
 	for i, project := range projects {
 
-		response.Projects[i] = GetProjectItemResponse{
+		response.Projects[i] = getProjectItemResponse{
 			ID:               project.ID,
 			Name:             project.Name,
 			NumberOfVersions: project.NumberOfVersions,
@@ -141,7 +141,7 @@ type getProjectRequest struct {
 	ID  int    `param:"id" validate:"required"`
 }
 
-type GetProjectResponse struct {
+type getProjectResponse struct {
 	ID               uint      `json:"id"`
 	Name             string    `json:"name"`
 	NumberOfVersions uint      `json:"numberOfVersions"`
@@ -179,8 +179,8 @@ func (h *Handlers) getProject(ctx echo.Context, l *logrus.Entry) error {
 
 func (h *Handlers) newGetProjectResponse(
 	project project.Project,
-) *GetProjectResponse {
-	return &GetProjectResponse{
+) *getProjectResponse {
+	return &getProjectResponse{
 		ID:               project.ID,
 		Name:             project.Name,
 		NumberOfVersions: project.NumberOfVersions,
@@ -188,22 +188,22 @@ func (h *Handlers) newGetProjectResponse(
 	}
 }
 
-type GetProjectVersionsRequest struct {
+type getProjectVersionsRequest struct {
 	ProjectID  int    `param:"id" validate:"required"`
 }
 
-type GetProjectVersionsItemResponse struct {
+type getProjectVersionsItemResponse struct {
 	ID               uint      `json:"id"`
 	Name             string    `json:"name"`
 	CreatedAt        time.Time `json:"createdAt"`
 }
 
-type GetProjectVersionsResponse struct {
-	Versions []GetProjectVersionsItemResponse `json:"versions"`
+type getProjectVersionsResponse struct {
+	Versions []getProjectVersionsItemResponse `json:"versions"`
 }
 
 func (h *Handlers) getProjectVersions(ctx echo.Context, l *logrus.Entry) error {
-	req := new(GetProjectVersionsRequest)
+	req := new(getProjectVersionsRequest)
 	if err := ctx.Bind(req); err != nil {
 		l.WithError(err).Error("Error binding request")
 
@@ -226,20 +226,20 @@ func (h *Handlers) getProjectVersions(ctx echo.Context, l *logrus.Entry) error {
 		return echo.ErrInternalServerError
 	}
 
-	response := h.newGetProjectVersionsResponse(*versions)
+	response := h.newGetProjectVersionsResponse(versions)
 
 	return ctx.JSON(http.StatusOK, response)
 }
 
 func (h *Handlers) newGetProjectVersionsResponse(
 	versions []project.Version,
-) *GetProjectVersionsResponse {
-	response := &GetProjectVersionsResponse{
-		Versions: make([]GetProjectVersionsItemResponse, len(versions)),
+) *getProjectVersionsResponse {
+	response := &getProjectVersionsResponse{
+		Versions: make([]getProjectVersionsItemResponse, len(versions)),
 	}
 
 	for i, version := range versions {
-		response.Versions[i] = GetProjectVersionsItemResponse{
+		response.Versions[i] = getProjectVersionsItemResponse{
 			ID:        version.ID,
 			Name:      version.Name,
 			CreatedAt: version.CreatedAt,

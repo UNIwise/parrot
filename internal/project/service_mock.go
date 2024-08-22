@@ -40,10 +40,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // GetAllProjects mocks base method.
-func (m *MockService) GetAllProjects(ctx context.Context) (*[]Project, error) {
+func (m *MockService) GetAllProjects(ctx context.Context) ([]Project, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllProjects", ctx)
-	ret0, _ := ret[0].(*[]Project)
+	ret0, _ := ret[0].([]Project)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -70,10 +70,10 @@ func (mr *MockServiceMockRecorder) GetProjectByID(ctx, id interface{}) *gomock.C
 }
 
 // GetProjectVersions mocks base method.
-func (m *MockService) GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error) {
+func (m *MockService) GetProjectVersions(ctx context.Context, projectID int) ([]Version, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProjectVersions", ctx, projectID)
-	ret0, _ := ret[0].(*[]Version)
+	ret0, _ := ret[0].([]Version)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

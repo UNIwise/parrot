@@ -45,7 +45,7 @@ func TestGetAllProjects(t *testing.T) {
 		ProjectService: projectService,
 	}
 	t.Run("GetAllProjects, success", func(t *testing.T) {
-		projectService.EXPECT().GetAllProjects(context.Background()).Times(1).Return(&[]project.Project{{
+		projectService.EXPECT().GetAllProjects(context.Background()).Times(1).Return([]project.Project{{
 			ID:               testID,
 			Name:             testName,
 			NumberOfVersions: testNumberOfVersions,
@@ -56,12 +56,12 @@ func TestGetAllProjects(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.Code)
 
-		var response GetAllProjectsResponse
+		var response getAllProjectsResponse
 		err = json.Unmarshal(resp.Body.Bytes(), &response)
 		assert.NoError(t, err)
 
-		assert.Equal(t, response, GetAllProjectsResponse{
-			Projects: []GetProjectItemResponse{
+		assert.Equal(t, response, getAllProjectsResponse{
+			Projects: []getProjectItemResponse{
 				{
 					ID:               testID,
 					Name:             testName,
@@ -132,11 +132,11 @@ func TestGetProject(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.Code)
 
-		var response GetProjectResponse
+		var response getProjectResponse
 		err = json.Unmarshal(resp.Body.Bytes(), &response)
 		assert.NoError(t, err)
 
-		assert.Equal(t, response, GetProjectResponse{
+		assert.Equal(t, response, getProjectResponse{
 			ID:               testID,
 			Name:             testName,
 			NumberOfVersions: testNumberOfVersions,
@@ -192,7 +192,7 @@ func TestGetProjectVersions(t *testing.T) {
 		ProjectService: projectService,
 	}
 	t.Run("GetProjectVersions, success", func(t *testing.T) {
-		projectService.EXPECT().GetProjectVersions(context.Background(), int(testID)).Times(1).Return(&[]project.Version{{
+		projectService.EXPECT().GetProjectVersions(context.Background(), int(testID)).Times(1).Return([]project.Version{{
 			ID:        testVersionID,
 			Name:      testName,
 			ProjectID: testID,
@@ -203,12 +203,12 @@ func TestGetProjectVersions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.Code)
 
-		var response GetProjectVersionsResponse
+		var response getProjectVersionsResponse
 		err = json.Unmarshal(resp.Body.Bytes(), &response)
 		assert.NoError(t, err)
 
-		assert.Equal(t, response, GetProjectVersionsResponse{
-			Versions: []GetProjectVersionsItemResponse{
+		assert.Equal(t, response, getProjectVersionsResponse{
+			Versions: []getProjectVersionsItemResponse{
 				{
 					ID:        testID,
 					Name:      testName,

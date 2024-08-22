@@ -14,9 +14,9 @@ var (
 )
 
 type Repository interface {
-	GetAllProjects(ctx context.Context) (*[]Project, error)
+	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
-	GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error)
+	GetProjectVersions(ctx context.Context, projectID int) ([]Version, error)
 }
 
 type RepositoryImpl struct {
@@ -29,7 +29,7 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (r *RepositoryImpl) GetAllProjects(ctx context.Context) (*[]Project, error) {
+func (r *RepositoryImpl) GetAllProjects(ctx context.Context) ([]Project, error) {
 	var projects []Project
 
 	result := r.db.WithContext(ctx).
@@ -46,7 +46,7 @@ func (r *RepositoryImpl) GetAllProjects(ctx context.Context) (*[]Project, error)
 		return nil, result.Error
 	}
 
-	return &projects, nil
+	return projects, nil
 }
 
 func (r *RepositoryImpl) GetProjectByID(ctx context.Context, id int) (*Project, error) {
@@ -69,7 +69,7 @@ func (r *RepositoryImpl) GetProjectByID(ctx context.Context, id int) (*Project, 
 	return &project, nil
 }
 
-func (r *RepositoryImpl) GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error) {
+func (r *RepositoryImpl) GetProjectVersions(ctx context.Context, projectID int) ([]Version, error) {
 	var versions []Version
 
 	result := r.db.WithContext(ctx).
@@ -84,5 +84,5 @@ func (r *RepositoryImpl) GetProjectVersions(ctx context.Context, projectID int) 
 		return nil, result.Error
 	}
 
-	return &versions, nil
+	return versions, nil
 }
