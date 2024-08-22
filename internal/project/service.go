@@ -30,6 +30,7 @@ type Service interface {
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
 	GetAllProjects(ctx context.Context) (*[]Project, error)
+	GetProjectByID(ctx context.Context, id int) (*Project, error)
 }
 
 type ServiceImpl struct {
@@ -162,4 +163,14 @@ func (s *ServiceImpl) GetAllProjects(ctx context.Context) (*[]Project, error) {
 	}
 
 	return projects, nil
+}
+
+func (s *ServiceImpl) GetProjectByID(ctx context.Context, id int) (*Project, error) {
+	project, err := s.repo.GetProjectByID(ctx, id)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get project")
+	}
+
+	return project, nil
 }

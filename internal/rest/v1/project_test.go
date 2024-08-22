@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,6 +20,7 @@ import (
 
 var (
 	errTest                     = errors.New("test error")
+	errNotFoundTest             = errors.New("failed to get project: not found")
 	testID               uint   = 1
 	testName             string = "testname"
 	testNumberOfVersions uint   = 3
@@ -87,10 +89,9 @@ func TestHandlers_newGetAllProjectsResponse(t *testing.T) {
 		CreatedAt:        testCreatedAt.UTC(),
 	}}
 
-	h := &Handlers{
-	}
+	h := &Handlers{}
 
-	response:= h.newGetAllProjectsResponse(projects)
+	response := h.newGetAllProjectsResponse(projects)
 
 	assert.NotNil(t, response)
 	assert.Len(t, response.Projects, 1)
@@ -98,4 +99,75 @@ func TestHandlers_newGetAllProjectsResponse(t *testing.T) {
 	assert.Equal(t, response.Projects[0].Name, testName)
 	assert.Equal(t, response.Projects[0].NumberOfVersions, testNumberOfVersions)
 	assert.Equal(t, response.Projects[0].CreatedAt, testCreatedAt.UTC())
+}
+
+func TestGetProject(t *testing.T) {
+	t.Parallel()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	resp := httptest.NewRecorder()
+
+	testCtx := e.NewContext(req, resp)
+
+	testCtx.SetPath("/projects/:id")
+	testCtx.SetParamNames("id")
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID))
+
+	projectService := project.NewMockService(gomock.NewController(t))
+
+	h := &Handlers{
+		ProjectService: projectService,
+	}
+	t.Run("GetProject, success", func(t *testing.T) {
+		projectService.EXPECT().GetProjectByID(context.Background(), int(testID)).Times(1).Return(&project.Project{
+			ID:               testID,
+			Name:             testName,
+			NumberOfVersions: testNumberOfVersions,
+			CreatedAt:        testCreatedAt.UTC(),
+		}, nil)
+
+		err := h.getProject(testCtx, logrus.NewEntry(logrus.New()))
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Code)
+
+		var response GetProjectResponse
+		err = json.Unmarshal(resp.Body.Bytes(), &response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, response, GetProjectResponse{
+			ID:               testID,
+			Name:             testName,
+			NumberOfVersions: testNumberOfVersions,
+			CreatedAt:        testCreatedAt.UTC(),
+		})
+	})
+
+	t.Run("GetProject, error", func(t *testing.T) {
+		projectService.EXPECT().GetProjectByID(context.Background(), int(testID)).Times(1).Return(nil, errTest)
+
+		err := h.getProject(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+	})
+}
+
+func TestHandlers_newGetProjectResponse(t *testing.T) {
+	t.Parallel()
+
+	project := project.Project{
+		ID:               testID,
+		Name:             testName,
+		NumberOfVersions: testNumberOfVersions,
+		CreatedAt:        testCreatedAt.UTC(),
+	}
+
+	h := &Handlers{}
+
+	response := h.newGetProjectResponse(project)
+
+	assert.NotNil(t, response)
+	assert.Equal(t, response.ID, testID)
+	assert.Equal(t, response.Name, testName)
+	assert.Equal(t, response.NumberOfVersions, testNumberOfVersions)
+	assert.Equal(t, response.CreatedAt, testCreatedAt.UTC())
 }

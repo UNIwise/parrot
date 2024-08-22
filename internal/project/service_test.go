@@ -64,3 +64,47 @@ func TestServiceGetAllProjects(t *testing.T) {
 		assert.Nil(t, projects)
 	})
 }
+
+func TestServiceGetProjectById(t *testing.T) {
+	t.Parallel()
+
+	repository := NewMockRepository(gomock.NewController(t))
+	service := NewService(nil, nil, repository, nil, testRenewalThreshold, nil)
+
+	t.Run("Success", func(t *testing.T) {
+		repository.EXPECT().GetProjectByID(testCtx, int(testID)).Return(&Project{
+			ID:               testID,
+			Name:             testName,
+			NumberOfVersions: testNumberOfVersions,
+			CreatedAt:        testCreatedAt,
+		}, nil)
+
+		project, err := service.GetProjectByID(testCtx, int(testID))
+
+		assert.NoError(t, err)
+		assert.Equal(t, testID, (*project).ID)
+		assert.Equal(t, testName, (*project).Name)
+		assert.Equal(t, testNumberOfVersions, (*project).NumberOfVersions)
+		assert.Equal(t, testCreatedAt, (*project).CreatedAt)
+	})
+
+	t.Run("Not found", func(t *testing.T) {
+		repository.EXPECT().GetProjectByID(testCtx, int(testID)).Return(nil, ErrNotFound)
+
+		project, err := service.GetProjectByID(testCtx, int(testID))
+
+		assert.Error(t, err)
+		assert.Nil(t, project)
+		assert.ErrorIs(t, err, ErrNotFound)
+	})
+
+	t.Run("Failure", func(t *testing.T) {
+		repository.EXPECT().GetProjectByID(testCtx, int(testID)).Return(nil, errTest)
+
+		project, err := service.GetProjectByID(testCtx, int(testID))
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errTest)
+		assert.Nil(t, project)
+	})
+}

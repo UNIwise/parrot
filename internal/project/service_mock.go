@@ -54,6 +54,21 @@ func (mr *MockServiceMockRecorder) GetAllProjects(ctx interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllProjects", reflect.TypeOf((*MockService)(nil).GetAllProjects), ctx)
 }
 
+// GetProjectByID mocks base method.
+func (m *MockService) GetProjectByID(ctx context.Context, id int) (*Project, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProjectByID", ctx, id)
+	ret0, _ := ret[0].(*Project)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProjectByID indicates an expected call of GetProjectByID.
+func (mr *MockServiceMockRecorder) GetProjectByID(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectByID", reflect.TypeOf((*MockService)(nil).GetProjectByID), ctx, id)
+}
+
 // GetTranslation mocks base method.
 func (m *MockService) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*Translation, error) {
 	m.ctrl.T.Helper()

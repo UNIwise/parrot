@@ -136,3 +136,54 @@ func (h *Handlers) newGetAllProjectsResponse(
 
 	return response
 }
+
+type getProjectRequest struct {
+	ID  int    `param:"id" validate:"required"`
+}
+
+type GetProjectResponse struct {
+	ID               uint      `json:"id"`
+	Name             string    `json:"name"`
+	NumberOfVersions uint      `json:"numberOfVersions"`
+	CreatedAt        time.Time `json:"createdAt"`
+}
+
+func (h *Handlers) getProject(ctx echo.Context, l *logrus.Entry) error {
+	req := new(getProjectRequest)
+	if err := ctx.Bind(req); err != nil {
+		l.WithError(err).Error("Error binding request")
+
+		return echo.ErrBadRequest
+	}
+
+	l = l.WithField("project", req.ID)
+
+	project, err := h.ProjectService.GetProjectByID(
+		ctx.Request().Context(),
+		req.ID,
+	)
+	if err != nil {
+		if (err.Error() == "failed to get project: not found") {
+			return echo.ErrNotFound
+		}
+
+		l.WithError(err).Error("Error retrieving project")
+
+		return echo.ErrInternalServerError
+	}
+
+	response := h.newGetProjectResponse(*project)
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+func (h *Handlers) newGetProjectResponse(
+	project project.Project,
+) *GetProjectResponse {
+	return &GetProjectResponse{
+		ID:               project.ID,
+		Name:             project.Name,
+		NumberOfVersions: project.NumberOfVersions,
+		CreatedAt:        project.CreatedAt,
+	}
+}
