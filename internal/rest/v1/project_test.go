@@ -22,6 +22,7 @@ var (
 	errTest                     = errors.New("test error")
 	errNotFoundTest             = errors.New("failed to get project: not found")
 	testID               uint   = 1
+	testVersionID        uint   = 1
 	testName             string = "testname"
 	testNumberOfVersions uint   = 3
 	testCreatedAt               = time.Now()
@@ -170,4 +171,78 @@ func TestHandlers_newGetProjectResponse(t *testing.T) {
 	assert.Equal(t, response.Name, testName)
 	assert.Equal(t, response.NumberOfVersions, testNumberOfVersions)
 	assert.Equal(t, response.CreatedAt, testCreatedAt.UTC())
+}
+
+func TestGetProjectVersions(t *testing.T) {
+	t.Parallel()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	resp := httptest.NewRecorder()
+
+	testCtx := e.NewContext(req, resp)
+
+	testCtx.SetPath("/projects/:id/versions")
+	testCtx.SetParamNames("id")
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID))
+
+	projectService := project.NewMockService(gomock.NewController(t))
+
+	h := &Handlers{
+		ProjectService: projectService,
+	}
+	t.Run("GetProjectVersions, success", func(t *testing.T) {
+		projectService.EXPECT().GetProjectVersions(context.Background(), int(testID)).Times(1).Return(&[]project.Version{{
+			ID:        testVersionID,
+			Name:      testName,
+			ProjectID: testID,
+			CreatedAt: testCreatedAt.UTC(),
+		}}, nil)
+
+		err := h.getProjectVersions(testCtx, logrus.NewEntry(logrus.New()))
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Code)
+
+		var response GetProjectVersionsResponse
+		err = json.Unmarshal(resp.Body.Bytes(), &response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, response, GetProjectVersionsResponse{
+			Versions: []GetProjectVersionsItemResponse{
+				{
+					ID:        testID,
+					Name:      testName,
+					CreatedAt: testCreatedAt.UTC(),
+				},
+			},
+		})
+	})
+
+	t.Run("GetProjectVersions, error", func(t *testing.T) {
+		projectService.EXPECT().GetProjectVersions(context.Background(), int(testID)).Times(1).Return(nil, errTest)
+
+		err := h.getProjectVersions(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+	})
+}
+
+func TestHandlers_newGetProjectVersionsResponse(t *testing.T) {
+	t.Parallel()
+
+	versions := []project.Version{{
+		ID:        testVersionID,
+		Name:      testName,
+		ProjectID: testID,
+		CreatedAt: testCreatedAt.UTC(),
+	}}
+
+	h := &Handlers{}
+
+	response := h.newGetProjectVersionsResponse(versions)
+
+	assert.NotNil(t, response)
+	assert.Len(t, response.Versions, 1)
+	assert.Equal(t, response.Versions[0].ID, testID)
+	assert.Equal(t, response.Versions[0].Name, testName)
+	assert.Equal(t, response.Versions[0].CreatedAt, testCreatedAt.UTC())
 }

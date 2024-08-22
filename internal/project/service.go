@@ -31,6 +31,7 @@ type Service interface {
 	RegisterChecks(h gosundheit.Health) (err error)
 	GetAllProjects(ctx context.Context) (*[]Project, error)
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
+	GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error)
 }
 
 type ServiceImpl struct {
@@ -173,4 +174,14 @@ func (s *ServiceImpl) GetProjectByID(ctx context.Context, id int) (*Project, err
 	}
 
 	return project, nil
+}
+
+func (s *ServiceImpl) GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error) {
+	versions, err := s.repo.GetProjectVersions(ctx, projectID)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get project versions")
+	}
+
+	return versions, nil
 }

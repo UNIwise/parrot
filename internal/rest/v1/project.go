@@ -187,3 +187,65 @@ func (h *Handlers) newGetProjectResponse(
 		CreatedAt:        project.CreatedAt,
 	}
 }
+
+type GetProjectVersionsRequest struct {
+	ProjectID  int    `param:"id" validate:"required"`
+}
+
+type GetProjectVersionsItemResponse struct {
+	ID               uint      `json:"id"`
+	Name             string    `json:"name"`
+	CreatedAt        time.Time `json:"createdAt"`
+}
+
+type GetProjectVersionsResponse struct {
+	Versions []GetProjectVersionsItemResponse `json:"versions"`
+}
+
+func (h *Handlers) getProjectVersions(ctx echo.Context, l *logrus.Entry) error {
+	req := new(GetProjectVersionsRequest)
+	if err := ctx.Bind(req); err != nil {
+		l.WithError(err).Error("Error binding request")
+
+		return echo.ErrBadRequest
+	}
+
+	l = l.WithField("project", req.ProjectID)
+
+	versions, err := h.ProjectService.GetProjectVersions(
+		ctx.Request().Context(),
+		req.ProjectID,
+	)
+	if err != nil {
+		if (err.Error() == "failed to get project versions: not found") {
+			return echo.ErrNotFound
+		}
+
+		l.WithError(err).Error("Error retrieving project versions")
+
+		return echo.ErrInternalServerError
+	}
+
+	response := h.newGetProjectVersionsResponse(*versions)
+
+	return ctx.JSON(http.StatusOK, response)
+}
+
+func (h *Handlers) newGetProjectVersionsResponse(
+	versions []project.Version,
+) *GetProjectVersionsResponse {
+	response := &GetProjectVersionsResponse{
+		Versions: make([]GetProjectVersionsItemResponse, len(versions)),
+	}
+
+	for i, version := range versions {
+		response.Versions[i] = GetProjectVersionsItemResponse{
+			ID:        version.ID,
+			Name:      version.Name,
+			CreatedAt: version.CreatedAt,
+		}
+	}
+
+	return response
+}
+

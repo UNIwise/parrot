@@ -69,6 +69,21 @@ func (mr *MockServiceMockRecorder) GetProjectByID(ctx, id interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectByID", reflect.TypeOf((*MockService)(nil).GetProjectByID), ctx, id)
 }
 
+// GetProjectVersions mocks base method.
+func (m *MockService) GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProjectVersions", ctx, projectID)
+	ret0, _ := ret[0].(*[]Version)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProjectVersions indicates an expected call of GetProjectVersions.
+func (mr *MockServiceMockRecorder) GetProjectVersions(ctx, projectID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectVersions", reflect.TypeOf((*MockService)(nil).GetProjectVersions), ctx, projectID)
+}
+
 // GetTranslation mocks base method.
 func (m *MockService) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*Translation, error) {
 	m.ctrl.T.Helper()

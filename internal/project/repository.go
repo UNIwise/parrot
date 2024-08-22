@@ -16,6 +16,7 @@ var (
 type Repository interface {
 	GetAllProjects(ctx context.Context) (*[]Project, error)
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
+	GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error)
 }
 
 type RepositoryImpl struct {
@@ -66,4 +67,22 @@ func (r *RepositoryImpl) GetProjectByID(ctx context.Context, id int) (*Project, 
 	}
 
 	return &project, nil
+}
+
+func (r *RepositoryImpl) GetProjectVersions(ctx context.Context, projectID int) (*[]Version, error) {
+	var versions []Version
+
+	result := r.db.WithContext(ctx).
+		Where("project_id = ?", projectID).
+		Find(&versions)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+
+		return nil, result.Error
+	}
+
+	return &versions, nil
 }
