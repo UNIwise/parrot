@@ -10,9 +10,9 @@ import {
 } from "@mui/joy";
 import { useMemo, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
-import { Placeholder } from '../../components/Placeholder';
+import { Placeholder } from "../../components/Placeholder";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
-import { Project } from '../../interfaces/projects';
+import { Project } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components/TableRow";
 
 const ITEMS_PER_PAGE = 20;
@@ -23,14 +23,17 @@ export const ProjectsOverview = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredProjects: Project[] = useMemo(() => {
-    if (!projects || !projects.projects || projects.projects.length === 0) return [];
+    if (!projects || !projects.projects || projects.projects.length === 0)
+      return [];
 
     return projects.projects.filter((project: Project) =>
-      project.name.toLowerCase().includes(searchTerm.toLowerCase())
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [projects, searchTerm]);
 
-  const pageCount = filteredProjects ? Math.ceil(filteredProjects.length / ITEMS_PER_PAGE) : 0;
+  const pageCount = filteredProjects
+    ? Math.ceil(filteredProjects.length / ITEMS_PER_PAGE)
+    : 0;
 
   const paginatedProjects = useMemo(() => {
     if (filteredProjects.length === 0) return [];
@@ -63,8 +66,8 @@ export const ProjectsOverview = () => {
             alignSelf: "center",
             fontSize: "2rem",
             color: (t) => t.palette.primary[400],
-            m: '0 1.5rem 2rem 0',
-            border: '1px solid',
+            m: "0 1.5rem 2rem 0",
+            border: "1px solid",
             borderColor: (t) => t.palette.primary[400],
             p: "1rem 2.5rem",
             borderRadius: "sm",
@@ -101,9 +104,11 @@ export const ProjectsOverview = () => {
           stickyHeader
           hoverRow
           sx={{
-            "--TableCell-headBackground": "var(--joy-palette-background-level1)",
+            "--TableCell-headBackground":
+              "var(--joy-palette-background-level1)",
             "--Table-headerUnderlineThickness": "1px",
-            "--TableRow-hoverBackground": "var(--joy-palette-background-level1)",
+            "--TableRow-hoverBackground":
+              "var(--joy-palette-background-level1)",
             "--TableCell-paddingY": "4px",
             "--TableCell-paddingX": "8px",
           }}
@@ -123,8 +128,7 @@ export const ProjectsOverview = () => {
                   padding: "0.7rem 4.5rem",
                   textAlign: "end",
                 }}
-              >
-              </th>
+              ></th>
             </tr>
           </thead>
           <tbody>

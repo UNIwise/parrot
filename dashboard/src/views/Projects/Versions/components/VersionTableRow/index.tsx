@@ -7,7 +7,7 @@ type VersionTableRowProps = {
   versionId: number;
   versionName: string;
   createdAt: string;
-}
+};
 
 export const VersionTableRow: FC<VersionTableRowProps> = ({
   projectId,
@@ -24,11 +24,19 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
   return (
     <tr>
       <td style={{ paddingLeft: "1.5rem" }}>
-        <Typography level="body-xs" fontSize={'0.9rem'} sx={{ maxWidth: 490, overflowX: 'hidden' }}>{versionName}</Typography>
+        <Typography
+          level="body-xs"
+          fontSize={"0.9rem"}
+          sx={{ maxWidth: 490, overflowX: "hidden" }}
+        >
+          {versionName}
+        </Typography>
       </td>
 
       <td style={{ paddingLeft: "0.5rem" }}>
-        <Typography level="body-xs" fontSize={'0.9rem'} fontWeight={400}>{createdAtDate}</Typography>
+        <Typography level="body-xs" fontSize={"0.9rem"} fontWeight={400}>
+          {createdAtDate}
+        </Typography>
       </td>
 
       <td
@@ -38,7 +46,11 @@ export const VersionTableRow: FC<VersionTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <ManageVersionModal projectId={projectId} versionId={versionId} versionName={versionName} />
+        <ManageVersionModal
+          projectId={projectId}
+          versionId={versionId}
+          versionName={versionName}
+        />
       </td>
     </tr>
   );

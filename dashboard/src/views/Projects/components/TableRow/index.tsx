@@ -7,7 +7,7 @@ type ProjectTableRowProps = {
   projectName: string;
   createdAt: string;
   numberOfVersions: number;
-}
+};
 
 export const ProjectTableRow: FC<ProjectTableRowProps> = ({
   projectId,
@@ -22,17 +22,29 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
   const createdAtDate = formatIsoDateToLocaleString(createdAt);
 
   return (
-    <tr onClick={() => window.location.href = `/projects/${projectId}/versions`}>
+    <tr
+      onClick={() => (window.location.href = `/projects/${projectId}/versions`)}
+    >
       <td style={{ paddingLeft: "1.5rem" }}>
-        <Typography level="body-xs" fontSize={'0.9rem'} sx={{ maxWidth: 490, overflowX: 'hidden' }}>{projectName}</Typography>
-      </td>
-
-      <td style={{ paddingLeft: "0.5rem", }}>
-        <Typography level="body-xs" fontSize={'0.9rem'} fontWeight={400}>{numberOfVersions}</Typography>
+        <Typography
+          level="body-xs"
+          fontSize={"0.9rem"}
+          sx={{ maxWidth: 490, overflowX: "hidden" }}
+        >
+          {projectName}
+        </Typography>
       </td>
 
       <td style={{ paddingLeft: "0.5rem" }}>
-        <Typography level="body-xs" fontSize={'0.9rem'} fontWeight={400}>{createdAtDate}</Typography>
+        <Typography level="body-xs" fontSize={"0.9rem"} fontWeight={400}>
+          {numberOfVersions}
+        </Typography>
+      </td>
+
+      <td style={{ paddingLeft: "0.5rem" }}>
+        <Typography level="body-xs" fontSize={"0.9rem"} fontWeight={400}>
+          {createdAtDate}
+        </Typography>
       </td>
 
       <td
@@ -42,10 +54,14 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
           verticalAlign: "center",
         }}
       >
-        <Button variant="outlined" endDecorator={<KeyboardArrowRight />} sx={{ color: (t) => t.palette.primary[400] }}>All versions</Button>
+        <Button
+          variant="outlined"
+          endDecorator={<KeyboardArrowRight />}
+          sx={{ color: (t) => t.palette.primary[400] }}
+        >
+          All versions
+        </Button>
       </td>
-
-    </tr >
-
+    </tr>
   );
 };

@@ -15,4 +15,3 @@ mock.onPost(/^\/api\/v1\/projects\/\d+\/versions$/).reply((req) => {
 
   return [201, newVersion];
 });
-

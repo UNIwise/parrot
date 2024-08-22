@@ -6,7 +6,7 @@ import {
   Input,
   Sheet,
   Table,
-  Typography
+  Typography,
 } from "@mui/joy";
 import { useMemo, useState } from "react";
 import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
@@ -24,18 +24,28 @@ export const VersionsOverview = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const { projectId } = useGetPageParams();
-  const { data: project, isLoading: isProjectLoading } = useGetProject(projectId);
-  const { data: versionsData, isLoading: isVersionsDataLoading } = useGetVersions(projectId);
+  const { data: project, isLoading: isProjectLoading } =
+    useGetProject(projectId);
+  const { data: versionsData, isLoading: isVersionsDataLoading } =
+    useGetVersions(projectId);
 
   const filteredVersions: Version[] = useMemo(() => {
-    if (!versionsData || !versionsData.versions || versionsData.versions.length === 0) return [];
+    if (
+      !versionsData ||
+      !versionsData.versions ||
+      versionsData.versions.length === 0
+    )
+      return [];
 
     return versionsData.versions.filter((version: Version) =>
-      version.name.toLowerCase().includes(searchTerm.toLowerCase())
+      version.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [versionsData, searchTerm]);
 
-  const pageCount = filteredVersions.length > 0 ? Math.ceil(filteredVersions.length / ITEMS_PER_PAGE) : 0;
+  const pageCount =
+    filteredVersions.length > 0
+      ? Math.ceil(filteredVersions.length / ITEMS_PER_PAGE)
+      : 0;
 
   const paginatedVersions = useMemo(() => {
     if (filteredVersions.length === 0) return [];
@@ -70,8 +80,8 @@ export const VersionsOverview = () => {
             alignSelf: "center",
             fontSize: "2rem",
             color: (t) => t.palette.primary[400],
-            m: '0 1.5rem 2rem 0',
-            border: '1px solid',
+            m: "0 1.5rem 2rem 0",
+            border: "1px solid",
             borderColor: (t) => t.palette.primary[400],
             p: "1rem 2.5rem",
             borderRadius: "sm",
@@ -79,7 +89,6 @@ export const VersionsOverview = () => {
         >
           {project?.name ? `${project.name} versions` : "Versions"}
         </Typography>
-
 
         <FormControl sx={{ flex: 1, pb: "1rem" }} size="sm">
           <FormLabel>Search for version</FormLabel>
@@ -112,9 +121,11 @@ export const VersionsOverview = () => {
           stickyHeader
           hoverRow
           sx={{
-            "--TableCell-headBackground": "var(--joy-palette-background-level1)",
+            "--TableCell-headBackground":
+              "var(--joy-palette-background-level1)",
             "--Table-headerUnderlineThickness": "1px",
-            "--TableRow-hoverBackground": "var(--joy-palette-background-level1)",
+            "--TableRow-hoverBackground":
+              "var(--joy-palette-background-level1)",
             "--TableCell-paddingY": "4px",
             "--TableCell-paddingX": "8px",
           }}
@@ -122,8 +133,16 @@ export const VersionsOverview = () => {
           <thead>
             <tr>
               <th style={{ width: 240, padding: "0.7rem 1.5rem" }}>Name</th>
-              <th style={{ width: 340, padding: "0.7rem 0.5rem" }}>Created At</th>
-              <th style={{ width: 140, padding: "0.7rem 4.5rem", textAlign: "end" }}></th>
+              <th style={{ width: 340, padding: "0.7rem 0.5rem" }}>
+                Created At
+              </th>
+              <th
+                style={{
+                  width: 140,
+                  padding: "0.7rem 4.5rem",
+                  textAlign: "end",
+                }}
+              ></th>
             </tr>
           </thead>
 

@@ -1,4 +1,4 @@
-export const generatePageNumbers = (pageCount: number, currentPage: number, ) => {
+export const generatePageNumbers = (pageCount: number, currentPage: number) => {
   const pageNumbers = [];
 
   // If there are less than 7 pages, show all pages buttons
@@ -19,7 +19,15 @@ export const generatePageNumbers = (pageCount: number, currentPage: number, ) =>
         pageNumbers.push(i);
       }
     } else {
-      pageNumbers.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", pageCount);
+      pageNumbers.push(
+        1,
+        "...",
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        "...",
+        pageCount,
+      );
     }
   }
   return pageNumbers;

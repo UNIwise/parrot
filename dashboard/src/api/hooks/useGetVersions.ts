@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import { GetVersionsResponse } from '../../interfaces/versions';
-import client from '../client';
-import '../mocks/useGetVersions.mock';
+import { useQuery } from "@tanstack/react-query";
+import { GetVersionsResponse } from "../../interfaces/versions";
+import client from "../client";
+import "../mocks/useGetVersions.mock";
 
 const getVersions = async (projectId?: number) => {
   const response = await client.get<GetVersionsResponse>(
@@ -13,7 +13,7 @@ const getVersions = async (projectId?: number) => {
 
 export const useGetVersions = (projectId?: number) => {
   return useQuery({
-    queryKey: ['api', 'projects', projectId, 'versions'],
+    queryKey: ["api", "projects", projectId, "versions"],
     queryFn: () => getVersions(projectId),
   });
 };

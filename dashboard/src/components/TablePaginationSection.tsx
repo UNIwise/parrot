@@ -8,7 +8,7 @@ type TablePaginationSectionProps = {
   currentPage: number;
   pageCount: number;
   onPageChange: (page: number) => void;
-}
+};
 
 export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
   currentPage,
@@ -43,10 +43,10 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
         <IconButton
           key={index}
           size="sm"
-          variant={typeof page === 'number' ? "outlined" : "plain"}
+          variant={typeof page === "number" ? "outlined" : "plain"}
           color="primary"
-          onClick={() => typeof page === 'number' && onPageChange(page)}
-          disabled={page === currentPage || typeof page !== 'number'}
+          onClick={() => typeof page === "number" && onPageChange(page)}
+          disabled={page === currentPage || typeof page !== "number"}
         >
           {page}
         </IconButton>

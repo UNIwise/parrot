@@ -4,7 +4,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 
-import soundEffect from '../assets/slap.mp3';
+import soundEffect from "../assets/slap.mp3";
 
 const rainbowGradient = `linear-gradient(
   to right,
@@ -16,25 +16,27 @@ const rainbowGradient = `linear-gradient(
   rgba(128, 0, 128, 0.7)
 )`;
 
-const AnimatedSheet = styled(Sheet, { label: 'styledComponent' }) <{ isblue: boolean, isanimating: boolean }>`
+const AnimatedSheet = styled(Sheet, { label: "styledComponent" })<{
+  isblue: boolean;
+  isanimating: boolean;
+}>`
   transition: background 0.5s linear;
   background-size: 100% 100%;
-  background-position: ${props => props.isblue ? "left bottom" : "right bottom"};
-  background-color: ${props =>
+  background-position: ${(props) =>
+    props.isblue ? "left bottom" : "right bottom"};
+  background-color: ${(props) =>
     props.isanimating
       ? `linear-gradient(to right, blue 50%, ${rainbowGradient} 50%)`
       : props.isblue
         ? "#4393E4"
-        : rainbowGradient
-  };
-    background-image: ${props =>
+        : rainbowGradient};
+  background-image: ${(props) =>
     props.isanimating
       ? `linear-gradient(to right, blue 50%, ${rainbowGradient} 50%)`
       : props.isblue
         ? "#4393E4"
-        : rainbowGradient
-  };
-`
+        : rainbowGradient};
+`;
 
 export const Header: FC = () => {
   const [isBlue, setIsBlue] = useState(true);
@@ -51,7 +53,7 @@ export const Header: FC = () => {
   useEffect(() => {
     if (isAnimating) {
       const timer = setTimeout(() => {
-        setIsBlue(prev => !prev);
+        setIsBlue((prev) => !prev);
         setIsAnimating(false);
       }, 1000);
       return () => clearTimeout(timer);
@@ -88,9 +90,8 @@ export const Header: FC = () => {
       <div>
         <Button
           onClick={toggleBackground}
-          sx={{ backgroundColor: 'transparent', height: 20 }}
+          sx={{ backgroundColor: "transparent", height: 20 }}
           disabled={isAnimating}
-
         />
 
         <ColorSchemeToggle sx={{ ml: "2rem" }} />

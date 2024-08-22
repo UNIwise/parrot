@@ -9,8 +9,6 @@ const isMocked = import.meta.env.VITE_MOCKED === "true";
 const mockInstance = axios.create();
 registerLoggerInterceptor(mockInstance);
 
-
-
 export const mock = new AxiosMockAdapter(mockInstance, {
   delayResponse: 200,
 });

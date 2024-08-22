@@ -131,4 +131,6 @@ export const mockedVersionsResponse: GetVersionsResponse = {
   ],
 };
 
-mock.onGet(/^\/api\/v1\/projects\/\d+\/versions$/).reply(200, mockedVersionsResponse);
+mock
+  .onGet(/^\/api\/v1\/projects\/\d+\/versions$/)
+  .reply(200, mockedVersionsResponse);

@@ -12,12 +12,12 @@ enum ColorMode {
 const StyledColorSchemeToggle = styled(IconButton)({
   borderRadius: "12%",
   '&[data-mode="dark"]': {
-    '& > *:first-of-type': { display: 'none' },
-    '& > *:last-child': { display: 'initial' },
+    "& > *:first-of-type": { display: "none" },
+    "& > *:last-child": { display: "initial" },
   },
   '&[data-mode="light"]': {
-    '& > *:first-of-type': { display: 'initial' },
-    '& > *:last-child': { display: 'none' },
+    "& > *:first-of-type": { display: "initial" },
+    "& > *:last-child": { display: "none" },
   },
 });
 
