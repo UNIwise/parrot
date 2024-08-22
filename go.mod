@@ -28,6 +28,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1 // indirect
+	go.uber.org/mock v0.4.0 // indirect
 	golang.org/x/sync v0.1.0
 	golang.org/x/sys v0.5.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
