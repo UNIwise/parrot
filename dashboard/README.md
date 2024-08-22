@@ -1,30 +1,29 @@
-# React + TypeScript + Vite
+# Parrot versioning dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Visualized dashboard that was developed in order to have overview of our translated projects in one table. We can choose and open any project and see available translation versions, add new one or delete some.
 
-Currently, two official plugins are available:
+## Available Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+In the project directory, you can run:
 
-## Expanding the ESLint configuration
+### `pnpm start`
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+Runs the app in development mode.
+Open [http://localhost:5174](http://localhost:5174) to view it in the browser.
 
-- Configure the top-level `parserOptions` property like this:
+The page will reload if you make edits, and you will see any lint errors in the console.
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: "latest",
-    sourceType: "module",
-    project: ["./tsconfig.json", "./tsconfig.node.json"],
-    tsconfigRootDir: __dirname,
-  },
-};
-```
+### `pnpm start:mocked`
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Runs the app like `pnpm start`, but it sets the `VITE_MOCKED` variable to true to run mocked Axios requests.
+
+### `pnpm lint`
+
+Runs ESLint on the project with the rules specified in .eslintrc.json. The linter should be satisfied at all times!
+
+### `pnpm build`
+
+Builds the app for production to the `build` folder.
+It optimizes the build for the best performance. The build is minified, and the filenames include hashes. Your app is ready to be deployed.
+
+For more information on building with Vite, refer to the [Vite documentation](https://vitejs.dev/guide/build.html).
