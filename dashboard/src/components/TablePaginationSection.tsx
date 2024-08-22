@@ -33,7 +33,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
         color="primary"
         startDecorator={<KeyboardArrowLeftIcon />}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        disabled={currentPage === 1}
+        disabled={pageCount < 1 || currentPage === 1}
       >
         Previous
       </Button>
@@ -59,7 +59,7 @@ export const TablePaginationSection: FC<TablePaginationSectionProps> = ({
         color="primary"
         endDecorator={<KeyboardArrowRightIcon />}
         onClick={() => onPageChange(Math.min(pageCount, currentPage + 1))}
-        disabled={currentPage === pageCount}
+        disabled={pageCount < 1 || currentPage === pageCount}
       >
         Next
       </Button>

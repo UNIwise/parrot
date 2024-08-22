@@ -1,6 +1,6 @@
 import { Typography } from "@mui/joy";
 import { FC } from "react";
-import { ManageVersionModal } from "../../../../components/ManageVersionModal";
+import { ManageVersionModal } from "../../../../../components/ManageVersionModal";
 
 type VersionTableRowProps = {
   projectId: number;

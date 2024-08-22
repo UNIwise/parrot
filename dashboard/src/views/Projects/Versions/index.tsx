@@ -16,7 +16,7 @@ import { ManageVersionModal } from "../../../components/ManageVersionModal";
 import { Placeholder } from "../../../components/Placeholder";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
 import { Version } from "../../../interfaces/versions";
-import { VersionTableRow } from "./components";
+import { VersionTableRow } from "./components/VersionTableRow";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -27,16 +27,19 @@ export const VersionsOverview = () => {
   const { data: project, isLoading: isProjectLoading } = useGetProject(projectId);
   const { data: versionsData, isLoading: isVersionsDataLoading } = useGetVersions(projectId);
 
-  const filteredVersions = useMemo(() => {
-    if (!versionsData) return [];
-    return versionsData.versions.filter((version) =>
+  const filteredVersions: Version[] = useMemo(() => {
+    if (!versionsData || !versionsData.versions || versionsData.versions.length === 0) return [];
+
+    return versionsData.versions.filter((version: Version) =>
       version.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [versionsData, searchTerm]);
 
-  const pageCount = Math.ceil(filteredVersions.length / ITEMS_PER_PAGE);
+  const pageCount = filteredVersions.length > 0 ? Math.ceil(filteredVersions.length / ITEMS_PER_PAGE) : 0;
 
   const paginatedVersions = useMemo(() => {
+    if (filteredVersions.length === 0) return [];
+
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredVersions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredVersions, currentPage]);
@@ -74,7 +77,7 @@ export const VersionsOverview = () => {
             borderRadius: "sm",
           }}
         >
-          {project?.name} versions
+          {project?.name ? `${project.name} versions` : "Versions"}
         </Typography>
 
 

@@ -22,16 +22,19 @@ export const ProjectsOverview = () => {
   const { data: projects, isLoading } = useGetProjects();
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredProjects = useMemo(() => {
-    if (!projects) return [];
+  const filteredProjects: Project[] = useMemo(() => {
+    if (!projects || !projects.projects || projects.projects.length === 0) return [];
+
     return projects.projects.filter((project: Project) =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [projects, searchTerm]);
 
-  const pageCount = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
+  const pageCount = filteredProjects ? Math.ceil(filteredProjects.length / ITEMS_PER_PAGE) : 0;
 
   const paginatedProjects = useMemo(() => {
+    if (filteredProjects.length === 0) return [];
+
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredProjects.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredProjects, currentPage]);
@@ -58,12 +61,12 @@ export const ProjectsOverview = () => {
           component="h1"
           sx={{
             alignSelf: "center",
-            fontSize: "3rem",
+            fontSize: "2rem",
             color: (t) => t.palette.primary[400],
             m: '0 1.5rem 2rem 0',
             border: '1px solid',
             borderColor: (t) => t.palette.primary[400],
-            p: "1rem 5rem",
+            p: "1rem 2.5rem",
             borderRadius: "sm",
           }}
         >
