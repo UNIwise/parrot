@@ -40,10 +40,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // GetAllProjects mocks base method.
-func (m *MockService) GetAllProjects(ctx context.Context) (*[]Project, error) {
+func (m *MockService) GetAllProjects(ctx context.Context) ([]Project, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllProjects", ctx)
-	ret0, _ := ret[0].(*[]Project)
+	ret0, _ := ret[0].([]Project)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -52,6 +52,36 @@ func (m *MockService) GetAllProjects(ctx context.Context) (*[]Project, error) {
 func (mr *MockServiceMockRecorder) GetAllProjects(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllProjects", reflect.TypeOf((*MockService)(nil).GetAllProjects), ctx)
+}
+
+// GetProjectByID mocks base method.
+func (m *MockService) GetProjectByID(ctx context.Context, id int) (*Project, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProjectByID", ctx, id)
+	ret0, _ := ret[0].(*Project)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProjectByID indicates an expected call of GetProjectByID.
+func (mr *MockServiceMockRecorder) GetProjectByID(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectByID", reflect.TypeOf((*MockService)(nil).GetProjectByID), ctx, id)
+}
+
+// GetProjectVersions mocks base method.
+func (m *MockService) GetProjectVersions(ctx context.Context, projectID int) ([]Version, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProjectVersions", ctx, projectID)
+	ret0, _ := ret[0].([]Version)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProjectVersions indicates an expected call of GetProjectVersions.
+func (mr *MockServiceMockRecorder) GetProjectVersions(ctx, projectID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectVersions", reflect.TypeOf((*MockService)(nil).GetProjectVersions), ctx, projectID)
 }
 
 // GetTranslation mocks base method.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +20,9 @@ import (
 
 var (
 	errTest                     = errors.New("test error")
+	errNotFoundTest             = errors.New("failed to get project: not found")
 	testID               uint   = 1
+	testVersionID        uint   = 1
 	testName             string = "testname"
 	testNumberOfVersions uint   = 3
 	testCreatedAt               = time.Now()
@@ -42,7 +45,7 @@ func TestGetAllProjects(t *testing.T) {
 		ProjectService: projectService,
 	}
 	t.Run("GetAllProjects, success", func(t *testing.T) {
-		projectService.EXPECT().GetAllProjects(context.Background()).Times(1).Return(&[]project.Project{{
+		projectService.EXPECT().GetAllProjects(context.Background()).Times(1).Return([]project.Project{{
 			ID:               testID,
 			Name:             testName,
 			NumberOfVersions: testNumberOfVersions,
@@ -53,12 +56,12 @@ func TestGetAllProjects(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.Code)
 
-		var response GetAllProjectsResponse
+		var response getAllProjectsResponse
 		err = json.Unmarshal(resp.Body.Bytes(), &response)
 		assert.NoError(t, err)
 
-		assert.Equal(t, response, GetAllProjectsResponse{
-			Projects: []GetProjectItemResponse{
+		assert.Equal(t, response, getAllProjectsResponse{
+			Projects: []getProjectItemResponse{
 				{
 					ID:               testID,
 					Name:             testName,
@@ -87,10 +90,9 @@ func TestHandlers_newGetAllProjectsResponse(t *testing.T) {
 		CreatedAt:        testCreatedAt.UTC(),
 	}}
 
-	h := &Handlers{
-	}
+	h := &Handlers{}
 
-	response:= h.newGetAllProjectsResponse(projects)
+	response := h.newGetAllProjectsResponse(projects)
 
 	assert.NotNil(t, response)
 	assert.Len(t, response.Projects, 1)
@@ -98,4 +100,149 @@ func TestHandlers_newGetAllProjectsResponse(t *testing.T) {
 	assert.Equal(t, response.Projects[0].Name, testName)
 	assert.Equal(t, response.Projects[0].NumberOfVersions, testNumberOfVersions)
 	assert.Equal(t, response.Projects[0].CreatedAt, testCreatedAt.UTC())
+}
+
+func TestGetProject(t *testing.T) {
+	t.Parallel()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	resp := httptest.NewRecorder()
+
+	testCtx := e.NewContext(req, resp)
+
+	testCtx.SetPath("/projects/:id")
+	testCtx.SetParamNames("id")
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID))
+
+	projectService := project.NewMockService(gomock.NewController(t))
+
+	h := &Handlers{
+		ProjectService: projectService,
+	}
+	t.Run("GetProject, success", func(t *testing.T) {
+		projectService.EXPECT().GetProjectByID(context.Background(), int(testID)).Times(1).Return(&project.Project{
+			ID:               testID,
+			Name:             testName,
+			NumberOfVersions: testNumberOfVersions,
+			CreatedAt:        testCreatedAt.UTC(),
+		}, nil)
+
+		err := h.getProject(testCtx, logrus.NewEntry(logrus.New()))
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Code)
+
+		var response getProjectResponse
+		err = json.Unmarshal(resp.Body.Bytes(), &response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, response, getProjectResponse{
+			ID:               testID,
+			Name:             testName,
+			NumberOfVersions: testNumberOfVersions,
+			CreatedAt:        testCreatedAt.UTC(),
+		})
+	})
+
+	t.Run("GetProject, error", func(t *testing.T) {
+		projectService.EXPECT().GetProjectByID(context.Background(), int(testID)).Times(1).Return(nil, errTest)
+
+		err := h.getProject(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+	})
+}
+
+func TestHandlers_newGetProjectResponse(t *testing.T) {
+	t.Parallel()
+
+	project := project.Project{
+		ID:               testID,
+		Name:             testName,
+		NumberOfVersions: testNumberOfVersions,
+		CreatedAt:        testCreatedAt.UTC(),
+	}
+
+	h := &Handlers{}
+
+	response := h.newGetProjectResponse(project)
+
+	assert.NotNil(t, response)
+	assert.Equal(t, response.ID, testID)
+	assert.Equal(t, response.Name, testName)
+	assert.Equal(t, response.NumberOfVersions, testNumberOfVersions)
+	assert.Equal(t, response.CreatedAt, testCreatedAt.UTC())
+}
+
+func TestGetProjectVersions(t *testing.T) {
+	t.Parallel()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	resp := httptest.NewRecorder()
+
+	testCtx := e.NewContext(req, resp)
+
+	testCtx.SetPath("/projects/:id/versions")
+	testCtx.SetParamNames("id")
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID))
+
+	projectService := project.NewMockService(gomock.NewController(t))
+
+	h := &Handlers{
+		ProjectService: projectService,
+	}
+	t.Run("GetProjectVersions, success", func(t *testing.T) {
+		projectService.EXPECT().GetProjectVersions(context.Background(), int(testID)).Times(1).Return([]project.Version{{
+			ID:        testVersionID,
+			Name:      testName,
+			ProjectID: testID,
+			CreatedAt: testCreatedAt.UTC(),
+		}}, nil)
+
+		err := h.getProjectVersions(testCtx, logrus.NewEntry(logrus.New()))
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Code)
+
+		var response getProjectVersionsResponse
+		err = json.Unmarshal(resp.Body.Bytes(), &response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, response, getProjectVersionsResponse{
+			Versions: []getProjectVersionsItemResponse{
+				{
+					ID:        testID,
+					Name:      testName,
+					CreatedAt: testCreatedAt.UTC(),
+				},
+			},
+		})
+	})
+
+	t.Run("GetProjectVersions, error", func(t *testing.T) {
+		projectService.EXPECT().GetProjectVersions(context.Background(), int(testID)).Times(1).Return(nil, errTest)
+
+		err := h.getProjectVersions(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+	})
+}
+
+func TestHandlers_newGetProjectVersionsResponse(t *testing.T) {
+	t.Parallel()
+
+	versions := []project.Version{{
+		ID:        testVersionID,
+		Name:      testName,
+		ProjectID: testID,
+		CreatedAt: testCreatedAt.UTC(),
+	}}
+
+	h := &Handlers{}
+
+	response := h.newGetProjectVersionsResponse(versions)
+
+	assert.NotNil(t, response)
+	assert.Len(t, response.Versions, 1)
+	assert.Equal(t, response.Versions[0].ID, testID)
+	assert.Equal(t, response.Versions[0].Name, testName)
+	assert.Equal(t, response.Versions[0].CreatedAt, testCreatedAt.UTC())
 }
