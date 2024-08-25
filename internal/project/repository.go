@@ -10,13 +10,16 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrNotFound   = errors.New("not found")
+	ErrNotDeleted = errors.New("not deleted")
 )
 
 type Repository interface {
 	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
 	GetProjectVersions(ctx context.Context, projectID int) ([]Version, error)
+	GetVersionByIDAndProjectID(ctx context.Context, versionID, projectID uint) (*Version, error)
+	DeleteVersionByIDTransaction(ctx context.Context, versionID uint) (*gorm.DB, error)
 }
 
 type RepositoryImpl struct {
@@ -85,4 +88,42 @@ func (r *RepositoryImpl) GetProjectVersions(ctx context.Context, projectID int) 
 	}
 
 	return versions, nil
+}
+
+func (r *RepositoryImpl) GetVersionByIDAndProjectID(ctx context.Context, versionID, projectID uint) (*Version, error) {
+	var version Version
+
+	result := r.db.WithContext(ctx).
+		Where("project_id = ? AND id = ?", projectID, versionID).
+		First(&version)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+
+		return nil, result.Error
+	}
+
+	return &version, nil
+}
+
+func (r *RepositoryImpl) DeleteVersionByIDTransaction(ctx context.Context, versionID uint) (*gorm.DB, error) {
+	tx := r.db.WithContext(ctx).Begin()
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+
+	result := tx.Delete(&Version{}, versionID)
+	if result.Error != nil {
+		tx.Rollback()
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		tx.Rollback()
+		return nil, ErrNotDeleted
+	}
+
+	return tx, nil
 }

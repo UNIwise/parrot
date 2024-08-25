@@ -2,11 +2,14 @@ package project
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/uniwise/parrot/internal/storage"
+	"github.com/uniwise/parrot/pkg/connectors/database"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -16,6 +19,7 @@ var (
 	testID               uint      = 1
 	testName             string    = "testname"
 	testProjectID        uint      = 1
+	testStorageKey       string    = "testkey"
 	testNumberOfVersions uint      = 3
 	testCreatedAt        time.Time = time.Now()
 	testRenewalThreshold           = time.Hour
@@ -152,5 +156,106 @@ func TestServiceGetProjectVersions(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errTest)
 		assert.Nil(t, versions)
+	})
+}
+
+func TestServiceDeleteProjectVersionByIDAndVersionID(t *testing.T) {
+	t.Parallel()
+
+	repository := NewMockRepository(gomock.NewController(t))
+	storage := storage.NewMockStorage(gomock.NewController(t))
+	service := NewService(nil, storage, repository, nil, testRenewalThreshold, nil)
+
+	version := &Version{
+		ID:         testID,
+		StorageKey: testStorageKey,
+		ProjectID:  testProjectID,
+		Name:       testName,
+		CreatedAt:  testCreatedAt,
+	}
+
+	t.Run("fail, fails to get version", func(t *testing.T) {
+		repository.EXPECT().GetVersionByIDAndProjectID(testCtx, testID, testProjectID).Times(1).Return(nil, errTest)
+
+		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
+
+		assert.ErrorIs(t, err, errTest)
+		assert.ErrorContains(t, err, fmt.Sprintf("Failed to retrieve project version with ID %d and project ID %d", testID, testProjectID))
+	})
+
+	t.Run("fail, version not found", func(t *testing.T) {
+		repository.EXPECT().GetVersionByIDAndProjectID(testCtx, testID, testProjectID).Times(1).Return(nil, ErrNotFound)
+
+		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
+
+		assert.ErrorIs(t, err, ErrNotFound)
+	})
+
+	t.Run("fail, fails to begin transaction", func(t *testing.T) {
+		repository.EXPECT().GetVersionByIDAndProjectID(testCtx, testID, testProjectID).Times(1).Return(version, nil)
+		repository.EXPECT().DeleteVersionByIDTransaction(testCtx, testID).Times(1).Return(nil, errTest)
+
+		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
+
+		assert.ErrorIs(t, err, errTest)
+		assert.ErrorContains(t, err, "Failed to begin delete project version transaction")
+	})
+
+	t.Run("fail, none deleted", func(t *testing.T) {
+		repository.EXPECT().GetVersionByIDAndProjectID(testCtx, testID, testProjectID).Times(1).Return(version, nil)
+		repository.EXPECT().DeleteVersionByIDTransaction(testCtx, testID).Times(1).Return(nil, ErrNotDeleted)
+
+		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
+
+		assert.ErrorIs(t, err, ErrNotDeleted)
+	})
+
+	t.Run("fail, fails to delete objects in S3", func(t *testing.T) {
+		db, sql := database.NewMockClient(t)
+		sql.ExpectBegin()
+		sql.ExpectRollback()
+		testTx := db.WithContext(testCtx).Begin()
+
+		repository.EXPECT().GetVersionByIDAndProjectID(testCtx, testID, testProjectID).Times(1).Return(version, nil)
+		repository.EXPECT().DeleteVersionByIDTransaction(testCtx, testID).Times(1).Return(testTx, nil)
+
+		storage.EXPECT().DeleteObject(testCtx, testStorageKey).Times(1).Return(errTest)
+
+		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
+
+		assert.ErrorIs(t, err, errTest)
+		assert.ErrorContains(t, err, "Failed to delete project version in S3")
+	})
+
+	t.Run("fail, fails to commit transaction", func(t *testing.T) {
+		db, sql := database.NewMockClient(t)
+		sql.ExpectBegin()
+		sql.ExpectRollback()
+		testTx := db.WithContext(testCtx).Begin()
+
+		repository.EXPECT().GetVersionByIDAndProjectID(testCtx, testID, testProjectID).Times(1).Return(version, nil)
+		repository.EXPECT().DeleteVersionByIDTransaction(testCtx, testID).Times(1).Return(testTx, nil)
+
+		storage.EXPECT().DeleteObject(testCtx, testStorageKey).Times(1).Return(nil)
+
+		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
+
+		assert.ErrorContains(t, err, "Failed to commit delete project version transaction")
+	})
+
+	t.Run("success", func(t *testing.T) {
+		db, sql := database.NewMockClient(t)
+		sql.ExpectBegin()
+		sql.ExpectCommit()
+		testTx := db.WithContext(testCtx).Begin()
+
+		repository.EXPECT().GetVersionByIDAndProjectID(testCtx, testID, testProjectID).Times(1).Return(version, nil)
+		repository.EXPECT().DeleteVersionByIDTransaction(testCtx, testID).Times(1).Return(testTx, nil)
+
+		storage.EXPECT().DeleteObject(testCtx, testStorageKey).Times(1).Return(nil)
+
+		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
+
+		assert.NoError(t, err)
 	})
 }

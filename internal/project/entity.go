@@ -3,10 +3,11 @@ package project
 import "time"
 
 type Version struct {
-	ID        uint      `gorm:"column:id"`
-	ProjectID uint      `gorm:"index;not null;column:project_id"`
-	Name      string    `gorm:"not null;column:name"`
-	CreatedAt time.Time `gorm:"not null;column:created_at"`
+	ID         uint      `gorm:"column:id"`
+	ProjectID  uint      `gorm:"index;not null;column:project_id"`
+	Name       string    `gorm:"not null;column:name"`
+	StorageKey string    `gorm:"not null;column:storage_key"`
+	CreatedAt  time.Time `gorm:"not null;column:created_at"`
 }
 
 type Project struct {
