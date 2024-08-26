@@ -32,6 +32,7 @@ type Service interface {
 	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
 	GetProjectVersions(ctx context.Context, projectID int) ([]Version, error)
+	DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID, projectID uint) error
 }
 
 type ServiceImpl struct {
@@ -181,4 +182,43 @@ func (s *ServiceImpl) GetProjectVersions(ctx context.Context, projectID int) ([]
 	}
 
 	return versions, nil
+}
+
+func (s *ServiceImpl) DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID, projectID uint) error {
+	version, err := s.repo.GetVersionByIDAndProjectID(ctx, ID, projectID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			
+			return ErrNotFound
+		}
+
+		return errors.Wrapf(err, "Failed to retrieve project version with ID %d and project ID %d", ID, projectID)
+	}
+
+	return s.deleteProjectVersion(ctx, version)
+}
+
+func (s *ServiceImpl) deleteProjectVersion(ctx context.Context, version *Version) error {
+	deleteVersionByIDTransaction, err := s.repo.DeleteVersionByIDTransaction(ctx, version.ID)
+	if err != nil {
+		return errors.Wrap(err, "Failed to begin delete project version transaction")
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			deleteVersionByIDTransaction.Rollback()
+		}
+	}()
+
+	if err := s.storage.DeleteObject(ctx, version.StorageKey); err != nil {
+		deleteVersionByIDTransaction.Rollback()
+		return errors.Wrap(err, "Failed to delete project version in S3")
+	}
+
+	if err := deleteVersionByIDTransaction.Commit().Error; err != nil {
+		deleteVersionByIDTransaction.Rollback()
+		return errors.Wrap(err, "Failed to commit delete project version transaction")
+	}
+
+	return nil
 }

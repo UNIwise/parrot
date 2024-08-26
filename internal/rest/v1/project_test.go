@@ -246,3 +246,37 @@ func TestHandlers_newGetProjectVersionsResponse(t *testing.T) {
 	assert.Equal(t, response.Versions[0].Name, testName)
 	assert.Equal(t, response.Versions[0].CreatedAt, testCreatedAt.UTC())
 }
+
+func TestDeleteProjectVersion(t *testing.T) {
+	t.Parallel()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodDelete, "/", nil)
+	resp := httptest.NewRecorder()
+
+	testCtx := e.NewContext(req, resp)
+
+	testCtx.SetPath("/projects/:project_id/versions/:version_id")
+	testCtx.SetParamNames("project_id", "version_id")
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID), fmt.Sprintf("%d", testVersionID))
+
+	projectService := project.NewMockService(gomock.NewController(t))
+
+	h := &Handlers{
+		ProjectService: projectService,
+	}
+	t.Run("deleteProjectVersion, success", func(t *testing.T) {
+		projectService.EXPECT().DeleteProjectVersionByIDAndProjectID(context.Background(), testVersionID, testID).Times(1).Return(nil)
+
+		err := h.deleteProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Code)
+	})
+
+	t.Run("deleteProjectVersion, error", func(t *testing.T) {
+		projectService.EXPECT().DeleteProjectVersionByIDAndProjectID(context.Background(), testVersionID, testID).Times(1).Return(errTest)
+
+		err := h.deleteProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+	})
+}

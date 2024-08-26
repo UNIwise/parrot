@@ -249,3 +249,39 @@ func (h *Handlers) newGetProjectVersionsResponse(
 	return response
 }
 
+type deleteProjectVersionRequest struct {
+	ProjectID uint `param:"project_id" validate:"required"`
+	VersionID uint `param:"version_id" validate:"required"`
+}
+
+func (h *Handlers) deleteProjectVersion(ctx echo.Context, l *logrus.Entry) error {
+	req := new(deleteProjectVersionRequest)
+	if err := ctx.Bind(req); err != nil {
+		l.WithError(err).Error("Error binding request")
+
+		return echo.ErrBadRequest
+	}
+
+	l = l.WithFields(logrus.Fields{
+		"project": req.ProjectID,
+		"version": req.VersionID,
+	})
+
+	err := h.ProjectService.DeleteProjectVersionByIDAndProjectID(
+		ctx.Request().Context(),
+		req.VersionID,
+		req.ProjectID,
+	)
+	if err != nil {
+		if (errors.Is(err, project.ErrNotFound)) {
+			return echo.ErrNotFound
+		}
+
+		l.WithError(err).Error("Error deleting project version")
+
+		return echo.ErrInternalServerError
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}
+

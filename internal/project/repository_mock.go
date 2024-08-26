@@ -12,6 +12,7 @@ import (
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
+	gorm "gorm.io/gorm"
 )
 
 // MockRepository is a mock of Repository interface.
@@ -35,6 +36,21 @@ func NewMockRepository(ctrl *gomock.Controller) *MockRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
+}
+
+// DeleteVersionByIDTransaction mocks base method.
+func (m *MockRepository) DeleteVersionByIDTransaction(ctx context.Context, versionID uint) (*gorm.DB, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteVersionByIDTransaction", ctx, versionID)
+	ret0, _ := ret[0].(*gorm.DB)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteVersionByIDTransaction indicates an expected call of DeleteVersionByIDTransaction.
+func (mr *MockRepositoryMockRecorder) DeleteVersionByIDTransaction(ctx, versionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVersionByIDTransaction", reflect.TypeOf((*MockRepository)(nil).DeleteVersionByIDTransaction), ctx, versionID)
 }
 
 // GetAllProjects mocks base method.
@@ -80,4 +96,19 @@ func (m *MockRepository) GetProjectVersions(ctx context.Context, projectID int) 
 func (mr *MockRepositoryMockRecorder) GetProjectVersions(ctx, projectID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectVersions", reflect.TypeOf((*MockRepository)(nil).GetProjectVersions), ctx, projectID)
+}
+
+// GetVersionByIDAndProjectID mocks base method.
+func (m *MockRepository) GetVersionByIDAndProjectID(ctx context.Context, versionID, projectID uint) (*Version, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVersionByIDAndProjectID", ctx, versionID, projectID)
+	ret0, _ := ret[0].(*Version)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVersionByIDAndProjectID indicates an expected call of GetVersionByIDAndProjectID.
+func (mr *MockRepositoryMockRecorder) GetVersionByIDAndProjectID(ctx, versionID, projectID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersionByIDAndProjectID", reflect.TypeOf((*MockRepository)(nil).GetVersionByIDAndProjectID), ctx, versionID, projectID)
 }

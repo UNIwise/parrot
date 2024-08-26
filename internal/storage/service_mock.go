@@ -6,6 +6,7 @@ package storage
 
 import (
 	context "context"
+	io "io"
 	reflect "reflect"
 
 	s3 "github.com/aws/aws-sdk-go-v2/service/s3"
@@ -35,17 +36,45 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
-// ListObjectsV2 mocks base method.
-func (m *MockService) ListObjectsV2(ctx context.Context) (*s3.ListObjectsV2Output, error) {
+// DeleteObject mocks base method.
+func (m *MockService) DeleteObject(ctx context.Context, key string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListObjectsV2", ctx)
-	ret0, _ := ret[0].(*s3.ListObjectsV2Output)
+	ret := m.ctrl.Call(m, "DeleteObject", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteObject indicates an expected call of DeleteObject.
+func (mr *MockServiceMockRecorder) DeleteObject(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockService)(nil).DeleteObject), ctx, key)
+}
+
+// GetObject mocks base method.
+func (m *MockService) GetObject(ctx context.Context, key string) (*s3.GetObjectOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetObject", ctx, key)
+	ret0, _ := ret[0].(*s3.GetObjectOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListObjectsV2 indicates an expected call of ListObjectsV2.
-func (mr *MockServiceMockRecorder) ListObjectsV2(ctx interface{}) *gomock.Call {
+// GetObject indicates an expected call of GetObject.
+func (mr *MockServiceMockRecorder) GetObject(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListObjectsV2", reflect.TypeOf((*MockService)(nil).ListObjectsV2), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockService)(nil).GetObject), ctx, key)
+}
+
+// PutObject mocks base method.
+func (m *MockService) PutObject(ctx context.Context, key string, payloadReader io.Reader, mimeType string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PutObject", ctx, key, payloadReader, mimeType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PutObject indicates an expected call of PutObject.
+func (mr *MockServiceMockRecorder) PutObject(ctx, key, payloadReader, mimeType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockService)(nil).PutObject), ctx, key, payloadReader, mimeType)
 }

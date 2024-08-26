@@ -38,6 +38,7 @@ func migrate(cmd *cobra.Command, args []string) {
 
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		migrations.Migration00001Init,
+		migrations.Migration00002AddStorageKeyToVersionsTable,
 	})
 
 	if err := m.Migrate(); err != nil {
