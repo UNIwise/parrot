@@ -3,7 +3,10 @@
 package project
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -33,6 +36,7 @@ type Service interface {
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
 	GetProjectVersions(ctx context.Context, projectID int) ([]Version, error)
 	DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID, projectID uint) error
+	CreateLanguagesVersion(ctx context.Context, projectID int, name string) error
 }
 
 type ServiceImpl struct {
@@ -188,7 +192,7 @@ func (s *ServiceImpl) DeleteProjectVersionByIDAndProjectID(ctx context.Context, 
 	version, err := s.repo.GetVersionByIDAndProjectID(ctx, ID, projectID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			
+
 			return ErrNotFound
 		}
 
@@ -218,6 +222,54 @@ func (s *ServiceImpl) deleteProjectVersion(ctx context.Context, version *Version
 	if err := deleteVersionByIDTransaction.Commit().Error; err != nil {
 		deleteVersionByIDTransaction.Rollback()
 		return errors.Wrap(err, "Failed to commit delete project version transaction")
+	}
+
+	return nil
+}
+
+func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int, name string) error {
+	languagesResponse, err := s.Client.ListProjectLanguages(ctx, poedit.ListProjectLanguagesRequest{
+		ID: projectID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	for _, language := range languagesResponse.Result.Languages {
+		resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
+			ID:       projectID,
+			Language: language.Code,
+			Type:     "key_value_json",
+			Filters:  []string{"translated"},
+		})
+		if err != nil {
+			return err
+		}
+
+		d, err := http.Get(resp.Result.URL)
+		if err != nil {
+			return err
+		}
+		defer d.Body.Close()
+
+		if d.StatusCode != http.StatusOK {
+			return errors.Errorf("Response code '%d' from download GET", d.StatusCode)
+		}
+
+		//upload to s3
+		data, err := io.ReadAll(d.Body)
+		if err != nil {
+			return err
+		}
+
+		reader := bytes.NewReader(data)
+		key := fmt.Sprintf("%d/%s/%s.json", projectID, name, language.Code)
+		err = s.storage.PutObject(ctx, key, reader, "application/json")
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

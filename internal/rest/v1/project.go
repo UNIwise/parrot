@@ -285,3 +285,37 @@ func (h *Handlers) deleteProjectVersion(ctx echo.Context, l *logrus.Entry) error
 	return ctx.NoContent(http.StatusOK)
 }
 
+type postProjectVersionRequest struct {
+	ID  int    `param:"id" validate:"required,numeric"`
+	Name string `json:"name" validate:"required,max=20,alphanum"`
+}
+
+func (h *Handlers) postProjectVersion(ctx echo.Context, l *logrus.Entry) error {
+	req := new(postProjectVersionRequest)
+	if err := ctx.Bind(req); err != nil {
+		l.WithError(err).Error("Error binding request")
+		return echo.ErrBadRequest
+	}
+
+	if err := ctx.Validate(req); err != nil {
+		l.WithError(err).Error("Error binding request")
+		return echo.ErrBadRequest
+	}
+
+	l = l.WithFields(logrus.Fields{
+		"project": req.ID,
+		"name":    req.Name,
+	})
+
+	err := h.ProjectService.CreateLanguagesVersion(
+		ctx.Request().Context(),
+		req.ID,
+		req.Name,
+	)
+	if err != nil {
+		l.WithError(err).Error("Error creating project version")
+		return echo.ErrInternalServerError
+	}
+
+	return ctx.NoContent(http.StatusCreated)
+}

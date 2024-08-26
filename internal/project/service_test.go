@@ -6,10 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jarcoal/httpmock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/connectors/database"
+	"github.com/uniwise/parrot/pkg/poedit"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -257,5 +259,119 @@ func TestServiceDeleteProjectVersionByIDAndVersionID(t *testing.T) {
 		err := service.DeleteProjectVersionByIDAndProjectID(testCtx, testID, testProjectID)
 
 		assert.NoError(t, err)
+	})
+}
+
+func TestServiceCreateLanguagesVersion(t *testing.T) {
+	t.Parallel()
+
+	repository := NewMockRepository(gomock.NewController(t))
+	storage := storage.NewMockStorage(gomock.NewController(t))
+	poeditClient := poedit.NewMockClient(gomock.NewController(t))
+
+	service := NewService(poeditClient, storage, repository, nil, testRenewalThreshold, nil)
+
+	listProjectLanguagesRequest := poedit.ListProjectLanguagesRequest{
+		ID: int(testProjectID),
+	}
+
+	listAvailableLanguagesResponse := &poedit.ListProjectLanguagesResponse{
+		Result: struct {
+			Languages []struct {
+				Name         string  `json:"name"`
+				Code         string  `json:"code"`
+				Translations int64   `json:"translations"`
+				Percentage   float64 `json:"percentage"`
+				Updated      string  `json:"updated"`
+			} `json:"languages"`
+		}{
+			Languages: []struct {
+				Name         string  `json:"name"`
+				Code         string  `json:"code"`
+				Translations int64   `json:"translations"`
+				Percentage   float64 `json:"percentage"`
+				Updated      string  `json:"updated"`
+			}{
+				{
+					Name: "English",
+					Code: "en",
+				},
+			},
+		},
+	}
+
+	exportProjectRequest := poedit.ExportProjectRequest{
+		ID:       int(testProjectID),
+		Language: "en",
+		Type:     "key_value_json",
+		Filters:  []string{"translated"},
+	}
+
+	exportProjectResponse := &poedit.ExportProjectResponse{
+		Result: struct {
+			URL string `json:"url"`
+		}{
+			URL: "http://example.com/file.json",
+		},
+	}
+
+	httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+
+	t.Run("Success", func(t *testing.T) {
+		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
+		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
+
+		httpmock.RegisterResponder("GET", "http://example.com/file.json",
+			httpmock.NewStringResponder(200, `{"key":"value"}`))
+
+		storage.EXPECT().PutObject(testCtx, "1/testname/en.json", gomock.Any(), "application/json").Return(nil)
+
+		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("Fail, fails to list project languages", func(t *testing.T) {
+		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(nil, errTest)
+
+		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
+
+		assert.ErrorIs(t, err, errTest)
+	})
+
+	t.Run("Fail, fails to export project", func(t *testing.T) {
+		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
+		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(nil, errTest)
+
+		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
+
+		assert.ErrorIs(t, err, errTest)
+	})
+
+	t.Run("Fail, fails to download file", func(t *testing.T) {
+		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
+		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
+
+		httpmock.RegisterResponder("GET", "http://example.com/file.json",
+			httpmock.NewErrorResponder(errTest))
+
+		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
+
+		assert.ErrorIs(t, err, errTest)
+	})
+
+	t.Run("Fail, fails to upload file to S3", func(t *testing.T) {
+		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
+		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
+
+		httpmock.RegisterResponder("GET", "http://example.com/file.json",
+			httpmock.NewStringResponder(200, `{"key":"value"}`))
+
+		storage.EXPECT().PutObject(testCtx, "1/testname/en.json", gomock.Any(), "application/json").Return(errTest)
+
+		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
+
+		assert.ErrorIs(t, err, errTest)
 	})
 }
