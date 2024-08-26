@@ -273,7 +273,7 @@ func (h *Handlers) deleteProjectVersion(ctx echo.Context, l *logrus.Entry) error
 		req.ProjectID,
 	)
 	if err != nil {
-		if (err.Error() == "not found") {
+		if (errors.Is(err, project.ErrNotFound)) {
 			return echo.ErrNotFound
 		}
 

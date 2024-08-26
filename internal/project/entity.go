@@ -12,7 +12,8 @@ type Version struct {
 
 type Project struct {
 	ID               uint      `gorm:"column:id"`
-	Name             string    `gorm:"not null;column:name"`
+	ClientProjectID  string    `gorm:"not null;column:client_project_id;size:191"`
+	Name             string    `gorm:"not null;column:name;size:191"`
 	NumberOfVersions uint      `gorm:"column:number_of_versions"`
 	CreatedAt        time.Time `gorm:"not null;column:created_at"`
 }

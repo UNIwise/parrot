@@ -199,7 +199,6 @@ func (s *ServiceImpl) DeleteProjectVersionByIDAndProjectID(ctx context.Context, 
 }
 
 func (s *ServiceImpl) deleteProjectVersion(ctx context.Context, version *Version) error {
-
 	deleteVersionByIDTransaction, err := s.repo.DeleteVersionByIDTransaction(ctx, version.ID)
 	if err != nil {
 		return errors.Wrap(err, "Failed to begin delete project version transaction")
