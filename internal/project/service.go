@@ -231,7 +231,7 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 		ID: projectID,
 	})
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Failed to list project languages")
 	}
 
 	for _, language := range languagesResponse.Result.Languages {
@@ -242,12 +242,12 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 			Filters:  []string{"translated"},
 		})
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Failed to export project")
 		}
 
 		d, err := http.Get(resp.Result.URL)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Failed to download project language file")
 		}
 		defer d.Body.Close()
 
@@ -258,14 +258,14 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 		//upload to s3
 		data, err := io.ReadAll(d.Body)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Failed to read project language file")
 		}
 
 		reader := bytes.NewReader(data)
 		key := fmt.Sprintf("%d/%s/%s.json", projectID, name, language.Code)
 		err = s.storage.PutObject(ctx, key, reader, "application/json")
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Failed to upload project language file to S3")
 		}
 	}
 
