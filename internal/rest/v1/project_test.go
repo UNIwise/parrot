@@ -9,11 +9,13 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+	"bytes"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/uniwise/parrot/internal/project"
+	"github.com/go-playground/validator"
 
 	gomock "go.uber.org/mock/gomock"
 )
@@ -277,6 +279,93 @@ func TestDeleteProjectVersion(t *testing.T) {
 		projectService.EXPECT().DeleteProjectVersionByIDAndProjectID(context.Background(), testVersionID, testID).Times(1).Return(errTest)
 
 		err := h.deleteProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+	})
+}
+
+type CustomValidator struct {
+    validator *validator.Validate
+}
+
+// Validate implements the echo.Validator interface
+func (cv *CustomValidator) Validate(i interface{}) error {
+    return cv.validator.Struct(i)
+}
+
+func TestPostProjectVersion(t *testing.T) {
+	t.Parallel()
+
+	e := echo.New()
+	e.Validator = &CustomValidator{validator: validator.New()}
+
+	projectService := project.NewMockService(gomock.NewController(t))
+
+	h := &Handlers{
+		ProjectService: projectService,
+	}
+
+	t.Run("postProjectVersion, success", func(t *testing.T) {
+		reqBody := map[string]interface{}{
+			"id":     testID,
+			"name": testName,
+		}
+		reqJSON, _ := json.Marshal(reqBody)
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(reqJSON))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		resp := httptest.NewRecorder()
+	
+		testCtx := e.NewContext(req, resp)
+	
+		testCtx.SetPath("/projects/:project_id/versions")
+		testCtx.SetParamNames("project_id")
+		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
+
+		projectService.EXPECT().CreateLanguagesVersion(context.Background(), int(testID), testName).Times(1).Return(nil)
+
+		err := h.postProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, resp.Code)
+	})
+
+	t.Run("postProjectVersion, error", func(t *testing.T) {
+		reqBody := map[string]interface{}{
+			"id":     testID,
+			"name": testName,
+		}
+		reqJSON, _ := json.Marshal(reqBody)
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(reqJSON))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		resp := httptest.NewRecorder()
+	
+		testCtx := e.NewContext(req, resp)
+	
+		testCtx.SetPath("/projects/:project_id/versions")
+		testCtx.SetParamNames("project_id")
+		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
+
+		projectService.EXPECT().CreateLanguagesVersion(context.Background(), int(testID), testName).Times(1).Return(errTest)
+
+		err := h.postProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+	})
+
+	t.Run("postProjectVersion, validation error", func(t *testing.T) {
+		reqBody := map[string]interface{}{
+			"id":     testID,
+			"name": "",
+		}
+		reqJSON, _ := json.Marshal(reqBody)
+		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(reqJSON))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		resp := httptest.NewRecorder()
+	
+		testCtx := e.NewContext(req, resp)
+	
+		testCtx.SetPath("/projects/:project_id/versions")
+		testCtx.SetParamNames("project_id")
+		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
+
+		err := h.postProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
 		assert.Error(t, err)
 	})
 }

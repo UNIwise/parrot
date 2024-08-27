@@ -10,6 +10,7 @@ import (
 // Client is an interface to poeditors api
 type Client interface {
 	ExportProject(ctx context.Context, req ExportProjectRequest) (result *ExportProjectResponse, err error)
+	ListProjectLanguages(ctx context.Context, r ListProjectLanguagesRequest) (*ListProjectLanguagesResponse, error)
 }
 
 // ClientImpl is an implementation of the poeditor client interface

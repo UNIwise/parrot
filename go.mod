@@ -15,6 +15,7 @@ require (
 	github.com/go-redis/cache/v8 v8.4.4
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/mock v1.6.0
+	github.com/jarcoal/httpmock v1.3.1 // indirect
 	github.com/johngb/langreg v0.0.0-20150123211413-5c6abc6d19d2
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.10.0

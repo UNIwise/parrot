@@ -48,3 +48,18 @@ func (mr *MockClientMockRecorder) ExportProject(ctx, req interface{}) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportProject", reflect.TypeOf((*MockClient)(nil).ExportProject), ctx, req)
 }
+
+// ListProjectLanguages mocks base method.
+func (m *MockClient) ListProjectLanguages(ctx context.Context, r ListProjectLanguagesRequest) (*ListProjectLanguagesResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListProjectLanguages", ctx, r)
+	ret0, _ := ret[0].(*ListProjectLanguagesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProjectLanguages indicates an expected call of ListProjectLanguages.
+func (mr *MockClientMockRecorder) ListProjectLanguages(ctx, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProjectLanguages", reflect.TypeOf((*MockClient)(nil).ListProjectLanguages), ctx, r)
+}

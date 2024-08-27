@@ -33,6 +33,7 @@ func Register(e *echo.Echo, l *logrus.Entry, projectService project.Service, ena
 	g.GET("/projects", wrap(h.getAllProjects, l))
 	g.GET("/projects/:id", wrap(h.getProject, l))
 	g.GET("/projects/:id/versions", wrap(h.getProjectVersions, l))
+	g.POST("/projects/:id/versions", wrap(h.postProjectVersion, l))
 	g.DELETE("/projects/:project_id/versions/:version_id", wrap(h.deleteProjectVersion, l))
 }
 
