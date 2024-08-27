@@ -192,7 +192,6 @@ func (s *ServiceImpl) DeleteProjectVersionByIDAndProjectID(ctx context.Context, 
 	version, err := s.repo.GetVersionByIDAndProjectID(ctx, ID, projectID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-
 			return ErrNotFound
 		}
 
@@ -231,7 +230,6 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 	languagesResponse, err := s.Client.ListProjectLanguages(ctx, poedit.ListProjectLanguagesRequest{
 		ID: projectID,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -266,7 +264,6 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 		reader := bytes.NewReader(data)
 		key := fmt.Sprintf("%d/%s/%s.json", projectID, name, language.Code)
 		err = s.storage.PutObject(ctx, key, reader, "application/json")
-
 		if err != nil {
 			return err
 		}
