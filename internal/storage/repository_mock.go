@@ -56,6 +56,26 @@ func (mr *MockS3APIMockRecorder) DeleteObject(ctx, params interface{}, optFns ..
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockS3API)(nil).DeleteObject), varargs...)
 }
 
+// DeleteObjects mocks base method.
+func (m *MockS3API) DeleteObjects(ctx context.Context, params *s3.DeleteObjectsInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectsOutput, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, params}
+	for _, a := range optFns {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteObjects", varargs...)
+	ret0, _ := ret[0].(*s3.DeleteObjectsOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteObjects indicates an expected call of DeleteObjects.
+func (mr *MockS3APIMockRecorder) DeleteObjects(ctx, params interface{}, optFns ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, params}, optFns...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObjects", reflect.TypeOf((*MockS3API)(nil).DeleteObjects), varargs...)
+}
+
 // GetObject mocks base method.
 func (m *MockS3API) GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 	m.ctrl.T.Helper()
@@ -74,6 +94,26 @@ func (mr *MockS3APIMockRecorder) GetObject(ctx, params interface{}, optFns ...in
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, params}, optFns...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockS3API)(nil).GetObject), varargs...)
+}
+
+// ListObjectsV2 mocks base method.
+func (m *MockS3API) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, params}
+	for _, a := range optFns {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListObjectsV2", varargs...)
+	ret0, _ := ret[0].(*s3.ListObjectsV2Output)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListObjectsV2 indicates an expected call of ListObjectsV2.
+func (mr *MockS3APIMockRecorder) ListObjectsV2(ctx, params interface{}, optFns ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, params}, optFns...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListObjectsV2", reflect.TypeOf((*MockS3API)(nil).ListObjectsV2), varargs...)
 }
 
 // PutObject mocks base method.
@@ -133,6 +173,20 @@ func (mr *MockStorageMockRecorder) DeleteObject(ctx, key interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockStorage)(nil).DeleteObject), ctx, key)
 }
 
+// DeleteObjects mocks base method.
+func (m *MockStorage) DeleteObjects(ctx context.Context, key string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteObjects", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteObjects indicates an expected call of DeleteObjects.
+func (mr *MockStorageMockRecorder) DeleteObjects(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObjects", reflect.TypeOf((*MockStorage)(nil).DeleteObjects), ctx, key)
+}
+
 // GetObject mocks base method.
 func (m *MockStorage) GetObject(ctx context.Context, key string) (*s3.GetObjectOutput, error) {
 	m.ctrl.T.Helper()
@@ -148,16 +202,31 @@ func (mr *MockStorageMockRecorder) GetObject(ctx, key interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockStorage)(nil).GetObject), ctx, key)
 }
 
-// PutObject mocks base method.
-func (m *MockStorage) PutObject(ctx context.Context, key string, payloadReader io.Reader, mimeType string) error {
+// ListObjects mocks base method.
+func (m *MockStorage) ListObjects(ctx context.Context, storageKey string) (*s3.ListObjectsV2Output, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutObject", ctx, key, payloadReader, mimeType)
+	ret := m.ctrl.Call(m, "ListObjects", ctx, storageKey)
+	ret0, _ := ret[0].(*s3.ListObjectsV2Output)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListObjects indicates an expected call of ListObjects.
+func (mr *MockStorageMockRecorder) ListObjects(ctx, storageKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListObjects", reflect.TypeOf((*MockStorage)(nil).ListObjects), ctx, storageKey)
+}
+
+// PutObject mocks base method.
+func (m *MockStorage) PutObject(ctx context.Context, key string, payloadReader io.Reader, metadata map[string]string, mimeType string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PutObject", ctx, key, payloadReader, metadata, mimeType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutObject indicates an expected call of PutObject.
-func (mr *MockStorageMockRecorder) PutObject(ctx, key, payloadReader, mimeType interface{}) *gomock.Call {
+func (mr *MockStorageMockRecorder) PutObject(ctx, key, payloadReader, metadata, mimeType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockStorage)(nil).PutObject), ctx, key, payloadReader, mimeType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockStorage)(nil).PutObject), ctx, key, payloadReader, metadata, mimeType)
 }

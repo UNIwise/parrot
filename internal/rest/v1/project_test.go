@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,13 +10,12 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	"bytes"
 
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/uniwise/parrot/internal/project"
-	"github.com/go-playground/validator"
 
 	gomock "go.uber.org/mock/gomock"
 )
@@ -23,11 +23,12 @@ import (
 var (
 	errTest                     = errors.New("test error")
 	errNotFoundTest             = errors.New("failed to get project: not found")
-	testID               uint   = 1
-	testVersionID        uint   = 1
+	testID               int64  = 1
+	testVersionID        string = "test-id"
 	testName             string = "testname"
-	testNumberOfVersions uint   = 3
+	testNumberOfVersions int    = 3
 	testCreatedAt               = time.Now()
+	testCreatedAtString  string = testCreatedAt.String()
 )
 
 func TestGetAllProjects(t *testing.T) {
@@ -51,7 +52,7 @@ func TestGetAllProjects(t *testing.T) {
 			ID:               testID,
 			Name:             testName,
 			NumberOfVersions: testNumberOfVersions,
-			CreatedAt:        testCreatedAt.UTC(),
+			CreatedAt:        testCreatedAtString,
 		}}, nil)
 
 		err := h.getAllProjects(testCtx, logrus.NewEntry(logrus.New()))
@@ -68,7 +69,7 @@ func TestGetAllProjects(t *testing.T) {
 					ID:               testID,
 					Name:             testName,
 					NumberOfVersions: testNumberOfVersions,
-					CreatedAt:        testCreatedAt.UTC(),
+					CreatedAt:        testCreatedAtString,
 				},
 			},
 		})
@@ -89,7 +90,7 @@ func TestHandlers_newGetAllProjectsResponse(t *testing.T) {
 		ID:               testID,
 		Name:             testName,
 		NumberOfVersions: testNumberOfVersions,
-		CreatedAt:        testCreatedAt.UTC(),
+		CreatedAt:        testCreatedAtString,
 	}}
 
 	h := &Handlers{}
@@ -101,7 +102,7 @@ func TestHandlers_newGetAllProjectsResponse(t *testing.T) {
 	assert.Equal(t, response.Projects[0].ID, testID)
 	assert.Equal(t, response.Projects[0].Name, testName)
 	assert.Equal(t, response.Projects[0].NumberOfVersions, testNumberOfVersions)
-	assert.Equal(t, response.Projects[0].CreatedAt, testCreatedAt.UTC())
+	assert.Equal(t, response.Projects[0].CreatedAt, testCreatedAtString)
 }
 
 func TestGetProject(t *testing.T) {
@@ -127,7 +128,7 @@ func TestGetProject(t *testing.T) {
 			ID:               testID,
 			Name:             testName,
 			NumberOfVersions: testNumberOfVersions,
-			CreatedAt:        testCreatedAt.UTC(),
+			CreatedAt:        testCreatedAtString,
 		}, nil)
 
 		err := h.getProject(testCtx, logrus.NewEntry(logrus.New()))
@@ -142,7 +143,7 @@ func TestGetProject(t *testing.T) {
 			ID:               testID,
 			Name:             testName,
 			NumberOfVersions: testNumberOfVersions,
-			CreatedAt:        testCreatedAt.UTC(),
+			CreatedAt:        testCreatedAtString,
 		})
 	})
 
@@ -161,7 +162,7 @@ func TestHandlers_newGetProjectResponse(t *testing.T) {
 		ID:               testID,
 		Name:             testName,
 		NumberOfVersions: testNumberOfVersions,
-		CreatedAt:        testCreatedAt.UTC(),
+		CreatedAt:        testCreatedAtString,
 	}
 
 	h := &Handlers{}
@@ -172,7 +173,7 @@ func TestHandlers_newGetProjectResponse(t *testing.T) {
 	assert.Equal(t, response.ID, testID)
 	assert.Equal(t, response.Name, testName)
 	assert.Equal(t, response.NumberOfVersions, testNumberOfVersions)
-	assert.Equal(t, response.CreatedAt, testCreatedAt.UTC())
+	assert.Equal(t, response.CreatedAt, testCreatedAtString)
 }
 
 func TestGetProjectVersions(t *testing.T) {
@@ -197,7 +198,6 @@ func TestGetProjectVersions(t *testing.T) {
 		projectService.EXPECT().GetProjectVersions(context.Background(), int(testID)).Times(1).Return([]project.Version{{
 			ID:        testVersionID,
 			Name:      testName,
-			ProjectID: testID,
 			CreatedAt: testCreatedAt.UTC(),
 		}}, nil)
 
@@ -212,7 +212,7 @@ func TestGetProjectVersions(t *testing.T) {
 		assert.Equal(t, response, getProjectVersionsResponse{
 			Versions: []getProjectVersionsItemResponse{
 				{
-					ID:        testID,
+					ID:        testVersionID,
 					Name:      testName,
 					CreatedAt: testCreatedAt.UTC(),
 				},
@@ -234,7 +234,6 @@ func TestHandlers_newGetProjectVersionsResponse(t *testing.T) {
 	versions := []project.Version{{
 		ID:        testVersionID,
 		Name:      testName,
-		ProjectID: testID,
 		CreatedAt: testCreatedAt.UTC(),
 	}}
 
@@ -244,7 +243,7 @@ func TestHandlers_newGetProjectVersionsResponse(t *testing.T) {
 
 	assert.NotNil(t, response)
 	assert.Len(t, response.Versions, 1)
-	assert.Equal(t, response.Versions[0].ID, testID)
+	assert.Equal(t, response.Versions[0].ID, testVersionID)
 	assert.Equal(t, response.Versions[0].Name, testName)
 	assert.Equal(t, response.Versions[0].CreatedAt, testCreatedAt.UTC())
 }
@@ -260,7 +259,7 @@ func TestDeleteProjectVersion(t *testing.T) {
 
 	testCtx.SetPath("/projects/:project_id/versions/:version_id")
 	testCtx.SetParamNames("project_id", "version_id")
-	testCtx.SetParamValues(fmt.Sprintf("%d", testID), fmt.Sprintf("%d", testVersionID))
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID), fmt.Sprintf("%s", testVersionID))
 
 	projectService := project.NewMockService(gomock.NewController(t))
 
@@ -268,7 +267,7 @@ func TestDeleteProjectVersion(t *testing.T) {
 		ProjectService: projectService,
 	}
 	t.Run("deleteProjectVersion, success", func(t *testing.T) {
-		projectService.EXPECT().DeleteProjectVersionByIDAndProjectID(context.Background(), testVersionID, testID).Times(1).Return(nil)
+		projectService.EXPECT().DeleteProjectVersionByIDAndProjectID(context.Background(), testVersionID, uint(testID)).Times(1).Return(nil)
 
 		err := h.deleteProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
 		assert.NoError(t, err)
@@ -276,7 +275,7 @@ func TestDeleteProjectVersion(t *testing.T) {
 	})
 
 	t.Run("deleteProjectVersion, error", func(t *testing.T) {
-		projectService.EXPECT().DeleteProjectVersionByIDAndProjectID(context.Background(), testVersionID, testID).Times(1).Return(errTest)
+		projectService.EXPECT().DeleteProjectVersionByIDAndProjectID(context.Background(), testVersionID, uint(testID)).Times(1).Return(errTest)
 
 		err := h.deleteProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
 		assert.Error(t, err)
@@ -284,12 +283,12 @@ func TestDeleteProjectVersion(t *testing.T) {
 }
 
 type CustomValidator struct {
-    validator *validator.Validate
+	validator *validator.Validate
 }
 
 // Validate implements the echo.Validator interface
 func (cv *CustomValidator) Validate(i interface{}) error {
-    return cv.validator.Struct(i)
+	return cv.validator.Struct(i)
 }
 
 func TestPostProjectVersion(t *testing.T) {
@@ -306,16 +305,16 @@ func TestPostProjectVersion(t *testing.T) {
 
 	t.Run("postProjectVersion, success", func(t *testing.T) {
 		reqBody := map[string]interface{}{
-			"id":     testID,
+			"id":   testID,
 			"name": testName,
 		}
 		reqJSON, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(reqJSON))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		resp := httptest.NewRecorder()
-	
+
 		testCtx := e.NewContext(req, resp)
-	
+
 		testCtx.SetPath("/projects/:project_id/versions")
 		testCtx.SetParamNames("project_id")
 		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
@@ -329,16 +328,16 @@ func TestPostProjectVersion(t *testing.T) {
 
 	t.Run("postProjectVersion, error", func(t *testing.T) {
 		reqBody := map[string]interface{}{
-			"id":     testID,
+			"id":   testID,
 			"name": testName,
 		}
 		reqJSON, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(reqJSON))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		resp := httptest.NewRecorder()
-	
+
 		testCtx := e.NewContext(req, resp)
-	
+
 		testCtx.SetPath("/projects/:project_id/versions")
 		testCtx.SetParamNames("project_id")
 		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
@@ -351,16 +350,16 @@ func TestPostProjectVersion(t *testing.T) {
 
 	t.Run("postProjectVersion, validation error", func(t *testing.T) {
 		reqBody := map[string]interface{}{
-			"id":     testID,
+			"id":   testID,
 			"name": "",
 		}
 		reqJSON, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(reqJSON))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		resp := httptest.NewRecorder()
-	
+
 		testCtx := e.NewContext(req, resp)
-	
+
 		testCtx.SetPath("/projects/:project_id/versions")
 		testCtx.SetParamNames("project_id")
 		testCtx.SetParamValues(fmt.Sprintf("%d", testID))

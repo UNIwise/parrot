@@ -55,7 +55,7 @@ func (mr *MockServiceMockRecorder) CreateLanguagesVersion(ctx, projectID, name i
 }
 
 // DeleteProjectVersionByIDAndProjectID mocks base method.
-func (m *MockService) DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID, projectID uint) error {
+func (m *MockService) DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID string, projectID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteProjectVersionByIDAndProjectID", ctx, ID, projectID)
 	ret0, _ := ret[0].(error)

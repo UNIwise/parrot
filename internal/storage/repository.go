@@ -26,10 +26,24 @@ type S3API interface {
 		params *s3.GetObjectInput,
 		optFns ...func(*s3.Options),
 	) (*s3.GetObjectOutput, error)
+
+	ListObjectsV2(
+		ctx context.Context,
+		params *s3.ListObjectsV2Input,
+		optFns ...func(*s3.Options),
+	) (*s3.ListObjectsV2Output, error)
+
+	DeleteObjects(
+		ctx context.Context,
+		params *s3.DeleteObjectsInput,
+		optFns ...func(*s3.Options),
+	) (*s3.DeleteObjectsOutput, error)
 }
 
 type Storage interface {
-	PutObject(ctx context.Context, key string, payloadReader io.Reader, mimeType string) error
+	PutObject(ctx context.Context, key string, payloadReader io.Reader, metadata map[string]string, mimeType string) error
 	DeleteObject(ctx context.Context, key string) error
 	GetObject(ctx context.Context, key string) (*s3.GetObjectOutput, error)
+	ListObjects(ctx context.Context, storageKey string) (*s3.ListObjectsV2Output, error)
+	DeleteObjects(ctx context.Context, key string) error
 }

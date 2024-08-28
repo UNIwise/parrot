@@ -12,9 +12,10 @@ type ServiceImpl struct {
 }
 
 type Service interface {
-	PutObject(ctx context.Context, key string, payloadReader io.Reader, mimeType string) error
+	PutObject(ctx context.Context, key string, payloadReader io.Reader, metadata map[string]string, mimeType string) error
 	DeleteObject(ctx context.Context, key string) error
 	GetObject(ctx context.Context, key string) (*s3.GetObjectOutput, error)
+	ListObjects(ctx context.Context, storageKey string) (*s3.ListObjectsV2Output, error)
 }
 
 func NewService(ctx context.Context, storage Storage) *ServiceImpl {
@@ -23,8 +24,8 @@ func NewService(ctx context.Context, storage Storage) *ServiceImpl {
 	}
 }
 
-func (s *ServiceImpl) PutObject(ctx context.Context, key string, payloadReader io.Reader, mimeType string) error {
-	return s.storage.PutObject(ctx, key, payloadReader, mimeType)
+func (s *ServiceImpl) PutObject(ctx context.Context, key string, payloadReader io.Reader, metadata map[string]string, mimeType string) error {
+	return s.storage.PutObject(ctx, key, payloadReader, metadata, mimeType)
 }
 
 func (s *ServiceImpl) DeleteObject(ctx context.Context, key string) error {
@@ -33,4 +34,12 @@ func (s *ServiceImpl) DeleteObject(ctx context.Context, key string) error {
 
 func (s *ServiceImpl) GetObject(ctx context.Context, key string) (*s3.GetObjectOutput, error) {
 	return s.storage.GetObject(ctx, key)
+}
+
+func (s *ServiceImpl) ListObjects(ctx context.Context, storageKey string) (*s3.ListObjectsV2Output, error) {
+	return s.storage.ListObjects(ctx, storageKey)
+}
+
+func (s *ServiceImpl) DeleteObjects(ctx context.Context, key string) error {
+	return s.storage.DeleteObjects(ctx, key)
 }

@@ -56,8 +56,6 @@ The server can be configured with a yaml configuration file specified with the `
 | api.token                      | secret token to authenticating against poeditor                              | string   |
 | aws.region                    | AWS Region | string | `eu-west-1` |
 | aws.bucket.name               | AWS bucket name | string | 
-| database.dsn                  | Database DSN connection string | string | `gorm:gorm@tcp(localhost:3306)/gorm?charset=utf8&parseTime=True` |
-| database.debug | Debug database | boolean | `false` |
 
 
 # API specification
