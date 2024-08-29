@@ -63,3 +63,33 @@ func (mr *MockClientMockRecorder) ListProjectLanguages(ctx, r interface{}) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProjectLanguages", reflect.TypeOf((*MockClient)(nil).ListProjectLanguages), ctx, r)
 }
+
+// ListProjects mocks base method.
+func (m *MockClient) ListProjects(ctx context.Context) (*ListProjectsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListProjects", ctx)
+	ret0, _ := ret[0].(*ListProjectsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProjects indicates an expected call of ListProjects.
+func (mr *MockClientMockRecorder) ListProjects(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProjects", reflect.TypeOf((*MockClient)(nil).ListProjects), ctx)
+}
+
+// ViewProject mocks base method.
+func (m *MockClient) ViewProject(ctx context.Context, r ViewProjectRequest) (*ViewProjectResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ViewProject", ctx, r)
+	ret0, _ := ret[0].(*ViewProjectResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ViewProject indicates an expected call of ViewProject.
+func (mr *MockClientMockRecorder) ViewProject(ctx, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ViewProject", reflect.TypeOf((*MockClient)(nil).ViewProject), ctx, r)
+}

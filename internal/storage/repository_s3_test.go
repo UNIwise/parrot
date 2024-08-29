@@ -3,9 +3,9 @@ package storage
 import (
 	"context"
 	"errors"
-	"testing"
-	"strings"
 	"io"
+	"strings"
+	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
@@ -14,9 +14,11 @@ import (
 var errForTesting = errors.New("this is an error for testing")
 
 type MockS3APIMethods struct {
-	DeleteObjectFunction func(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
-	PutObjectFunction    func(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
-	GetObjectFunction    func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	DeleteObjectFunction  func(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
+	PutObjectFunction     func(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+	GetObjectFunction     func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	ListObjectsV2Function func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
+	DeleteObjectsFunction func(ctx context.Context, params *s3.DeleteObjectsInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectsOutput, error)
 }
 
 func (m *MockS3APIMethods) DeleteObject(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error) {
@@ -29,6 +31,14 @@ func (m *MockS3APIMethods) PutObject(ctx context.Context, params *s3.PutObjectIn
 
 func (m *MockS3APIMethods) GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 	return m.GetObjectFunction(ctx, params, optFns...)
+}
+
+func (m *MockS3APIMethods) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+	return m.ListObjectsV2Function(ctx, params, optFns...)
+}
+
+func (m *MockS3APIMethods) DeleteObjects(ctx context.Context, params *s3.DeleteObjectsInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectsOutput, error) {
+	return m.DeleteObjectsFunction(ctx, params, optFns...)
 }
 
 func TestNewS3Client(t *testing.T) {
@@ -103,10 +113,10 @@ func TestPutObject(t *testing.T) {
 	t.Parallel()
 
 	var (
-		ctx    context.Context
-		bucket string = "test-bucket"
-		region string = "test-region"
-		key    string = "test/keyOne"
+		ctx           context.Context
+		bucket        string    = "test-bucket"
+		region        string    = "test-region"
+		key           string    = "test/keyOne"
 		payloadReader io.Reader = strings.NewReader("Hello, Reader!")
 	)
 
@@ -130,7 +140,7 @@ func TestPutObject(t *testing.T) {
 			client: mockClient,
 		}
 
-		actualError := storage.PutObject(ctx, key, payloadReader, "txt")
+		actualError := storage.PutObject(ctx, key, payloadReader, nil, "txt")
 
 		assert.Error(t, actualError)
 	})
@@ -154,7 +164,7 @@ func TestPutObject(t *testing.T) {
 			client: mockClient,
 		}
 
-		actualError := storage.PutObject(ctx, key, payloadReader, "txt")
+		actualError := storage.PutObject(ctx, key, payloadReader, nil, "txt")
 
 		assert.NoError(t, actualError)
 	})
@@ -219,5 +229,132 @@ func TestGetObject(t *testing.T) {
 
 		assert.NoError(t, actualError)
 		assert.NotNil(t, actualOutput)
+	})
+}
+
+func TestListObjects(t *testing.T) {
+	t.Parallel()
+
+	var (
+		ctx        context.Context
+		bucket     string = "test-bucket"
+		region     string = "test-region"
+		storageKey string = "test/key"
+	)
+
+	t.Run("List objects, fail", func(t *testing.T) {
+		mockClient := &MockS3APIMethods{
+
+			ListObjectsV2Function: func(
+				_ctx context.Context,
+				_params *s3.ListObjectsV2Input,
+				_optFns ...func(*s3.Options),
+			) (*s3.ListObjectsV2Output, error) {
+				assert.Equal(t, ctx, _ctx)
+				assert.Equal(t, bucket, *_params.Bucket)
+				return nil, errForTesting
+			},
+		}
+
+		storage := &S3ClientImpl{
+			config: S3StorageConfig{Bucket: bucket, Region: region},
+			client: mockClient,
+		}
+
+		actualOutput, actualError := storage.ListObjects(ctx, storageKey)
+
+		assert.Error(t, actualError)
+		assert.Nil(t, actualOutput)
+	})
+	t.Run("List objects, success", func(t *testing.T) {
+		mockClient := &MockS3APIMethods{
+
+			ListObjectsV2Function: func(
+				_ctx context.Context,
+				_params *s3.ListObjectsV2Input,
+				_optFns ...func(*s3.Options),
+			) (*s3.ListObjectsV2Output, error) {
+				assert.Equal(t, ctx, _ctx)
+				assert.Equal(t, bucket, *_params.Bucket)
+				return &s3.ListObjectsV2Output{}, nil
+			},
+		}
+
+		storage := &S3ClientImpl{
+			config: S3StorageConfig{Bucket: bucket, Region: region},
+			client: mockClient,
+		}
+
+		actualOutput, actualError := storage.ListObjects(ctx, storageKey)
+
+		assert.NoError(t, actualError)
+		assert.NotNil(t, actualOutput)
+	})
+}
+
+func TestDeleteObjects(t *testing.T) {
+	t.Parallel()
+
+	var (
+		ctx    context.Context
+		bucket string = "test-bucket"
+		region string = "test-region"
+		key    string = "test/key"
+	)
+
+	t.Run("Delete objects, fail", func(t *testing.T) {
+		mockClient := &MockS3APIMethods{
+
+			ListObjectsV2Function: func(
+				_ctx context.Context,
+				_params *s3.ListObjectsV2Input,
+				_optFns ...func(*s3.Options),
+			) (*s3.ListObjectsV2Output, error) {
+				assert.Equal(t, ctx, _ctx)
+				assert.Equal(t, bucket, *_params.Bucket)
+				return nil, errForTesting
+			},
+		}
+
+		storage := &S3ClientImpl{
+			config: S3StorageConfig{Bucket: bucket, Region: region},
+			client: mockClient,
+		}
+
+		actualError := storage.DeleteObjects(ctx, key)
+
+		assert.Error(t, actualError)
+	})
+	t.Run("Delete objects, success", func(t *testing.T) {
+		mockClient := &MockS3APIMethods{
+
+			ListObjectsV2Function: func(
+				_ctx context.Context,
+				_params *s3.ListObjectsV2Input,
+				_optFns ...func(*s3.Options),
+			) (*s3.ListObjectsV2Output, error) {
+				assert.Equal(t, ctx, _ctx)
+				assert.Equal(t, bucket, *_params.Bucket)
+				return &s3.ListObjectsV2Output{}, nil
+			},
+			DeleteObjectsFunction: func(
+				_ctx context.Context,
+				_params *s3.DeleteObjectsInput,
+				_optFns ...func(*s3.Options),
+			) (*s3.DeleteObjectsOutput, error) {
+				assert.Equal(t, ctx, _ctx)
+				assert.Equal(t, bucket, *_params.Bucket)
+				return &s3.DeleteObjectsOutput{}, nil
+			},
+		}
+
+		storage := &S3ClientImpl{
+			config: S3StorageConfig{Bucket: bucket, Region: region},
+			client: mockClient,
+		}
+
+		actualError := storage.DeleteObjects(ctx, key)
+
+		assert.NoError(t, actualError)
 	})
 }

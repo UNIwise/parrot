@@ -94,10 +94,10 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 }
 
 type getProjectItemResponse struct {
-	ID               uint      `json:"id"`
-	Name             string    `json:"name"`
-	NumberOfVersions uint      `json:"numberOfVersions"`
-	CreatedAt        time.Time `json:"createdAt"`
+	ID               int64  `json:"id"`
+	Name             string `json:"name"`
+	NumberOfVersions int    `json:"numberOfVersions"`
+	CreatedAt        string `json:"createdAt"`
 }
 
 type getAllProjectsResponse struct {
@@ -138,14 +138,14 @@ func (h *Handlers) newGetAllProjectsResponse(
 }
 
 type getProjectRequest struct {
-	ID  int    `param:"id" validate:"required"`
+	ID int `param:"id" validate:"required"`
 }
 
 type getProjectResponse struct {
-	ID               uint      `json:"id"`
-	Name             string    `json:"name"`
-	NumberOfVersions uint      `json:"numberOfVersions"`
-	CreatedAt        time.Time `json:"createdAt"`
+	ID               int64  `json:"id"`
+	Name             string `json:"name"`
+	NumberOfVersions int    `json:"numberOfVersions"`
+	CreatedAt        string `json:"createdAt"`
 }
 
 func (h *Handlers) getProject(ctx echo.Context, l *logrus.Entry) error {
@@ -163,7 +163,7 @@ func (h *Handlers) getProject(ctx echo.Context, l *logrus.Entry) error {
 		req.ID,
 	)
 	if err != nil {
-		if (err.Error() == "failed to get project: not found") {
+		if err.Error() == "failed to get project: not found" {
 			return echo.ErrNotFound
 		}
 
@@ -189,13 +189,13 @@ func (h *Handlers) newGetProjectResponse(
 }
 
 type getProjectVersionsRequest struct {
-	ProjectID  int    `param:"id" validate:"required"`
+	ProjectID int `param:"id" validate:"required"`
 }
 
 type getProjectVersionsItemResponse struct {
-	ID               uint      `json:"id"`
-	Name             string    `json:"name"`
-	CreatedAt        time.Time `json:"createdAt"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type getProjectVersionsResponse struct {
@@ -217,7 +217,7 @@ func (h *Handlers) getProjectVersions(ctx echo.Context, l *logrus.Entry) error {
 		req.ProjectID,
 	)
 	if err != nil {
-		if (err.Error() == "failed to get project versions: not found") {
+		if err.Error() == "failed to get project versions: not found" {
 			return echo.ErrNotFound
 		}
 
@@ -250,8 +250,8 @@ func (h *Handlers) newGetProjectVersionsResponse(
 }
 
 type deleteProjectVersionRequest struct {
-	ProjectID uint `param:"project_id" validate:"required"`
-	VersionID uint `param:"version_id" validate:"required"`
+	ProjectID uint   `param:"project_id" validate:"required"`
+	VersionID string `param:"version_id" validate:"required"`
 }
 
 func (h *Handlers) deleteProjectVersion(ctx echo.Context, l *logrus.Entry) error {
@@ -273,10 +273,6 @@ func (h *Handlers) deleteProjectVersion(ctx echo.Context, l *logrus.Entry) error
 		req.ProjectID,
 	)
 	if err != nil {
-		if (errors.Is(err, project.ErrNotFound)) {
-			return echo.ErrNotFound
-		}
-
 		l.WithError(err).Error("Error deleting project version")
 
 		return echo.ErrInternalServerError
@@ -286,7 +282,7 @@ func (h *Handlers) deleteProjectVersion(ctx echo.Context, l *logrus.Entry) error
 }
 
 type postProjectVersionRequest struct {
-	ID  int    `param:"id" validate:"required,numeric"`
+	ID   int    `param:"id" validate:"required,numeric"`
 	Name string `json:"name" validate:"required,max=20,alphanum"`
 }
 

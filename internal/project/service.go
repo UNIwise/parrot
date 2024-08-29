@@ -9,10 +9,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	gosundheit "github.com/AppsFlyer/go-sundheit"
 	"github.com/AppsFlyer/go-sundheit/checks"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/cache"
@@ -35,7 +38,7 @@ type Service interface {
 	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetProjectByID(ctx context.Context, id int) (*Project, error)
 	GetProjectVersions(ctx context.Context, projectID int) ([]Version, error)
-	DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID, projectID uint) error
+	DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID string, projectID uint) error
 	CreateLanguagesVersion(ctx context.Context, projectID int, name string) error
 }
 
@@ -46,10 +49,11 @@ type ServiceImpl struct {
 	RenewalThreshold  time.Duration
 	PreFetchSemaphore *semaphore.Weighted
 	storage           storage.Storage
-	repo              Repository
+	generateUUID      func() (string, error)
+	generateTimestamp func() int64
 }
 
-func NewService(cli poedit.Client, storage storage.Storage, repo Repository, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
+func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
 	return &ServiceImpl{
 		Logger:            entry,
 		Client:            cli,
@@ -57,7 +61,8 @@ func NewService(cli poedit.Client, storage storage.Storage, repo Repository, cac
 		RenewalThreshold:  renewalThreshold,
 		PreFetchSemaphore: semaphore.NewWeighted(1),
 		storage:           storage,
-		repo:              repo,
+		generateUUID:      GenerateUUID,
+		generateTimestamp: GenerateTimestamp,
 	}
 }
 
@@ -162,65 +167,93 @@ func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
 }
 
 func (s *ServiceImpl) GetAllProjects(ctx context.Context) ([]Project, error) {
-	projects, err := s.repo.GetAllProjects(ctx)
+	var projects []Project
+
+	projectsResponse, err := s.Client.ListProjects(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get projects")
+		return nil, errors.Wrap(err, "failed to get projects from poeditor")
+	}
+
+	for _, project := range projectsResponse.Result.Projects {
+		s3Output, err := s.storage.ListObjects(ctx, fmt.Sprintf("%d/", project.ID))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get project versions from S3")
+		}
+
+		numberOfVersions := len(s3Output.CommonPrefixes)
+
+		projects = append(projects, Project{
+			ID:               project.ID,
+			Name:             project.Name,
+			NumberOfVersions: numberOfVersions,
+			CreatedAt:        project.Created,
+		})
 	}
 
 	return projects, nil
 }
 
 func (s *ServiceImpl) GetProjectByID(ctx context.Context, id int) (*Project, error) {
-	project, err := s.repo.GetProjectByID(ctx, id)
+	projectResponse, err := s.Client.ViewProject(ctx, poedit.ViewProjectRequest{
+		ID: id,
+	})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get project")
+		return nil, errors.Wrap(err, "failed to view project")
+	}
+
+	projectResult := projectResponse.Result.Project
+	s3Output, err := s.storage.ListObjects(ctx, fmt.Sprintf("%d/", id))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get project versions")
+	}
+
+	numberOfVersions := len(s3Output.CommonPrefixes)
+
+	project := &Project{
+		ID:               projectResult.ID,
+		Name:             projectResult.Name,
+		NumberOfVersions: numberOfVersions,
+		CreatedAt:        projectResult.Created,
 	}
 
 	return project, nil
 }
 
 func (s *ServiceImpl) GetProjectVersions(ctx context.Context, projectID int) ([]Version, error) {
-	versions, err := s.repo.GetProjectVersions(ctx, projectID)
+	var versions []Version
+
+	s3Output, err := s.storage.ListObjects(ctx, fmt.Sprintf("%d/", projectID))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get project versions")
+	}
+
+	for _, object := range s3Output.CommonPrefixes {
+		//Example Prefix : {projectID}/{versionID_versionName_timestamp}/
+		// 720964/61ded6dc-c8b7-4d4e-aa70-cd37dd1216b3_v2_123456789/
+		prefixData := strings.Split(aws.ToString(object.Prefix), "/")
+
+		versionData := strings.Split(prefixData[1], "_")
+		versionID := versionData[0]
+		versionName := versionData[1]
+		versionTimestamp, err := strconv.ParseInt(versionData[2], 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse timestamp")
+		}
+
+		versions = append(versions, Version{
+			ID:        versionID,
+			Name:      versionName,
+			CreatedAt: time.Unix(versionTimestamp, 0),
+		})
 	}
 
 	return versions, nil
 }
 
-func (s *ServiceImpl) DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID, projectID uint) error {
-	version, err := s.repo.GetVersionByIDAndProjectID(ctx, ID, projectID)
-	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			return ErrNotFound
-		}
-
-		return errors.Wrapf(err, "Failed to retrieve project version with ID %d and project ID %d", ID, projectID)
-	}
-
-	return s.deleteProjectVersion(ctx, version)
-}
-
-func (s *ServiceImpl) deleteProjectVersion(ctx context.Context, version *Version) error {
-	deleteVersionByIDTransaction, err := s.repo.DeleteVersionByIDTransaction(ctx, version.ID)
-	if err != nil {
-		return errors.Wrap(err, "Failed to begin delete project version transaction")
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			deleteVersionByIDTransaction.Rollback()
-		}
-	}()
-
-	if err := s.storage.DeleteObject(ctx, version.StorageKey); err != nil {
-		deleteVersionByIDTransaction.Rollback()
+func (s *ServiceImpl) DeleteProjectVersionByIDAndProjectID(ctx context.Context, ID string, projectID uint) error {
+	storageKey := fmt.Sprintf("%d/%s", projectID, ID)
+	if err := s.storage.DeleteObjects(ctx, storageKey); err != nil {
 		return errors.Wrap(err, "Failed to delete project version in S3")
-	}
-
-	if err := deleteVersionByIDTransaction.Commit().Error; err != nil {
-		deleteVersionByIDTransaction.Rollback()
-		return errors.Wrap(err, "Failed to commit delete project version transaction")
 	}
 
 	return nil
@@ -233,6 +266,13 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 	if err != nil {
 		return errors.Wrap(err, "Failed to list project languages")
 	}
+
+	uuid, err := s.generateUUID()
+	if err != nil {
+		return errors.Wrap(err, "Failed to generate UUID")
+	}
+
+	timeStamp := s.generateTimestamp()
 
 	for _, language := range languagesResponse.Result.Languages {
 		resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
@@ -262,8 +302,16 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 		}
 
 		reader := bytes.NewReader(data)
-		key := fmt.Sprintf("%d/%s/%s.json", projectID, name, language.Code)
-		err = s.storage.PutObject(ctx, key, reader, "application/json")
+
+		key := fmt.Sprintf("%d/%s_%s_%d/%s.json", projectID, uuid, name, timeStamp, language.Code)
+
+		meta := map[string]string{
+			"project":     fmt.Sprintf("%d", projectID),
+			"lang":        language.Code,
+			"versionName": name,
+		}
+
+		err = s.storage.PutObject(ctx, key, reader, meta, "application/json")
 		if err != nil {
 			return errors.Wrap(err, "Failed to upload project language file to S3")
 		}

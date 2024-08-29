@@ -65,16 +65,31 @@ func (mr *MockServiceMockRecorder) GetObject(ctx, key interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockService)(nil).GetObject), ctx, key)
 }
 
-// PutObject mocks base method.
-func (m *MockService) PutObject(ctx context.Context, key string, payloadReader io.Reader, mimeType string) error {
+// ListObjects mocks base method.
+func (m *MockService) ListObjects(ctx context.Context, storageKey string) (*s3.ListObjectsV2Output, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutObject", ctx, key, payloadReader, mimeType)
+	ret := m.ctrl.Call(m, "ListObjects", ctx, storageKey)
+	ret0, _ := ret[0].(*s3.ListObjectsV2Output)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListObjects indicates an expected call of ListObjects.
+func (mr *MockServiceMockRecorder) ListObjects(ctx, storageKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListObjects", reflect.TypeOf((*MockService)(nil).ListObjects), ctx, storageKey)
+}
+
+// PutObject mocks base method.
+func (m *MockService) PutObject(ctx context.Context, key string, payloadReader io.Reader, metadata map[string]string, mimeType string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PutObject", ctx, key, payloadReader, metadata, mimeType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutObject indicates an expected call of PutObject.
-func (mr *MockServiceMockRecorder) PutObject(ctx, key, payloadReader, mimeType interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) PutObject(ctx, key, payloadReader, metadata, mimeType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockService)(nil).PutObject), ctx, key, payloadReader, mimeType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockService)(nil).PutObject), ctx, key, payloadReader, metadata, mimeType)
 }
