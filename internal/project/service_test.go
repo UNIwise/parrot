@@ -34,6 +34,12 @@ var (
 	testGenerateTimestamp = func() int64 {
 		return testCreatedAt.Unix()
 	}
+	testContentMetaMap = map[string]poedit.ContentMeta{
+		"key_value_json":  {Extension: "json", Type: "application/json"},
+	}
+	testGetContentMetaMap = func() map[string]poedit.ContentMeta {
+		return testContentMetaMap
+	}
 )
 
 func TestServiceGetAllProjects(t *testing.T) {
@@ -44,7 +50,7 @@ func TestServiceGetAllProjects(t *testing.T) {
 
 	service := NewService(client, storage, nil, testRenewalThreshold, nil)
 
-	listProjectsResponse := &poedit.ListProjectsResponse {
+	listProjectsResponse := &poedit.ListProjectsResponse{
 		Result: struct {
 			Projects []struct {
 				ID      int64  `json:"id"`
@@ -277,6 +283,7 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	service := NewService(poeditClient, storage, nil, testRenewalThreshold, nil)
 	service.generateUUID = testGenerateUUID
 	service.generateTimestamp = testGenerateTimestamp
+	service.getContentMetaMap = testGetContentMetaMap
 
 	listProjectLanguagesRequest := poedit.ListProjectLanguagesRequest{
 		ID: int(testProjectID),

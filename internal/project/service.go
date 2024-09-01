@@ -51,6 +51,7 @@ type ServiceImpl struct {
 	storage           storage.Storage
 	generateUUID      func() (string, error)
 	generateTimestamp func() int64
+	getContentMetaMap func() map[string]poedit.ContentMeta
 }
 
 func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, renewalThreshold time.Duration, entry *logrus.Entry) *ServiceImpl {
@@ -63,6 +64,7 @@ func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, r
 		storage:           storage,
 		generateUUID:      GenerateUUID,
 		generateTimestamp: GenerateTimestamp,
+		getContentMetaMap: GetContentMetaMap,
 	}
 }
 
@@ -273,48 +275,71 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 	}
 
 	timeStamp := s.generateTimestamp()
+	contentMetaMap := s.getContentMetaMap()
+
+	type TranslationObject struct {
+		S3Key         string
+		Reader      *bytes.Reader
+		Meta        map[string]string
+		ContentType string
+	}
+
+	var translationObjects []TranslationObject
 
 	for _, language := range languagesResponse.Result.Languages {
-		resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
-			ID:       projectID,
-			Language: language.Code,
-			Type:     "key_value_json",
-			Filters:  []string{"translated"},
-		})
-		if err != nil {
-			return errors.Wrap(err, "Failed to export project")
+		for contentMetaKey, contentMeta := range contentMetaMap {
+			fmt.Printf("Exporting project %d language %s format %s\n", projectID, language.Code, contentMetaKey)
+			resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
+				ID:       projectID,
+				Language: language.Code,
+				Type:     contentMetaKey,
+				Filters:  []string{"translated"},
+			})
+			if err != nil {
+				return errors.Wrap(err, "Failed to export project")
+			}
+
+			d, err := http.Get(resp.Result.URL)
+			if err != nil {
+				return errors.Wrap(err, "Failed to download project language file")
+			}
+			defer d.Body.Close()
+
+			if d.StatusCode != http.StatusOK {
+				return errors.Errorf("Response code '%d' from download GET", d.StatusCode)
+			}
+
+			//upload to s3
+			data, err := io.ReadAll(d.Body)
+			if err != nil {
+				return errors.Wrap(err, "Failed to read project language file")
+			}
+
+			reader := bytes.NewReader(data)
+
+			s3Key := fmt.Sprintf("%d/%s_%s_%d/%s.%s", projectID, uuid, name, timeStamp, language.Code, contentMeta.Extension)
+
+			meta := map[string]string{
+				"project":     fmt.Sprintf("%d", projectID),
+				"lang":        language.Code,
+				"versionName": name,
+				"format":      contentMeta.Extension,
+			}
+
+			translationObjects = append(translationObjects, TranslationObject{
+				S3Key:         s3Key,
+				Reader:      reader,
+				Meta:        meta,
+				ContentType: contentMeta.Type,
+			})
 		}
+	}
 
-		d, err := http.Get(resp.Result.URL)
-		if err != nil {
-			return errors.Wrap(err, "Failed to download project language file")
-		}
-		defer d.Body.Close()
-
-		if d.StatusCode != http.StatusOK {
-			return errors.Errorf("Response code '%d' from download GET", d.StatusCode)
-		}
-
-		//upload to s3
-		data, err := io.ReadAll(d.Body)
-		if err != nil {
-			return errors.Wrap(err, "Failed to read project language file")
-		}
-
-		reader := bytes.NewReader(data)
-
-		key := fmt.Sprintf("%d/%s_%s_%d/%s.json", projectID, uuid, name, timeStamp, language.Code)
-
-		meta := map[string]string{
-			"project":     fmt.Sprintf("%d", projectID),
-			"lang":        language.Code,
-			"versionName": name,
-		}
-
-		err = s.storage.PutObject(ctx, key, reader, meta, "application/json")
-		if err != nil {
+	for _, translationObject := range translationObjects {
+		if err := s.storage.PutObject(ctx, translationObject.S3Key, translationObject.Reader, translationObject.Meta, translationObject.ContentType); err != nil {
 			return errors.Wrap(err, "Failed to upload project language file to S3")
 		}
+		fmt.Printf("Uploaded %s\n", translationObject.S3Key)
 	}
 
 	return nil
