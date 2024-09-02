@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -31,7 +30,7 @@ type Translation struct {
 }
 
 type Service interface {
-	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (trans *Translation, err error)
+	GetTranslation(ctx context.Context, projectID int, languageCode, format, version string) (trans *Translation, err error)
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
@@ -68,8 +67,8 @@ func NewService(cli poedit.Client, storage storage.Storage, cache cache.Cache, r
 	}
 }
 
-func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*Translation, error) {
-	item, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format)
+func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languageCode, format, version string) (*Translation, error) {
+	item, err := s.Cache.GetTranslation(ctx, projectID, languageCode, format, version)
 	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
 		return nil, err
 	}
@@ -86,7 +85,7 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 
 				s.Logger.Debugf("Pre-fetching language %s format %s for project %d", languageCode, format, projectID)
 
-				_, _, err := s.fetchAndCacheTranslation(context.Background(), projectID, languageCode, format)
+				_, _, err := s.fetchAndCacheTranslation(context.Background(), projectID, languageCode, format, version)
 				if err != nil {
 					s.Logger.Errorf("Failed to pre-fetch language %s format %s for project %d", languageCode, format, projectID)
 				}
@@ -100,7 +99,7 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 		}, nil
 	}
 
-	data, checksum, err := s.fetchAndCacheTranslation(ctx, projectID, languageCode, format)
+	data, checksum, err := s.fetchAndCacheTranslation(ctx, projectID, languageCode, format, version)
 	if err != nil {
 		return nil, err
 	}
@@ -120,39 +119,26 @@ func (s *ServiceImpl) PurgeProject(ctx context.Context, projectID int) error {
 	return errors.New("Not implemented")
 }
 
-func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID int, languageCode, format string) ([]byte, string, error) {
-	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
-		ID:       projectID,
-		Language: languageCode,
-		Type:     format,
-		Filters:  []string{"translated"},
-	})
+func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID int, languageCode, format, version string) ([]byte, string, error) {
+	data, err := s.fetchTranslation(ctx, projectID, languageCode, format, version)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// TODO: Make use of injected http client, to support timeouts
-	d, err := http.Get(resp.Result.URL)
-	if err != nil {
-		return nil, "", err
-	}
-	defer d.Body.Close()
-
-	if d.StatusCode != http.StatusOK {
-		return nil, "", errors.Errorf("Response code '%d' from download GET", d.StatusCode)
-	}
-
-	data, err := ioutil.ReadAll(d.Body)
-	if err != nil {
-		return nil, "", err
-	}
-
-	checksum, err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, data)
+	checksum, err := s.Cache.SetTranslation(ctx, projectID, languageCode, format, version, data)
 	if err != nil {
 		return nil, "", err
 	}
 
 	return data, checksum, nil
+}
+
+// fetchTranslation fetches translation data based on the version.
+func (s *ServiceImpl) fetchTranslation(ctx context.Context, projectID int, languageCode, format, version string) ([]byte, error) {
+	if version == "latest" {
+		return s.getProjectTranslationFromPOedit(ctx, projectID, languageCode, format)
+	}
+	return s.getProjectTranslationFromS3(ctx, projectID, version, languageCode, format)
 }
 
 func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
@@ -278,7 +264,7 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 	contentMetaMap := s.getContentMetaMap()
 
 	type TranslationObject struct {
-		S3Key         string
+		S3Key       string
 		Reader      *bytes.Reader
 		Meta        map[string]string
 		ContentType string
@@ -288,7 +274,6 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 
 	for _, language := range languagesResponse.Result.Languages {
 		for contentMetaKey, contentMeta := range contentMetaMap {
-			fmt.Printf("Exporting project %d language %s format %s\n", projectID, language.Code, contentMetaKey)
 			resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
 				ID:       projectID,
 				Language: language.Code,
@@ -327,7 +312,7 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 			}
 
 			translationObjects = append(translationObjects, TranslationObject{
-				S3Key:         s3Key,
+				S3Key:       s3Key,
 				Reader:      reader,
 				Meta:        meta,
 				ContentType: contentMeta.Type,
@@ -339,8 +324,81 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 		if err := s.storage.PutObject(ctx, translationObject.S3Key, translationObject.Reader, translationObject.Meta, translationObject.ContentType); err != nil {
 			return errors.Wrap(err, "Failed to upload project language file to S3")
 		}
-		fmt.Printf("Uploaded %s\n", translationObject.S3Key)
 	}
 
 	return nil
+}
+
+func (s *ServiceImpl) getProjectTranslationFromS3(ctx context.Context, projectID int, versionName, languageCode, format string) ([]byte, error) {
+	s3Output, err := s.storage.ListObjects(ctx, fmt.Sprintf("%d/", projectID))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get project versions")
+	}
+
+	s3Key := ""
+	for _, object := range s3Output.CommonPrefixes {
+		//Example Prefix : {projectID}/{versionID_versionName_timestamp}/
+		// 720964/61ded6dc-c8b7-4d4e-aa70-cd37dd1216b3_v2_123456789/
+		prefixData := strings.Split(aws.ToString(object.Prefix), "/")
+
+		versionData := strings.Split(prefixData[1], "_")
+		version := versionData[1]
+
+		if version == versionName {
+			contentMeta, _ := poedit.GetContentMeta(format)
+			s3Key = fmt.Sprintf("%s%s.%s", aws.ToString(object.Prefix), languageCode, contentMeta.Extension)
+			break
+		}
+	}
+
+	if s3Key != "" {
+
+		reader, err := s.storage.GetObject(ctx, s3Key)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to get object from S3")
+		}
+
+		data, err := io.ReadAll(reader.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to read object from S3")
+		}
+
+		return data, nil
+	}
+
+	return nil, &ErrLanguageNotFoundInStorage{
+		ProjectID: projectID,
+		LanguageCode: languageCode,
+		Version: versionName,
+	}
+}
+
+func (s *ServiceImpl) getProjectTranslationFromPOedit(ctx context.Context, projectID int, languageCode, format string) ([]byte, error) {
+	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
+		ID:       projectID,
+		Language: languageCode,
+		Type:     format,
+		Filters:  []string{"translated"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Make use of injected http client, to support timeouts
+	d, err := http.Get(resp.Result.URL)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Body.Close()
+
+	if d.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("Response code '%d' from download GET", d.StatusCode)
+	}
+
+	data, err := io.ReadAll(d.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
