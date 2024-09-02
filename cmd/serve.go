@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,6 +32,7 @@ import (
 	"github.com/uniwise/parrot/internal/metrics"
 	"github.com/uniwise/parrot/internal/project"
 	"github.com/uniwise/parrot/internal/rest"
+	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/poedit"
 )
 
@@ -61,6 +62,12 @@ const (
 	confPrometheusPort    = "prometheus.port"
 
 	confAPIToken = "api.token"
+
+	confAWSRegion = "aws.region"
+	confAWSBucket = "aws.bucket.name"
+	
+	confDatabaseDSN = "database.dsn"
+	confDatabaseDebug = "database.debug"
 )
 
 // serveCmd represents the serve command
@@ -80,7 +87,20 @@ by caching exports from poeditor`,
 
 		cli := poedit.NewClient(viper.GetString(confAPIToken), http.DefaultClient)
 
-		svc := project.NewService(cli, cacheInstance, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
+		s3Config := &storage.S3StorageConfig{
+			Region: viper.GetString(confAWSRegion),
+			Bucket: viper.GetString(confAWSBucket),
+		}
+
+		s3Client, err := storage.NewS3Client(context.Background(), *s3Config)
+
+		if err != nil {
+			logger.Fatal(err)
+		}
+
+		storageService := storage.NewService(context.Background(), s3Client)
+
+		svc := project.NewService(cli, storageService, cacheInstance, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
 
 		server, err := rest.NewServer(logrus.NewEntry(logger), svc, viper.GetBool(confPrometheusEnabled))
 		if err != nil {
@@ -138,6 +158,9 @@ func init() {
 	viper.SetDefault(confPrometheusEnabled, true)
 	viper.SetDefault(confPrometheusPort, 9090)
 	viper.SetDefault(confPrometheusPath, "/metrics")
+	viper.SetDefault(confAWSRegion, "eu-west-1")
+	viper.SetDefault(confDatabaseDSN, "gorm:gorm@tcp(localhost:3306)/gorm?charset=utf8&parseTime=True")
+	viper.SetDefault(confDatabaseDebug, false)
 
 	rootCmd.AddCommand(serveCmd)
 }
