@@ -48,8 +48,9 @@ var (
 func TestServiceGetAllProjects(t *testing.T) {
 	t.Parallel()
 
-	storage := storage.NewMockStorage(gomock.NewController(t))
-	client := poedit.NewMockClient(gomock.NewController(t))
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	client := poedit.NewMockClient(controller)
 
 	service := NewService(client, storage, nil, testRenewalThreshold, nil)
 
@@ -129,8 +130,9 @@ func TestServiceGetAllProjects(t *testing.T) {
 func TestServiceGetProjectById(t *testing.T) {
 	t.Parallel()
 
-	storage := storage.NewMockStorage(gomock.NewController(t))
-	client := poedit.NewMockClient(gomock.NewController(t))
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	client := poedit.NewMockClient(controller)
 	service := NewService(client, storage, nil, testRenewalThreshold, nil)
 
 	projectResponse := &poedit.ViewProjectResponse{
@@ -280,8 +282,9 @@ func TestServiceDeleteProjectVersionByIDAndVersionID(t *testing.T) {
 func TestServiceCreateLanguagesVersion(t *testing.T) {
 	t.Parallel()
 
-	storage := storage.NewMockStorage(gomock.NewController(t))
-	poeditClient := poedit.NewMockClient(gomock.NewController(t))
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	poeditClient := poedit.NewMockClient(controller)
 
 	service := NewService(poeditClient, storage, nil, testRenewalThreshold, nil)
 	service.generateUUID = testGenerateUUID
@@ -398,9 +401,10 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 func TestServiceGetTranslation(t *testing.T) {
 	t.Parallel()
 
-	storage := storage.NewMockStorage(gomock.NewController(t))
-	poeditClient := poedit.NewMockClient(gomock.NewController(t))
-	cacheClient := cache.NewMockCache(gomock.NewController(t))
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	poeditClient := poedit.NewMockClient(controller)
+	cacheClient := cache.NewMockCache(controller)
 
 	service := NewService(poeditClient, storage, cacheClient, testRenewalThreshold, logrus.NewEntry(logrus.New()))
 
