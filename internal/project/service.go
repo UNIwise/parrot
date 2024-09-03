@@ -141,6 +141,80 @@ func (s *ServiceImpl) fetchTranslation(ctx context.Context, projectID int, langu
 	return s.getProjectTranslationFromS3(ctx, projectID, version, languageCode, format)
 }
 
+func (s *ServiceImpl) getProjectTranslationFromS3(ctx context.Context, projectID int, versionName, languageCode, format string) ([]byte, error) {
+	s3Output, err := s.storage.ListObjects(ctx, fmt.Sprintf("%d/", projectID))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get project versions")
+	}
+
+	s3Key := ""
+	for _, object := range s3Output.CommonPrefixes {
+		//Example Prefix : {projectID}/{versionID_versionName_timestamp}/
+		// 720964/61ded6dc-c8b7-4d4e-aa70-cd37dd1216b3_v2_123456789/
+		prefixData := strings.Split(aws.ToString(object.Prefix), "/")
+
+		versionData := strings.Split(prefixData[1], "_")
+		version := versionData[1]
+
+		if version == versionName {
+			contentMeta, _ := poedit.GetContentMeta(format)
+			s3Key = fmt.Sprintf("%s%s.%s", aws.ToString(object.Prefix), languageCode, contentMeta.Extension)
+			break
+		}
+	}
+
+	if s3Key != "" {
+
+		reader, err := s.storage.GetObject(ctx, s3Key)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to get object from S3")
+		}
+
+		data, err := io.ReadAll(reader.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to read object from S3")
+		}
+
+		return data, nil
+	}
+
+	return nil, &ErrLanguageNotFoundInStorage{
+		ProjectID:    projectID,
+		LanguageCode: languageCode,
+		Version:      versionName,
+	}
+}
+
+func (s *ServiceImpl) getProjectTranslationFromPOedit(ctx context.Context, projectID int, languageCode, format string) ([]byte, error) {
+	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
+		ID:       projectID,
+		Language: languageCode,
+		Type:     format,
+		Filters:  []string{"translated"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Make use of injected http client, to support timeouts
+	d, err := http.Get(resp.Result.URL)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Body.Close()
+
+	if d.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("Response code '%d' from download GET", d.StatusCode)
+	}
+
+	data, err := io.ReadAll(d.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (s *ServiceImpl) RegisterChecks(h gosundheit.Health) error {
 	c, err := checks.NewPingCheck("cache", s.Cache)
 	if err != nil {
@@ -327,78 +401,4 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 	}
 
 	return nil
-}
-
-func (s *ServiceImpl) getProjectTranslationFromS3(ctx context.Context, projectID int, versionName, languageCode, format string) ([]byte, error) {
-	s3Output, err := s.storage.ListObjects(ctx, fmt.Sprintf("%d/", projectID))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get project versions")
-	}
-
-	s3Key := ""
-	for _, object := range s3Output.CommonPrefixes {
-		//Example Prefix : {projectID}/{versionID_versionName_timestamp}/
-		// 720964/61ded6dc-c8b7-4d4e-aa70-cd37dd1216b3_v2_123456789/
-		prefixData := strings.Split(aws.ToString(object.Prefix), "/")
-
-		versionData := strings.Split(prefixData[1], "_")
-		version := versionData[1]
-
-		if version == versionName {
-			contentMeta, _ := poedit.GetContentMeta(format)
-			s3Key = fmt.Sprintf("%s%s.%s", aws.ToString(object.Prefix), languageCode, contentMeta.Extension)
-			break
-		}
-	}
-
-	if s3Key != "" {
-
-		reader, err := s.storage.GetObject(ctx, s3Key)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to get object from S3")
-		}
-
-		data, err := io.ReadAll(reader.Body)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to read object from S3")
-		}
-
-		return data, nil
-	}
-
-	return nil, &ErrLanguageNotFoundInStorage{
-		ProjectID: projectID,
-		LanguageCode: languageCode,
-		Version: versionName,
-	}
-}
-
-func (s *ServiceImpl) getProjectTranslationFromPOedit(ctx context.Context, projectID int, languageCode, format string) ([]byte, error) {
-	resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
-		ID:       projectID,
-		Language: languageCode,
-		Type:     format,
-		Filters:  []string{"translated"},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: Make use of injected http client, to support timeouts
-	d, err := http.Get(resp.Result.URL)
-	if err != nil {
-		return nil, err
-	}
-	defer d.Body.Close()
-
-	if d.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("Response code '%d' from download GET", d.StatusCode)
-	}
-
-	data, err := io.ReadAll(d.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }

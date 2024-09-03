@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 	"time"
 
@@ -22,10 +23,12 @@ import (
 
 var (
 	errTest                     = errors.New("test error")
-	errNotFoundTest             = errors.New("failed to get project: not found")
 	testID               int64  = 1
 	testVersionID        string = "test-id"
 	testName             string = "testname"
+	testLanguage         string = "en"
+	testFormat           string = "key_value_json"
+	testVersion          string = "latest"
 	testNumberOfVersions int    = 3
 	testCreatedAt               = time.Now()
 	testCreatedAtString  string = testCreatedAt.String()
@@ -366,5 +369,59 @@ func TestPostProjectVersion(t *testing.T) {
 
 		err := h.postProjectVersion(testCtx, logrus.NewEntry(logrus.New()))
 		assert.Error(t, err)
+	})
+}
+
+// Custom validation function to check if the language code is valid
+func languageCodeValidator(fl validator.FieldLevel) bool {
+	// Define a regex for language code validation (e.g., 'en', 'fr', 'es')
+	languageCodePattern := `^[a-z]{2}$`
+	matched, _ := regexp.MatchString(languageCodePattern, fl.Field().String())
+	return matched
+}
+
+func TestGetProjectLanguage(t *testing.T) {
+	t.Parallel()
+
+	e := echo.New()
+	validator := validator.New()
+	validator.RegisterValidation("languageCode", languageCodeValidator)
+	e.Validator = &CustomValidator{validator: validator}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	resp := httptest.NewRecorder()
+
+	testCtx := e.NewContext(req, resp)
+
+	testCtx.SetPath("/projects/:project/language/:language?format=:format&version=:version")
+	testCtx.SetParamNames("project", "language", "format", "version")
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID), testLanguage, testFormat, testVersion)
+
+	projectService := project.NewMockService(gomock.NewController(t))
+
+	h := &Handlers{
+		ProjectService: projectService,
+	}
+
+	t.Run("getProjectLanguage, success", func(t *testing.T) {
+
+		projectService.EXPECT().GetTranslation(context.Background(), int(testID), testLanguage, testFormat, testVersion).Times(1).Return(&project.Translation{
+			Data:     []byte("test"),
+			Checksum: "test",
+			TTL:      time.Second,
+		}, nil)
+
+		err := h.getProjectLanguage(testCtx, logrus.NewEntry(logrus.New()))
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Code)
+	})
+
+	t.Run("getProjectLanguage, fail", func(t *testing.T) {
+
+		projectService.EXPECT().GetTranslation(context.Background(), int(testID), testLanguage, testFormat, testVersion).Times(1).Return(nil, errTest)
+
+		err := h.getProjectLanguage(testCtx, logrus.NewEntry(logrus.New()))
+		assert.Error(t, err)
+
 	})
 }
