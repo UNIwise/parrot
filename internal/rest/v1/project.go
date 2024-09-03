@@ -18,6 +18,7 @@ type getProjectLanguageRequest struct {
 	Project  int    `param:"project" validate:"required"`
 	Language string `param:"language" validate:"required,languageCode"`
 	Format   string `query:"format" validate:"omitempty,oneof=po pot mo xls xlsx csv ini resw resx android_strings apple_strings xliff properties key_value_json json yml xlf xmb xtb arb rise_360_xliff"`
+	Version  string `query:"version" validate:"omitempty,max=20,alphanum"`
 }
 
 func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
@@ -32,6 +33,7 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 		"project":  req.Project,
 		"language": req.Language,
 		"format":   req.Format,
+		"version":  req.Version,
 	})
 
 	if err := ctx.Validate(req); err != nil {
@@ -43,6 +45,11 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 	format := "key_value_json"
 	if req.Format != "" {
 		format = req.Format
+	}
+
+	version := "latest"
+	if req.Version != "" {
+		version = req.Version
 	}
 
 	contentMeta, err := poedit.GetContentMeta(format)
@@ -57,7 +64,9 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 		req.Project,
 		req.Language,
 		format,
+		version,
 	)
+
 	if errors.Is(err, context.Canceled) {
 		return echo.NewHTTPError(499, "client closed request")
 	}
@@ -66,7 +75,8 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 		switch err.(type) {
 		case *poedit.ErrProjectPermissionDenied:
 			return echo.ErrBadRequest
-		case *poedit.ErrLanguageNotFound:
+		case *poedit.ErrLanguageNotFound,
+			*project.ErrLanguageNotFoundInStorage:
 			return echo.ErrNotFound
 		default:
 			l.WithError(err).Error("Error retrieving translation")

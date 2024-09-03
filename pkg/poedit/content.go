@@ -40,3 +40,7 @@ func GetContentMeta(format string) (*ContentMeta, error) {
 
 	return &m, nil
 }
+
+func GetContentMetaMap() map[string]ContentMeta {
+	return ContentMetaMap
+}

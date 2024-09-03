@@ -114,18 +114,18 @@ func (mr *MockServiceMockRecorder) GetProjectVersions(ctx, projectID interface{}
 }
 
 // GetTranslation mocks base method.
-func (m *MockService) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*Translation, error) {
+func (m *MockService) GetTranslation(ctx context.Context, projectID int, languageCode, format, version string) (*Translation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTranslation", ctx, projectID, languageCode, format)
+	ret := m.ctrl.Call(m, "GetTranslation", ctx, projectID, languageCode, format, version)
 	ret0, _ := ret[0].(*Translation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTranslation indicates an expected call of GetTranslation.
-func (mr *MockServiceMockRecorder) GetTranslation(ctx, projectID, languageCode, format interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetTranslation(ctx, projectID, languageCode, format, version interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTranslation", reflect.TypeOf((*MockService)(nil).GetTranslation), ctx, projectID, languageCode, format)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTranslation", reflect.TypeOf((*MockService)(nil).GetTranslation), ctx, projectID, languageCode, format, version)
 }
 
 // PurgeProject mocks base method.

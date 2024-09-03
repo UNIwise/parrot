@@ -1,8 +1,10 @@
 package project
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"testing"
 	"time"
 
@@ -10,7 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/jarcoal/httpmock"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/poedit"
 	gomock "go.uber.org/mock/gomock"
@@ -24,7 +28,6 @@ var (
 	testProjectID             uint      = 1
 	testStorageKeyForDeletion string    = "1/test-uuid"
 	testStorageKeyForListing  string    = "1/"
-	testNumberOfVersions      int       = 3
 	testCreatedAt             time.Time = time.Now()
 	testRenewalThreshold                = time.Hour
 	testUUID                            = "test-uuid"
@@ -34,17 +37,24 @@ var (
 	testGenerateTimestamp = func() int64 {
 		return testCreatedAt.Unix()
 	}
+	testContentMetaMap = map[string]poedit.ContentMeta{
+		"key_value_json": {Extension: "json", Type: "application/json"},
+	}
+	testGetContentMetaMap = func() map[string]poedit.ContentMeta {
+		return testContentMetaMap
+	}
 )
 
 func TestServiceGetAllProjects(t *testing.T) {
 	t.Parallel()
 
-	storage := storage.NewMockStorage(gomock.NewController(t))
-	client := poedit.NewMockClient(gomock.NewController(t))
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	client := poedit.NewMockClient(controller)
 
 	service := NewService(client, storage, nil, testRenewalThreshold, nil)
 
-	listProjectsResponse := &poedit.ListProjectsResponse {
+	listProjectsResponse := &poedit.ListProjectsResponse{
 		Result: struct {
 			Projects []struct {
 				ID      int64  `json:"id"`
@@ -120,8 +130,9 @@ func TestServiceGetAllProjects(t *testing.T) {
 func TestServiceGetProjectById(t *testing.T) {
 	t.Parallel()
 
-	storage := storage.NewMockStorage(gomock.NewController(t))
-	client := poedit.NewMockClient(gomock.NewController(t))
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	client := poedit.NewMockClient(controller)
 	service := NewService(client, storage, nil, testRenewalThreshold, nil)
 
 	projectResponse := &poedit.ViewProjectResponse{
@@ -271,12 +282,14 @@ func TestServiceDeleteProjectVersionByIDAndVersionID(t *testing.T) {
 func TestServiceCreateLanguagesVersion(t *testing.T) {
 	t.Parallel()
 
-	storage := storage.NewMockStorage(gomock.NewController(t))
-	poeditClient := poedit.NewMockClient(gomock.NewController(t))
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	poeditClient := poedit.NewMockClient(controller)
 
 	service := NewService(poeditClient, storage, nil, testRenewalThreshold, nil)
 	service.generateUUID = testGenerateUUID
 	service.generateTimestamp = testGenerateTimestamp
+	service.getContentMetaMap = testGetContentMetaMap
 
 	listProjectLanguagesRequest := poedit.ListProjectLanguagesRequest{
 		ID: int(testProjectID),
@@ -380,6 +393,143 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 		storage.EXPECT().PutObject(testCtx, fileName, gomock.Any(), gomock.Any(), "application/json").Return(errTest)
 
 		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
+
+		assert.ErrorIs(t, err, errTest)
+	})
+}
+
+func TestServiceGetTranslation(t *testing.T) {
+	t.Parallel()
+
+	controller := gomock.NewController(t)
+	storage := storage.NewMockStorage(controller)
+	poeditClient := poedit.NewMockClient(controller)
+	cacheClient := cache.NewMockCache(controller)
+
+	service := NewService(poeditClient, storage, cacheClient, testRenewalThreshold, logrus.NewEntry(logrus.New()))
+
+	prefix := fmt.Sprintf("%d/%s_%s_%d/", testID, testUUID, testName, testGenerateTimestamp())
+
+	listObjectsV2Output := &s3.ListObjectsV2Output{
+		CommonPrefixes: []types.CommonPrefix{
+			{
+				Prefix: &prefix,
+			},
+		},
+	}
+
+	s3Key := fmt.Sprintf("%d/%s_%s_%d/%s.%s", testID, testUUID, testName, testGenerateTimestamp(), "en", "json")
+
+	exportProjectRequest := poedit.ExportProjectRequest{
+		ID:       int(testProjectID),
+		Language: "en",
+		Type:     "key_value_json",
+		Filters:  []string{"translated"},
+	}
+	exportProjectResponse := &poedit.ExportProjectResponse{
+		Result: struct {
+			URL string `json:"url"`
+		}{
+			URL: "http://example.com/file.json",
+		},
+	}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	t.Run("Success, cache", func(t *testing.T) {
+		cacheItem := &cache.CacheItem{
+			CreatedAt: testCreatedAt.Add(time.Hour),
+			Checksum:  "checksum",
+			Data:      []byte(`{"key":"value"}`),
+		}
+
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "v1").Return(cacheItem, nil)
+		cacheClient.EXPECT().GetTTL().Times(2).Return(time.Hour)
+
+		translation, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "v1")
+
+		assert.NoError(t, err)
+		assert.Equal(t, cacheItem.Data, translation.Data)
+	})
+
+	t.Run("Success, poedit", func(t *testing.T) {
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest").Return(nil, cache.ErrCacheMiss)
+		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
+		cacheClient.EXPECT().GetTTL().Times(1).Return(time.Hour)
+
+		httpmock.RegisterResponder("GET", "http://example.com/file.json",
+			httpmock.NewStringResponder(200, `{"key":"value"}`))
+
+		cacheClient.EXPECT().SetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest", gomock.Any()).Return("checksum", nil)
+
+		_, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest")
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success, S3", func(t *testing.T) {
+		getObjectOutput := &s3.GetObjectOutput{
+			Body: io.NopCloser(bytes.NewReader([]byte(`{"key":"value"}`))),
+		}
+
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", testName).Return(nil, cache.ErrCacheMiss)
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
+		storage.EXPECT().GetObject(testCtx, s3Key).Return(getObjectOutput, nil)
+		cacheClient.EXPECT().GetTTL().Times(1).Return(time.Hour)
+
+		cacheClient.EXPECT().SetTranslation(testCtx, int(testProjectID), "en", "key_value_json", testName, gomock.Any()).Return("checksum", nil)
+
+		_, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", testName)
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("Fail, cache", func(t *testing.T) {
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest").Return(nil, errTest)
+
+		_, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest")
+
+		assert.ErrorIs(t, err, errTest)
+	})
+
+	t.Run("Fail, S3 list Objects", func(t *testing.T) {
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", testName).Return(nil, cache.ErrCacheMiss)
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(nil, errTest)
+
+		_, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", testName)
+
+		assert.ErrorIs(t, err, errTest)
+	})
+
+	t.Run("Fail, S3 get object", func(t *testing.T) {
+		s3Key := fmt.Sprintf("%d/%s_%s_%d/%s.%s", testID, testUUID, testName, testGenerateTimestamp(), "en", "json")
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", testName).Return(nil, cache.ErrCacheMiss)
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
+		storage.EXPECT().GetObject(testCtx, s3Key).Return(nil, errTest)
+
+		_, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", testName)
+
+		assert.ErrorIs(t, err, errTest)
+	})
+
+	t.Run("Fail, poedit export project", func(t *testing.T) {
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest").Return(nil, cache.ErrCacheMiss)
+		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(nil, errTest)
+
+		_, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest")
+
+		assert.ErrorIs(t, err, errTest)
+	})
+
+	t.Run("Fail, poedit fail to download file", func(t *testing.T) {
+		cacheClient.EXPECT().GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest").Return(nil, cache.ErrCacheMiss)
+		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
+
+		httpmock.RegisterResponder("GET", "http://example.com/file.json",
+			httpmock.NewErrorResponder(errTest))
+
+		_, err := service.GetTranslation(testCtx, int(testProjectID), "en", "key_value_json", "latest")
 
 		assert.ErrorIs(t, err, errTest)
 	})
