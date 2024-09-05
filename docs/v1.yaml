@@ -96,23 +96,30 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 123456
-                    name:
-                      type: string
-                      example: "My project"
-                    numberOfVersions:
-                      type: integer
-                      example: 1
-                    createdAt:
-                      type: string
-                      format: date-time
-                      example: "2021-01-01T00:00:00Z"
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Project id in POEditor
+                          example: 123456
+                        name:
+                          type: string
+                          description: The name of the project
+                          example: "My project"
+                        numberOfVersions:
+                          type: integer
+                          description: The number of versions in the project
+                          example: 1
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The creation date of the project in ISO 8601 format
+                          example: "2023-09-05T12:34:56Z"
   /v1/projects/{project}:
     parameters:
       - schema:
@@ -123,7 +130,7 @@ paths:
         in: path
         required: true
     get:
-      description: Get all project by project id
+      description: Get project by project id
       tags:
         - projects
       responses:
@@ -170,20 +177,26 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 123456
-                    name:
-                      type: string
-                      example: "My project"
-                    createdAt:
-                      type: string
-                      format: date-time
-                      example: "2021-01-01T00:00:00Z"
+                type: object
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Version id in S3
+                          example: 123456
+                        name:
+                          type: string
+                          description: Version name
+                          example: "v1"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The creation date of the version in ISO 8601 format
+                          example: "2023-09-05T12:34:56Z"
         "400":
           description: "Invalid project id"
         "404":
