@@ -55,7 +55,7 @@ The server can be configured with a yaml configuration file specified with the `
 | prometheus.port                | port to expose the prometheus metrics under                                  | int      | `9090`                       |
 | api.token                      | secret token to authenticating against poeditor                              | string   |
 | aws.region                    | AWS Region | string | `eu-west-1` |
-| aws.bucket.name               | AWS bucket name | string | 
+| aws.bucket                    | AWS bucket | string | 
 
 
 # API specification

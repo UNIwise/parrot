@@ -133,7 +133,6 @@ func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID in
 	return data, checksum, nil
 }
 
-// fetchTranslation fetches translation data based on the version.
 func (s *ServiceImpl) fetchTranslation(ctx context.Context, projectID int, languageCode, format, version string) ([]byte, error) {
 	if version == "latest" {
 		return s.getProjectTranslationFromPOedit(ctx, projectID, languageCode, format)
@@ -149,7 +148,7 @@ func (s *ServiceImpl) getProjectTranslationFromS3(ctx context.Context, projectID
 
 	s3Key := ""
 	for _, object := range s3Output.CommonPrefixes {
-		//Example Prefix : {projectID}/{versionID_versionName_timestamp}/
+		// Example Prefix : {projectID}/{versionID_versionName_timestamp}/
 		// 720964/61ded6dc-c8b7-4d4e-aa70-cd37dd1216b3_v2_123456789/
 		prefixData := strings.Split(aws.ToString(object.Prefix), "/")
 
@@ -290,7 +289,7 @@ func (s *ServiceImpl) GetProjectVersions(ctx context.Context, projectID int) ([]
 	}
 
 	for _, object := range s3Output.CommonPrefixes {
-		//Example Prefix : {projectID}/{versionID_versionName_timestamp}/
+		// Example Prefix : {projectID}/{versionID_versionName_timestamp}/
 		// 720964/61ded6dc-c8b7-4d4e-aa70-cd37dd1216b3_v2_123456789/
 		prefixData := strings.Split(aws.ToString(object.Prefix), "/")
 

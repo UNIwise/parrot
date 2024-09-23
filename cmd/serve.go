@@ -64,10 +64,7 @@ const (
 	confAPIToken = "api.token"
 
 	confAWSRegion = "aws.region"
-	confAWSBucket = "aws.bucket.name"
-	
-	confDatabaseDSN = "database.dsn"
-	confDatabaseDebug = "database.debug"
+	confAWSBucket = "aws.bucket"
 )
 
 // serveCmd represents the serve command
@@ -82,7 +79,7 @@ by caching exports from poeditor`,
 
 		cacheInstance, err := instantiateCache(logger.WithField("subsystem", "cache"))
 		if err != nil {
-			logger.Fatal(err)
+			logger.WithError(err).Fatal("Could not instantiate cache")
 		}
 
 		cli := poedit.NewClient(viper.GetString(confAPIToken), http.DefaultClient)
@@ -93,9 +90,8 @@ by caching exports from poeditor`,
 		}
 
 		s3Client, err := storage.NewS3Client(context.Background(), *s3Config)
-
 		if err != nil {
-			logger.Fatal(err)
+			logger.WithError(err).Fatal("Could not instantiate S3 client")
 		}
 
 		storageService := storage.NewService(context.Background(), s3Client)
@@ -104,7 +100,7 @@ by caching exports from poeditor`,
 
 		server, err := rest.NewServer(logrus.NewEntry(logger), svc, viper.GetBool(confPrometheusEnabled))
 		if err != nil {
-			logger.Fatal(err)
+			logger.WithError(err).Fatal("Could not instantiate server")
 		}
 
 		port := viper.GetInt(confServerPort)
@@ -159,8 +155,6 @@ func init() {
 	viper.SetDefault(confPrometheusPort, 9090)
 	viper.SetDefault(confPrometheusPath, "/metrics")
 	viper.SetDefault(confAWSRegion, "eu-west-1")
-	viper.SetDefault(confDatabaseDSN, "gorm:gorm@tcp(localhost:3306)/gorm?charset=utf8&parseTime=True")
-	viper.SetDefault(confDatabaseDebug, false)
 
 	rootCmd.AddCommand(serveCmd)
 }
