@@ -4,20 +4,14 @@ export const generatePageNumbers = (pageCount: number, currentPage: number) => {
   // If there are less than 7 pages, show all pages buttons
   // otherwise show only 5 pages buttons
   if (pageCount <= 7) {
-    for (let i = 1; i <= pageCount; i++) {
-      pageNumbers.push(i);
-    }
+    pageNumbers.push(...[...Array(pageCount).keys()].map(i => i++));
   } else {
     if (currentPage <= 4) {
-      for (let i = 1; i <= 5; i++) {
-        pageNumbers.push(i);
-      }
+      pageNumbers.push(...[...Array(5).keys()].map(i => i++));
       pageNumbers.push("...", pageCount);
     } else if (currentPage >= pageCount - 3) {
       pageNumbers.push(1, "...");
-      for (let i = pageCount - 4; i <= pageCount; i++) {
-        pageNumbers.push(i);
-      }
+      pageNumbers.push(...[...Array(5).keys()].map(i => pageCount - 4 + i));
     } else {
       pageNumbers.push(
         1,

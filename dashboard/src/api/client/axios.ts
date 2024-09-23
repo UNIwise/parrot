@@ -1,6 +1,5 @@
 import axios from "axios";
 import AxiosMockAdapter from "axios-mock-adapter";
-// import { ENV } from "../../constants/env";
 import registerLoggerInterceptor from "../interceptors/logger";
 
 const isMocked = import.meta.env.VITE_MOCKED === "true";

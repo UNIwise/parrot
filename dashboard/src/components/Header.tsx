@@ -2,9 +2,8 @@ import styled from "@emotion/styled";
 import { Button, Sheet, Typography } from "@mui/joy";
 import { FC, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ColorSchemeToggle } from "./ColorSchemeToggle";
-
 import soundEffect from "../assets/slap.mp3";
+import { ColorSchemeToggle } from "./ColorSchemeToggle";
 
 const rainbowGradient = `linear-gradient(
   to right,
@@ -16,7 +15,9 @@ const rainbowGradient = `linear-gradient(
   rgba(128, 0, 128, 0.7)
 )`;
 
-const AnimatedSheet = styled(Sheet, { label: "styledComponent" })<{
+const AnimatedSheet = styled(Sheet, {
+  shouldForwardProp: (prop) => prop !== 'isblue' && prop !== 'isanimating',
+}) <{
   isblue: boolean;
   isanimating: boolean;
 }>`

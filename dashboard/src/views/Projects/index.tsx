@@ -15,7 +15,7 @@ import { TablePaginationSection } from "../../components/TablePaginationSection"
 import { Project } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components/TableRow";
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 5;
 
 export const ProjectsOverview = () => {
   const [searchTerm, setSearchTerm] = useState("");
