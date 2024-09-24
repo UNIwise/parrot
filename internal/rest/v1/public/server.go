@@ -1,4 +1,4 @@
-package rest
+package public
 
 import (
 	"context"
@@ -12,7 +12,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/project"
-	v1 "github.com/uniwise/parrot/internal/rest/v1"
+	controllers "github.com/uniwise/parrot/internal/rest/v1/public/controllers"
+	"github.com/uniwise/parrot/internal/rest/v1/helpers"
 )
 
 const (
@@ -23,12 +24,12 @@ type Server struct {
 	Echo *echo.Echo
 }
 
-func NewServer(l *logrus.Entry, projectService project.Service, enablePrometheus bool) (*Server, error) {
+func NewServer(l *logrus.Entry, projectService project.Service) (*Server, error) {
 	e := echo.New()
 
 	e.HideBanner = true
 	e.HidePort = true
-	e.Validator = NewValidator()
+	e.Validator = helpers.NewValidator()
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
@@ -36,7 +37,7 @@ func NewServer(l *logrus.Entry, projectService project.Service, enablePrometheus
 		Level: gzipCompressionLevel,
 	}))
 
-	v1.Register(e, l, projectService, enablePrometheus)
+	controllers.Register(e, l, projectService)
 
 	h := gosundheit.New()
 

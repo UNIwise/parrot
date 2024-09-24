@@ -33,7 +33,8 @@ The server can be configured with a yaml configuration file specified with the `
 
 | key                            | description                                                                  | type     | default                      |
 | ------------------------------ | ---------------------------------------------------------------------------- | -------- | ---------------------------- |
-| server.port                    | port for the main http server                                                | int      | `80`                         |
+| server.port.public                    | port for the public http server                                                | int      | `80`                         |
+| server.port.private                    | port for the private http server                                                | int      | `81`                         |
 | server.gracePeriod             | grace period for the http server to shutdown                                 | duration | `10s`                        |
 | log.level                      | log level                                                                    | string   | `info`                       |
 | log.format                     | format of the log. Can be "text" or "json"                                   | string   | `json`                       |
