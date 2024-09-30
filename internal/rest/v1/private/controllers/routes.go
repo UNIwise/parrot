@@ -1,4 +1,4 @@
-package v1
+package controllers
 
 import (
 	"github.com/labstack/echo/v4"
@@ -29,7 +29,6 @@ func Register(e *echo.Echo, l *logrus.Entry, projectService project.Service, ena
 		g.Use(prom)
 	}
 
-	g.GET("/project/:project/language/:language", wrap(h.getProjectLanguage, l))
 	g.GET("/projects", wrap(h.getAllProjects, l))
 	g.GET("/projects/:id", wrap(h.getProject, l))
 	g.GET("/projects/:id/versions", wrap(h.getProjectVersions, l))

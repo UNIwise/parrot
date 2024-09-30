@@ -1,4 +1,4 @@
-package v1
+package controllers
 
 import (
 	"bytes"
@@ -22,7 +22,6 @@ import (
 
 var (
 	errTest                     = errors.New("test error")
-	errNotFoundTest             = errors.New("failed to get project: not found")
 	testID               int64  = 1
 	testVersionID        string = "test-id"
 	testName             string = "testname"
@@ -259,7 +258,7 @@ func TestDeleteProjectVersion(t *testing.T) {
 
 	testCtx.SetPath("/projects/:project_id/versions/:version_id")
 	testCtx.SetParamNames("project_id", "version_id")
-	testCtx.SetParamValues(fmt.Sprintf("%d", testID), fmt.Sprintf("%s", testVersionID))
+	testCtx.SetParamValues(fmt.Sprintf("%d", testID), testVersionID)
 
 	projectService := project.NewMockService(gomock.NewController(t))
 
