@@ -1,15 +1,8 @@
 import SearchIcon from "@mui/icons-material/Search";
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Input,
-  Sheet,
-  Table,
-  Typography,
-} from "@mui/joy";
+import { FormControl, Input, Sheet, Table } from "@mui/joy";
 import { useMemo, useState } from "react";
 import { useGetProjects } from "../../api/hooks/useGetProjects";
+import { Header } from "../../components/Header";
 import { Placeholder } from "../../components/Placeholder";
 import { TablePaginationSection } from "../../components/TablePaginationSection";
 import { Project } from "../../interfaces/projects";
@@ -46,47 +39,17 @@ export const ProjectsOverview = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          borderRadius: "sm",
-          py: 0.5,
-          display: { xs: "none", sm: "flex" },
-          flexWrap: "wrap",
-          gap: 1.5,
-          "& > *": {
-            minWidth: { xs: "120px", md: "160px" },
-          },
-          flexDirection: "column",
-        }}
-      >
-        <Typography
-          level="h2"
-          component="h1"
-          sx={{
-            alignSelf: "center",
-            fontSize: "2rem",
-            color: (t) => t.palette.primary[400],
-            m: "0 1.5rem 2rem 0",
-            border: "1px solid",
-            borderColor: (t) => t.palette.primary[400],
-            p: "1rem 2.5rem",
-            borderRadius: "sm",
-          }}
-        >
-          Projects
-        </Typography>
+      <Header items={[{ name: "Projects" }]} />
 
-        <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
-          <FormLabel>Search for project</FormLabel>
-          <Input
-            size="sm"
-            placeholder="Enter your favorite project name... Like FlowUI or WISEflow"
-            startDecorator={<SearchIcon />}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            value={searchTerm}
-          />
-        </FormControl>
-      </Box>
+      <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
+        <Input
+          size="sm"
+          placeholder="search for project..."
+          startDecorator={<SearchIcon />}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          value={searchTerm}
+        />
+      </FormControl>
 
       <Sheet
         variant="outlined"

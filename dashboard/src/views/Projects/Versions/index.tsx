@@ -1,17 +1,10 @@
 import SearchIcon from "@mui/icons-material/Search";
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Input,
-  Sheet,
-  Table,
-  Typography,
-} from "@mui/joy";
+import { FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
 import { useMemo, useState } from "react";
 import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
 import { useGetProject } from "../../../api/hooks/useGetProject";
 import { useGetVersions } from "../../../api/hooks/useGetVersions";
+import { Header } from "../../../components/Header";
 import { ManageVersionModal } from "../../../components/ManageVersionModal";
 import { Placeholder } from "../../../components/Placeholder";
 import { TablePaginationSection } from "../../../components/TablePaginationSection";
@@ -60,20 +53,7 @@ export const VersionsOverview = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          borderRadius: "sm",
-          py: 0.5,
-          display: { xs: "none", sm: "flex" },
-          flexWrap: "wrap",
-          gap: 1.5,
-          "& > *": {
-            minWidth: { xs: "120px", md: "160px" },
-          },
-          flexDirection: "column",
-        }}
-      >
-        <Typography
+      {/* <Typography
           level="h2"
           component="h1"
           sx={{
@@ -88,20 +68,32 @@ export const VersionsOverview = () => {
           }}
         >
           {project?.name ? `${project.name} versions` : "Versions"}
-        </Typography>
+        </Typography> */}
 
-        <FormControl sx={{ flex: 1, pb: "1rem" }} size="sm">
-          <FormLabel>Search for version</FormLabel>
+      <Header
+        items={[
+          {
+            name: "Projects",
+            to: "/projects",
+          },
+          {
+            name: project?.name || "",
+            to: `/projects/${projectId}/versions`,
+          },
+        ]}
+      />
 
-          <Input
-            size="sm"
-            placeholder="Look up for version name"
-            startDecorator={<SearchIcon />}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            value={searchTerm}
-          />
-        </FormControl>
-      </Box>
+      <FormControl sx={{ flex: 1, pb: "1rem" }} size="sm">
+        <FormLabel>Search for version</FormLabel>
+
+        <Input
+          size="sm"
+          placeholder="Look up for version name"
+          startDecorator={<SearchIcon />}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          value={searchTerm}
+        />
+      </FormControl>
 
       {projectId && <ManageVersionModal projectId={projectId} />}
 

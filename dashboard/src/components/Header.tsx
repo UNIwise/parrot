@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Button, Sheet, Typography } from "@mui/joy";
+import { Button, Sheet, Stack, Typography } from "@mui/joy";
 import { FC, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import soundEffect from "../assets/slap.mp3";
@@ -16,8 +16,8 @@ const rainbowGradient = `linear-gradient(
 )`;
 
 const AnimatedSheet = styled(Sheet, {
-  shouldForwardProp: (prop) => prop !== 'isblue' && prop !== 'isanimating',
-}) <{
+  shouldForwardProp: (prop) => prop !== "isblue" && prop !== "isanimating",
+})<{
   isblue: boolean;
   isanimating: boolean;
 }>`
@@ -39,7 +39,14 @@ const AnimatedSheet = styled(Sheet, {
         : rainbowGradient};
 `;
 
-export const Header: FC = () => {
+type HeaderProps = {
+  items?: {
+    name: string;
+    to?: string;
+  }[];
+};
+
+export const Header: FC<HeaderProps> = ({ items }) => {
   const [isBlue, setIsBlue] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -75,18 +82,41 @@ export const Header: FC = () => {
         height: 64,
       }}
     >
-      <Typography
-        component={Link}
-        to={"/"}
-        level="h4"
-        sx={{
-          fontWeight: "bold",
-          color: "primary.solidColor",
-          fontSize: "2.2em",
-        }}
-      >
-        Parrot
-      </Typography>
+      <Stack direction="row" spacing={2}>
+        {items?.map((item, index) => (
+          <>
+            {index > 0 && (
+              <Typography
+                level="h2"
+                sx={{
+                  color: "primary.solidColor",
+                  fontSize: "1.75em",
+                  textDecoration: "none",
+                }}
+              >
+                /
+              </Typography>
+            )}
+
+            <Typography
+              key={index}
+              component={Link}
+              to={item.to || "/"}
+              level="h2"
+              sx={{
+                color: "primary.solidColor",
+                fontSize: "1.75em",
+                textDecoration: "none",
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              {item.name}
+            </Typography>
+          </>
+        ))}
+      </Stack>
 
       <div>
         <Button

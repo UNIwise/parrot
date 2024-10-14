@@ -24,6 +24,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
   return (
     <tr
       onClick={() => (window.location.href = `/projects/${projectId}/versions`)}
+      style={{ cursor: "pointer" }}
     >
       <td style={{ paddingLeft: "1.5rem" }}>
         <Typography
