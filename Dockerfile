@@ -1,17 +1,15 @@
 ############################
 # Backend build
 ############################
-FROM golang:1.23-alpine3.20 AS build-base
-RUN apk add --update --no-cache git ca-certificates build-base
+FROM golang:1.23-alpine3.20 AS backend-builder
 WORKDIR /build
-ENV GO111MODULE=on
+
 COPY go.mod .
 COPY go.sum .
 RUN go mod download -x
 
-FROM build-base AS backend-builder
 COPY . .
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o /build/bin/parrot main.go
+RUN GOOS=linux GOARCH=amd64 go build -o /build/bin/parrot main.go
 
 ############################
 # Frontend build
@@ -28,19 +26,18 @@ RUN pnpm install --frozen-lockfile
 COPY ./dashboard /app
 RUN pnpm build
 
-############################
-# Image base
-############################
-FROM nginx:1.27.2-alpine3.20 AS image-base
-COPY ./docker/nginx.conf /etc/nginx
-COPY ./docker/entrypoint.sh /
-ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 
 ############################
 # Finalize image
 ############################
-FROM image-base
+FROM nginx:1.27.2-alpine3.20 AS image-base
 WORKDIR /
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
+
 COPY LICENSE .
+
+COPY ./docker/nginx.conf /etc/nginx
+COPY ./docker/entrypoint.sh /
+
 COPY --from=backend-builder /build/bin/parrot /usr/local/bin/parrot
 COPY --from=frotnend-builder /app/dist /usr/share/nginx/html

@@ -304,7 +304,6 @@ func TestPostProjectVersion(t *testing.T) {
 
 	t.Run("postProjectVersion, success", func(t *testing.T) {
 		reqBody := map[string]interface{}{
-			"id":   testID,
 			"name": testName,
 		}
 		reqJSON, _ := json.Marshal(reqBody)
@@ -314,8 +313,8 @@ func TestPostProjectVersion(t *testing.T) {
 
 		testCtx := e.NewContext(req, resp)
 
-		testCtx.SetPath("/projects/:project_id/versions")
-		testCtx.SetParamNames("project_id")
+		testCtx.SetPath("/projects/:id/versions")
+		testCtx.SetParamNames("id")
 		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
 
 		projectService.EXPECT().CreateLanguagesVersion(context.Background(), int(testID), testName).Times(1).Return(nil)
@@ -337,8 +336,8 @@ func TestPostProjectVersion(t *testing.T) {
 
 		testCtx := e.NewContext(req, resp)
 
-		testCtx.SetPath("/projects/:project_id/versions")
-		testCtx.SetParamNames("project_id")
+		testCtx.SetPath("/projects/:id/versions")
+		testCtx.SetParamNames("id")
 		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
 
 		projectService.EXPECT().CreateLanguagesVersion(context.Background(), int(testID), testName).Times(1).Return(errTest)
@@ -359,8 +358,8 @@ func TestPostProjectVersion(t *testing.T) {
 
 		testCtx := e.NewContext(req, resp)
 
-		testCtx.SetPath("/projects/:project_id/versions")
-		testCtx.SetParamNames("project_id")
+		testCtx.SetPath("/projects/:id/versions")
+		testCtx.SetParamNames("id")
 		testCtx.SetParamValues(fmt.Sprintf("%d", testID))
 
 		err := h.postProjectVersion(testCtx, logrus.NewEntry(logrus.New()))

@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/project"
+	"github.com/uniwise/parrot/internal/rest/v1/helpers"
 	controllers "github.com/uniwise/parrot/internal/rest/v1/private/controllers"
 )
 
@@ -28,6 +29,7 @@ func NewServer(l *logrus.Entry, projectService project.Service, enablePrometheus
 
 	e.HideBanner = true
 	e.HidePort = true
+	e.Validator = helpers.NewValidator()
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
