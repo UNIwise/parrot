@@ -31,8 +31,8 @@ import (
 	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/metrics"
 	"github.com/uniwise/parrot/internal/project"
-	publicRest "github.com/uniwise/parrot/internal/rest/v1/public"
 	privateRest "github.com/uniwise/parrot/internal/rest/v1/private"
+	publicRest "github.com/uniwise/parrot/internal/rest/v1/public"
 	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/poedit"
 )
@@ -40,7 +40,7 @@ import (
 const (
 	confServerPortPublic  = "server.port.public"
 	confServerPortPrivate = "server.port.private"
-	confServerGrace = "server.gracePeriod"
+	confServerGrace       = "server.gracePeriod"
 
 	confLogLevel  = "log.level"
 	confLogFormat = "log.format"
@@ -156,8 +156,8 @@ func init() {
 		cDir = "/tmp"
 	}
 
-	viper.SetDefault(confServerPortPublic, 80)
-	viper.SetDefault(confServerPortPrivate, 81)
+	viper.SetDefault(confServerPortPublic, 8000)
+	viper.SetDefault(confServerPortPrivate, 8001)
 	viper.SetDefault(confServerGrace, time.Second*10)
 
 	viper.SetDefault(confLogLevel, "info")

@@ -18,7 +18,7 @@ func Register(e *echo.Echo, l *logrus.Entry, projectService project.Service, ena
 		ProjectService: projectService,
 	}
 
-	g := e.Group("/v1")
+	g := e.Group("/api/v1")
 
 	if enablePrometheus {
 		prom, err := eprom.Prometheus()
