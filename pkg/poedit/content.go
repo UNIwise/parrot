@@ -19,17 +19,14 @@ var ContentMetaMap = map[string]ContentMeta{
 	"resw":            {Extension: "resw", Type: "application/xml"},
 	"resx":            {Extension: "resx", Type: "application/xml"},
 	"android_strings": {Extension: "xml", Type: "application/xml"},
-	"apple_strings":   {Extension: "strings", Type: "text/plain; charset=utf-8"},
-	"xliff":           {Extension: "xliff", Type: "application/xml"},
+	"apple_strings":   {Extension: "strings", Type: "text/plain; charset=utf-8"},"xliff":           {Extension: "xliff", Type: "application/xml"},
 	"properties":      {Extension: "properties", Type: "text/plain; charset=utf-8"},
 	"key_value_json":  {Extension: "json", Type: "application/json"},
 	"json":            {Extension: "json", Type: "application/json"},
 	"yml":             {Extension: "yml", Type: "text/plain; charset=utf-8"},
-	"xlf":             {Extension: "xlf", Type: "application/xml"},
 	"xmb":             {Extension: "xmb", Type: "application/xml"},
 	"xtb":             {Extension: "xtb", Type: "application/xml"},
 	"arb":             {Extension: "arb", Type: "application/json"},
-	"rise_360_xliff":  {Extension: "xliff", Type: "application/xml"},
 }
 
 func GetContentMeta(format string) (*ContentMeta, error) {
