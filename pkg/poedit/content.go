@@ -19,7 +19,7 @@ var ContentMetaMap = map[string]ContentMeta{
 	"resw":            {Extension: "resw", Type: "application/xml"},
 	"resx":            {Extension: "resx", Type: "application/xml"},
 	"android_strings": {Extension: "xml", Type: "application/xml"},
-	"apple_strings":   {Extension: "strings", Type: "text/plain; charset=utf-8"},"xliff":           {Extension: "xliff", Type: "application/xml"},
+	"apple_strings":   {Extension: "strings", Type: "text/plain; charset=utf-8"},
 	"properties":      {Extension: "properties", Type: "text/plain; charset=utf-8"},
 	"key_value_json":  {Extension: "json", Type: "application/json"},
 	"json":            {Extension: "json", Type: "application/json"},
