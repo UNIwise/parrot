@@ -166,7 +166,7 @@ func (h *Handlers) newGetProjectVersionsResponse(
 
 type deleteProjectVersionRequest struct {
 	ProjectID uint   `param:"project_id" validate:"required,numeric"`
-	VersionID string `param:"version_id" validate:"required,max=20,alphanum"`
+	VersionID string `param:"version_id" validate:"required,semver,max=20"`
 }
 
 func (h *Handlers) deleteProjectVersion(c echo.Context, l *logrus.Entry) error {
@@ -198,7 +198,7 @@ func (h *Handlers) deleteProjectVersion(c echo.Context, l *logrus.Entry) error {
 
 type postProjectVersionRequest struct {
 	ID   int    `param:"id" validate:"required,numeric"`
-	Name string `json:"name" validate:"required,alphanum,max=20"`
+	Name string `json:"name" validate:"required,semver,max=20"`
 }
 
 func (h *Handlers) postProjectVersion(c echo.Context, l *logrus.Entry) error {
@@ -227,6 +227,7 @@ func (h *Handlers) postProjectVersion(c echo.Context, l *logrus.Entry) error {
 	)
 	if err != nil {
 		l.WithError(err).Error("Error creating project version")
+
 		return echo.ErrInternalServerError
 	}
 
