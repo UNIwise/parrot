@@ -1,6 +1,6 @@
 import { Delete } from "@mui/icons-material";
 import Add from "@mui/icons-material/Add";
-import { FormLabel } from "@mui/joy";
+import { Alert, FormLabel } from "@mui/joy";
 import Button from "@mui/joy/Button";
 import DialogContent from "@mui/joy/DialogContent";
 import DialogTitle from "@mui/joy/DialogTitle";
@@ -28,8 +28,13 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
   const [newProjectVersion, setNewProjectVersion] = useState("");
   const [validProjectVersion, setValidProjectVersion] = useState(false);
 
-  const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId!);
-  const { mutate: postNewVersion } = usePostVersion(projectId);
+  const [processing, setProcessing] = useState(false);
+
+  const { mutateAsync: deleteVersion } = useDeleteVersion(
+    projectId,
+    versionId!,
+  );
+  const { mutateAsync: postNewVersion } = usePostVersion(projectId);
 
   const onProjectNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const valid = /^[a-zA-Z0-9.-_]*$/.test(event.target.value);
@@ -38,16 +43,21 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
     setNewProjectVersion(event.target.value);
   };
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (versionId) {
-      deleteVersion();
-    } else {
-      postNewVersion({ name: newProjectVersion });
-    }
+    try {
+      setProcessing(true);
 
-    setOpen(false);
+      if (versionId) {
+        await deleteVersion();
+      } else {
+        await postNewVersion({ name: newProjectVersion });
+      }
+    } finally {
+      setProcessing(false);
+      setOpen(false);
+    }
   };
 
   return (
@@ -76,7 +86,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
       )}
 
       <Modal open={open} onClose={() => setOpen(false)}>
-        <ModalDialog>
+        <ModalDialog sx={{ width: "400px" }}>
           <form onSubmit={onSubmit}>
             {versionId ? (
               <Stack spacing={2}>
@@ -85,12 +95,14 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
                   Are you sure you want to delete {versionName} version?
                 </DialogContent>
 
-                <DialogContent>
-                  Deletion of the version will be done in the background and
-                  will take a couple of seconds.
-                </DialogContent>
+                {processing && (
+                  <Alert color="warning">
+                    Navigating away from this page while processing will cancel
+                    the operation.
+                  </Alert>
+                )}
 
-                <Button type="submit" color="danger">
+                <Button type="submit" color="danger" loading={processing}>
                   Delete
                 </Button>
               </Stack>
@@ -99,7 +111,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
                 <DialogTitle>New version</DialogTitle>
 
                 <DialogContent>
-                  Creating the version will be done in the background and will
+                  Choose a tag for the new version. Creating a new version will
                   take a couple of minutes.
                 </DialogContent>
 
@@ -111,10 +123,22 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
                     onChange={onProjectNameChange}
                     value={newProjectVersion}
                     error={!!newProjectVersion && !validProjectVersion}
+                    disabled={processing}
                   />
                 </FormControl>
 
-                <Button type="submit" disabled={!validProjectVersion}>
+                {processing && (
+                  <Alert color="warning">
+                    Navigating away from this page while processing will cancel
+                    the operation.
+                  </Alert>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={!validProjectVersion}
+                  loading={processing}
+                >
                   Add version
                 </Button>
               </Stack>
