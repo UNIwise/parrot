@@ -383,16 +383,19 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 				})
 				if err != nil {
 					jobErrors = append(jobErrors, errors.Wrap(err, "Failed to export project"))
+					return
 				}
 
 				d, err := http.Get(resp.Result.URL)
 				if err != nil {
 					jobErrors = append(jobErrors, errors.Wrap(err, "Failed to download project language file"))
+					return
 				}
 				defer d.Body.Close()
 
 				if d.StatusCode != http.StatusOK {
 					jobErrors = append(jobErrors, errors.Errorf("Response code '%d' from download GET", d.StatusCode))
+					return
 				}
 
 				s3Key := fmt.Sprintf("%s/%s.%s", versionKey, language.Code, contentMeta.Extension)
@@ -416,6 +419,7 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 
 				if err := s.storage.PutObject(ctx, s3Key, d.Body, meta, contentMeta.Type); err != nil {
 					jobErrors = append(jobErrors, errors.Wrap(err, "Failed to upload project language file to S3"))
+					return
 				}
 
 				l.Debug("Done uploading")
@@ -430,7 +434,11 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 			return errors.Wrap(err, "Failed to delete project version in S3")
 		}
 
-		return errors.New("Failed to create language versions")
+		var err = errors.New("Failed to create language versions")
+		for _, e := range jobErrors {
+			err = errors.Wrap(err, e.Error())
+		}
+		return err
 	}
 
 	return nil

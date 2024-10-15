@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+	"regexp"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -290,11 +291,19 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
 }
 
+func versionValidator(fl validator.FieldLevel) bool {
+	versionPattern := `^[a-zA-Z0-9.-_]*$`
+	matched, _ := regexp.MatchString(versionPattern, fl.Field().String())
+	return matched
+}
+
 func TestPostProjectVersion(t *testing.T) {
 	t.Parallel()
 
 	e := echo.New()
-	e.Validator = &CustomValidator{validator: validator.New()}
+	validator := validator.New()
+	validator.RegisterValidation("version", versionValidator)
+	e.Validator = &CustomValidator{validator: validator}
 
 	projectService := project.NewMockService(gomock.NewController(t))
 

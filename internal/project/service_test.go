@@ -286,7 +286,7 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	storage := storage.NewMockStorage(controller)
 	poeditClient := poedit.NewMockClient(controller)
 
-	service := NewService(poeditClient, storage, nil, testRenewalThreshold, nil)
+	service := NewService(poeditClient, storage, nil, testRenewalThreshold, logrus.NewEntry(logrus.New()))
 	service.generateUUID = testGenerateUUID
 	service.generateTimestamp = testGenerateTimestamp
 	service.getContentMetaMap = testGetContentMetaMap
@@ -366,7 +366,6 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	})
 
 	t.Run("Fail, version already exist in S3", func(t *testing.T) {
-
 		prefixExist := fmt.Sprintf("%d/%s_%s_%d", testID, testUUID, testName, testGenerateTimestamp())
 
 		listObjectsV2Output := &s3.ListObjectsV2Output{
@@ -395,29 +394,33 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	})
 
 	t.Run("Fail, fails to export project", func(t *testing.T) {
+		fileName := fmt.Sprintf("%d/%s_%s_%d", testID, testUUID, testName, testGenerateTimestamp())
 		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
 		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(nil, errTest)
-
+		storage.EXPECT().DeleteObjects(testCtx, fileName).Times(1).Return(nil)
 		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
 
-		assert.ErrorIs(t, err, errTest)
+		assert.ErrorContains(t, err, "Failed to create language versions")
 	})
 
 	t.Run("Fail, fails to download file", func(t *testing.T) {
+		fileName := fmt.Sprintf("%d/%s_%s_%d", testID, testUUID, testName, testGenerateTimestamp())
 		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
 		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
+		storage.EXPECT().DeleteObjects(testCtx, fileName).Times(1).Return(nil)
 
 		httpmock.RegisterResponder("GET", "http://example.com/file.json",
 			httpmock.NewErrorResponder(errTest))
 
 		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
 
-		assert.ErrorIs(t, err, errTest)
+		assert.ErrorContains(t, err, "Failed to create language versions")
 	})
 
 	t.Run("Fail, fails to upload file to S3", func(t *testing.T) {
+		fileNameForDeletion := fmt.Sprintf("%d/%s_%s_%d", testID, testUUID, testName, testGenerateTimestamp())
 		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
 		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
@@ -426,10 +429,11 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 			httpmock.NewStringResponder(200, `{"key":"value"}`))
 
 		storage.EXPECT().PutObject(testCtx, fileName, gomock.Any(), gomock.Any(), "application/json").Return(errTest)
+		storage.EXPECT().DeleteObjects(testCtx, fileNameForDeletion).Times(1).Return(nil)
 
 		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
 
-		assert.ErrorIs(t, err, errTest)
+		assert.ErrorContains(t, err, "Failed to create language versions")
 	})
 }
 
