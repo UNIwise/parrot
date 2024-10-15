@@ -11,15 +11,20 @@ type Validator struct {
 	validator *validator.Validate
 }
 
-func NewValidator() *Validator {
+func NewValidator() (*Validator, error) {
 	v := validator.New()
 
-	v.RegisterValidation("languageCode", validateLanguageCode)
-	v.RegisterValidation("version", validateVersion)
+	if err := v.RegisterValidation("languageCode", validateLanguageCode); err != nil {
+		return nil, err
+	}
+
+	if err := v.RegisterValidation("version", validateVersion); err != nil {
+		return nil, err
+	}
 
 	return &Validator{
 		validator: v,
-	}
+	}, nil
 }
 
 func (cv *Validator) Validate(i interface{}) error {

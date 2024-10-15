@@ -29,7 +29,12 @@ func NewServer(l *logrus.Entry, projectService project.Service, enablePrometheus
 
 	e.HideBanner = true
 	e.HidePort = true
-	e.Validator = helpers.NewValidator()
+
+	v, err := helpers.NewValidator()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create validator")
+	}
+	e.Validator = v
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())

@@ -2,6 +2,7 @@ linters:
   disable: []
 run:
   tests: false
-  skip-files:
+issues:
+  exclude-files:
     - ".*\\.pb\\.go$"
     - ".*\\_mock\\.go$"

@@ -3,7 +3,6 @@
 package project
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -367,13 +366,6 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 
 	timeStamp := s.generateTimestamp()
 	contentMetaMap := s.getContentMetaMap()
-
-	type TranslationObject struct {
-		S3Key       string
-		Reader      *bytes.Reader
-		Meta        map[string]string
-		ContentType string
-	}
 
 	jobErrors := []error{}
 	pool := pond.New(10, 1000) // 10 workers, 1000 buffered jobs

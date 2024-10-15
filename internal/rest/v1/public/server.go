@@ -12,8 +12,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/uniwise/parrot/internal/project"
-	controllers "github.com/uniwise/parrot/internal/rest/v1/public/controllers"
 	"github.com/uniwise/parrot/internal/rest/v1/helpers"
+	controllers "github.com/uniwise/parrot/internal/rest/v1/public/controllers"
 )
 
 const (
@@ -29,7 +29,12 @@ func NewServer(l *logrus.Entry, projectService project.Service) (*Server, error)
 
 	e.HideBanner = true
 	e.HidePort = true
-	e.Validator = helpers.NewValidator()
+
+	v, err := helpers.NewValidator()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create validator")
+	}
+	e.Validator = v
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
