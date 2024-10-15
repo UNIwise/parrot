@@ -32,8 +32,8 @@ func NewFilesystemCache(cacheDir string, ttl time.Duration) (*FilesystemCache, e
 	}, nil
 }
 
-func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format string) (*CacheItem, error) {
-	filePath := f.filePath(projectID, languageCode, format)
+func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, languageCode, format, version string) (*CacheItem, error) {
+	filePath := f.filePath(projectID, languageCode, format, version)
 
 	info, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
@@ -67,9 +67,9 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 	}, nil
 }
 
-func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
+func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format, version string, data []byte) (string, error) {
 	if err := ioutil.WriteFile(
-		f.filePath(projectID, languageCode, format),
+		f.filePath(projectID, languageCode, format, version),
 		data,
 		os.ModePerm,
 	); err != nil {
@@ -80,7 +80,7 @@ func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, lan
 	hash := hex.EncodeToString(hashBytes[:])
 
 	if err := ioutil.WriteFile(
-		f.md5Path(projectID, languageCode, format),
+		f.md5Path(projectID, languageCode, format, version),
 		[]byte(hash),
 		os.ModePerm,
 	); err != nil {
@@ -112,25 +112,25 @@ func (f *FilesystemCache) PurgeProject(ctx context.Context, projectID int) error
 	return nil
 }
 
-func (f *FilesystemCache) filePath(projectID int, languageCode, format string) string {
+func (f *FilesystemCache) filePath(projectID int, languageCode, format, version string) string {
 	return path.Join(
 		f.dir,
-		f.filename(projectID, languageCode, format),
+		f.filename(projectID, languageCode, format, version),
 	)
 }
 
-func (f *FilesystemCache) md5Path(projectID int, languageCode, format string) string {
+func (f *FilesystemCache) md5Path(projectID int, languageCode, format, version string) string {
 	return path.Join(
 		f.dir,
 		fmt.Sprintf(
 			"%s.md5",
-			f.filename(projectID, languageCode, format),
+			f.filename(projectID, languageCode, format, version),
 		),
 	)
 }
 
-func (f *FilesystemCache) filename(projectID int, languageCode, format string) string {
-	return fmt.Sprintf("%d_%s_%s", projectID, languageCode, format)
+func (f *FilesystemCache) filename(projectID int, languageCode, format, version string) string {
+	return fmt.Sprintf("%d_%s_%s_%s", projectID, languageCode, format, version)
 }
 
 func (f *FilesystemCache) removeFilesWithPrefix(prefix string) error {

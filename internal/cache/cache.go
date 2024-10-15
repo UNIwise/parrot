@@ -15,8 +15,8 @@ type CacheItem struct {
 }
 
 type Cache interface {
-	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (item *CacheItem, err error)
-	SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (checksum string, err error)
+	GetTranslation(ctx context.Context, projectID int, languageCode, format, version string) (item *CacheItem, err error)
+	SetTranslation(ctx context.Context, projectID int, languageCode, format, version string, data []byte) (checksum string, err error)
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	GetTTL() time.Duration
