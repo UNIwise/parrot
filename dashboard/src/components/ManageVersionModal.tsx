@@ -1,6 +1,6 @@
 import { Delete } from "@mui/icons-material";
 import Add from "@mui/icons-material/Add";
-import { Alert, FormLabel } from "@mui/joy";
+import { FormLabel } from "@mui/joy";
 import Button from "@mui/joy/Button";
 import DialogContent from "@mui/joy/DialogContent";
 import DialogTitle from "@mui/joy/DialogTitle";
@@ -95,13 +95,6 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
                   Are you sure you want to delete {versionName} version?
                 </DialogContent>
 
-                {processing && (
-                  <Alert color="warning">
-                    Navigating away from this page while processing will cancel
-                    the operation.
-                  </Alert>
-                )}
-
                 <Button type="submit" color="danger" loading={processing}>
                   Delete
                 </Button>
@@ -126,13 +119,6 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
                     disabled={processing}
                   />
                 </FormControl>
-
-                {processing && (
-                  <Alert color="warning">
-                    Navigating away from this page while processing will cancel
-                    the operation.
-                  </Alert>
-                )}
 
                 <Button
                   type="submit"
