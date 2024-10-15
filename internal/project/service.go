@@ -25,6 +25,7 @@ import (
 )
 
 var ErrVersionAlreadyExist = errors.New("Project version already exists")
+
 type Translation struct {
 	TTL      time.Duration
 	Checksum string
@@ -346,7 +347,7 @@ func (s *ServiceImpl) checkProjectVersionExistInS3(ctx context.Context, projectI
 
 func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int, name string) error {
 	exists, err := s.checkProjectVersionExistInS3(ctx, projectID, name)
-	if err != nil {	
+	if err != nil {
 		return errors.Wrap(err, "Failed to check project version existence in S3")
 	}
 	if exists {
@@ -375,7 +376,7 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 	}
 
 	jobErrors := []error{}
-	pool := pond.New(10, 1000) // 25 workers, 1000 buffered jobs
+	pool := pond.New(10, 1000) // 10 workers, 1000 buffered jobs
 
 	versionKey := fmt.Sprintf("%d/%s_%s_%d", projectID, uuid, name, timeStamp)
 
@@ -411,13 +412,21 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 					"format":      contentMeta.Extension,
 				}
 
-				fmt.Println("Uploading to S3", s3Key)
+				l := s.Logger.WithFields(logrus.Fields{
+					"project":     projectID,
+					"lang":        language.Code,
+					"versionName": name,
+					"format":      contentMeta.Extension,
+					"key":         s3Key,
+				})
+
+				l.Debug("Uploading")
 
 				if err := s.storage.PutObject(ctx, s3Key, d.Body, meta, contentMeta.Type); err != nil {
 					jobErrors = append(jobErrors, errors.Wrap(err, "Failed to upload project language file to S3"))
 				}
 
-				fmt.Println("Done uploading to S3", s3Key)
+				l.Debug("Done uploading")
 			})
 		}
 	}
