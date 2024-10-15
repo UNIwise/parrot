@@ -1,5 +1,5 @@
 import SearchIcon from "@mui/icons-material/Search";
-import { FormControl, FormLabel, Input, Sheet, Table } from "@mui/joy";
+import { FormControl, Input, Sheet, Stack, Table, Typography } from "@mui/joy";
 import { useMemo, useState } from "react";
 import { useGetPageParams } from "../../../api/hooks/useGetPageParams";
 import { useGetProject } from "../../../api/hooks/useGetProject";
@@ -11,7 +11,7 @@ import { TablePaginationSection } from "../../../components/TablePaginationSecti
 import { Version } from "../../../interfaces/versions";
 import { VersionTableRow } from "./components/VersionTableRow";
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 25;
 
 export const VersionsOverview = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,23 +53,6 @@ export const VersionsOverview = () => {
 
   return (
     <>
-      {/* <Typography
-          level="h2"
-          component="h1"
-          sx={{
-            alignSelf: "center",
-            fontSize: "2rem",
-            color: (t) => t.palette.primary[400],
-            m: "0 1.5rem 2rem 0",
-            border: "1px solid",
-            borderColor: (t) => t.palette.primary[400],
-            p: "1rem 2.5rem",
-            borderRadius: "sm",
-          }}
-        >
-          {project?.name ? `${project.name} versions` : "Versions"}
-        </Typography> */}
-
       <Header
         items={[
           {
@@ -83,19 +66,18 @@ export const VersionsOverview = () => {
         ]}
       />
 
-      <FormControl sx={{ flex: 1, pb: "1rem" }} size="sm">
-        <FormLabel>Search for version</FormLabel>
+      <Stack spacing={2} direction="row">
+        <FormControl sx={{ flex: 1, pb: "1rem" }}>
+          <Input
+            placeholder="Search for version..."
+            startDecorator={<SearchIcon />}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm}
+          />
+        </FormControl>
 
-        <Input
-          size="sm"
-          placeholder="Look up for version name"
-          startDecorator={<SearchIcon />}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          value={searchTerm}
-        />
-      </FormControl>
-
-      {projectId && <ManageVersionModal projectId={projectId} />}
+        {projectId && <ManageVersionModal projectId={projectId} />}
+      </Stack>
 
       <Sheet
         variant="outlined"
@@ -108,57 +90,67 @@ export const VersionsOverview = () => {
           minHeight: 0,
         }}
       >
-        <Table
-          aria-labelledby="tableTitle"
-          stickyHeader
-          hoverRow
-          sx={{
-            "--TableCell-headBackground":
-              "var(--joy-palette-background-level1)",
-            "--Table-headerUnderlineThickness": "1px",
-            "--TableRow-hoverBackground":
-              "var(--joy-palette-background-level1)",
-            "--TableCell-paddingY": "4px",
-            "--TableCell-paddingX": "8px",
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={{ width: 240, padding: "0.7rem 1.5rem" }}>Name</th>
-              <th style={{ width: 340, padding: "0.7rem 0.5rem" }}>
-                Created At
-              </th>
-              <th
-                style={{
-                  width: 140,
-                  padding: "0.7rem 4.5rem",
-                  textAlign: "end",
-                }}
-              ></th>
-            </tr>
-          </thead>
+        {filteredVersions.length === 0 && (
+          <Typography level="body-md" sx={{ padding: "1rem" }}>
+            This project has no versions yet.
+          </Typography>
+        )}
 
-          {projectId && (
-            <tbody>
-              {paginatedVersions.map((version: Version) => (
-                <VersionTableRow
-                  key={version.id}
-                  projectId={projectId}
-                  versionId={version.id}
-                  versionName={version.name}
-                  createdAt={version.createdAt}
-                />
-              ))}
-            </tbody>
-          )}
-        </Table>
+        {filteredVersions.length > 0 && (
+          <Table
+            aria-labelledby="tableTitle"
+            stickyHeader
+            hoverRow
+            sx={{
+              "--TableCell-headBackground":
+                "var(--joy-palette-background-level1)",
+              "--Table-headerUnderlineThickness": "1px",
+              "--TableRow-hoverBackground":
+                "var(--joy-palette-background-level1)",
+              "--TableCell-paddingY": "4px",
+              "--TableCell-paddingX": "8px",
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={{ width: 240, padding: "0.7rem 1.5rem" }}>Name</th>
+                <th style={{ width: 340, padding: "0.7rem 0.5rem" }}>
+                  Created At
+                </th>
+                <th
+                  style={{
+                    width: 140,
+                    padding: "0.7rem 4.5rem",
+                    textAlign: "end",
+                  }}
+                ></th>
+              </tr>
+            </thead>
+
+            {projectId && (
+              <tbody>
+                {paginatedVersions.map((version: Version) => (
+                  <VersionTableRow
+                    key={version.id}
+                    projectId={projectId}
+                    versionId={version.id}
+                    versionName={version.name}
+                    createdAt={version.createdAt}
+                  />
+                ))}
+              </tbody>
+            )}
+          </Table>
+        )}
       </Sheet>
 
-      <TablePaginationSection
-        currentPage={currentPage}
-        pageCount={pageCount}
-        onPageChange={setCurrentPage}
-      />
+      {filteredVersions.length > ITEMS_PER_PAGE && (
+        <TablePaginationSection
+          currentPage={currentPage}
+          pageCount={pageCount}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </>
   );
 };

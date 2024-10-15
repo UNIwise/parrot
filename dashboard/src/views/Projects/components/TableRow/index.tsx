@@ -60,7 +60,7 @@ export const ProjectTableRow: FC<ProjectTableRowProps> = ({
           endDecorator={<KeyboardArrowRight />}
           sx={{ color: (t) => t.palette.primary[400] }}
         >
-          All versions
+          Versions
         </Button>
       </td>
     </tr>

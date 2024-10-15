@@ -8,7 +8,7 @@ import { TablePaginationSection } from "../../components/TablePaginationSection"
 import { Project } from "../../interfaces/projects";
 import { ProjectTableRow } from "./components/TableRow";
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 25;
 
 export const ProjectsOverview = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,9 +41,8 @@ export const ProjectsOverview = () => {
     <>
       <Header items={[{ name: "Projects" }]} />
 
-      <FormControl sx={{ flex: 1, pb: "1.1rem" }} size="sm">
+      <FormControl sx={{ flex: 1, pb: "1.1rem" }}>
         <Input
-          size="sm"
           placeholder="search for project..."
           startDecorator={<SearchIcon />}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -108,11 +107,13 @@ export const ProjectsOverview = () => {
         </Table>
       </Sheet>
 
-      <TablePaginationSection
-        currentPage={currentPage}
-        pageCount={pageCount}
-        onPageChange={setCurrentPage}
-      />
+      {filteredProjects.length > ITEMS_PER_PAGE && (
+        <TablePaginationSection
+          currentPage={currentPage}
+          pageCount={pageCount}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </>
   );
 };

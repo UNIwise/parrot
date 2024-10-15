@@ -1,5 +1,6 @@
 import { Delete } from "@mui/icons-material";
 import Add from "@mui/icons-material/Add";
+import { FormLabel } from "@mui/joy";
 import Button from "@mui/joy/Button";
 import DialogContent from "@mui/joy/DialogContent";
 import DialogTitle from "@mui/joy/DialogTitle";
@@ -24,19 +25,17 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
   versionName,
 }) => {
   const [open, setOpen] = useState(false);
-  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectVersion, setNewProjectVersion] = useState("");
+  const [validProjectVersion, setValidProjectVersion] = useState(false);
 
   const { mutate: deleteVersion } = useDeleteVersion(projectId, versionId!);
   const { mutate: postNewVersion } = usePostVersion(projectId);
 
   const onProjectNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const regex = new RegExp("^[a-zA-Z0-9_\\-\\.]+$");
+    const valid = /^[a-zA-Z0-9.-_]*$/.test(event.target.value);
+    setValidProjectVersion(valid);
 
-    if (!regex.test(event.target.value)) {
-      return;
-    }
-
-    setNewProjectName(event.target.value);
+    setNewProjectVersion(event.target.value);
   };
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -45,7 +44,7 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
     if (versionId) {
       deleteVersion();
     } else {
-      postNewVersion({ name: newProjectName });
+      postNewVersion({ name: newProjectVersion });
     }
 
     setOpen(false);
@@ -65,12 +64,14 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
         </Button>
       ) : (
         <Button
-          variant="outlined"
           color="primary"
           startDecorator={<Add />}
           onClick={() => setOpen(true)}
+          sx={{
+            height: "36px",
+          }}
         >
-          Add New Version
+          New Version
         </Button>
       )}
 
@@ -84,6 +85,11 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
                   Are you sure you want to delete {versionName} version?
                 </DialogContent>
 
+                <DialogContent>
+                  Deletion of the version will be done in the background and
+                  will take a couple of seconds.
+                </DialogContent>
+
                 <Button type="submit" color="danger">
                   Delete
                 </Button>
@@ -91,20 +97,26 @@ export const ManageVersionModal: FC<ManageVersionModalProps> = ({
             ) : (
               <Stack spacing={2}>
                 <DialogTitle>New version</DialogTitle>
+
                 <DialogContent>
-                  Fill in the name of the new translation version
+                  Creating the version will be done in the background and will
+                  take a couple of minutes.
                 </DialogContent>
 
                 <FormControl>
+                  <FormLabel>Version tag</FormLabel>
                   <Input
                     autoFocus
                     required
                     onChange={onProjectNameChange}
-                    value={newProjectName}
+                    value={newProjectVersion}
+                    error={!!newProjectVersion && !validProjectVersion}
                   />
                 </FormControl>
 
-                <Button type="submit">Add version</Button>
+                <Button type="submit" disabled={!validProjectVersion}>
+                  Add version
+                </Button>
               </Stack>
             )}
           </form>
