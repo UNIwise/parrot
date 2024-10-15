@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -20,11 +20,11 @@ import (
 )
 
 var (
-	errTest                     = errors.New("test error")
-	testID               int64  = 1
-	testLanguage         string = "en"
-	testFormat           string = "key_value_json"
-	testVersion          string = "latest"
+	errTest             = errors.New("test error")
+	testID       int64  = 1
+	testLanguage string = "en"
+	testFormat   string = "key_value_json"
+	testVersion  string = "latest"
 )
 
 type CustomValidator struct {
@@ -68,7 +68,6 @@ func TestGetProjectLanguage(t *testing.T) {
 	}
 
 	t.Run("getProjectLanguage, success", func(t *testing.T) {
-
 		projectService.EXPECT().GetTranslation(context.Background(), int(testID), testLanguage, testFormat, testVersion).Times(1).Return(&project.Translation{
 			Data:     []byte("test"),
 			Checksum: "test",
@@ -81,11 +80,9 @@ func TestGetProjectLanguage(t *testing.T) {
 	})
 
 	t.Run("getProjectLanguage, fail", func(t *testing.T) {
-
 		projectService.EXPECT().GetTranslation(context.Background(), int(testID), testLanguage, testFormat, testVersion).Times(1).Return(nil, errTest)
 
 		err := h.getProjectLanguage(testCtx, logrus.NewEntry(logrus.New()))
 		assert.Error(t, err)
-
 	})
 }

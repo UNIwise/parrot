@@ -14,11 +14,15 @@ import (
 var errForTesting = errors.New("this is an error for testing")
 
 type MockS3APIMethods struct {
-	DeleteObjectFunction  func(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
-	PutObjectFunction     func(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
-	GetObjectFunction     func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
-	ListObjectsV2Function func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
-	DeleteObjectsFunction func(ctx context.Context, params *s3.DeleteObjectsInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectsOutput, error)
+	DeleteObjectFunction            func(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
+	PutObjectFunction               func(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+	GetObjectFunction               func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	ListObjectsV2Function           func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
+	DeleteObjectsFunction           func(ctx context.Context, params *s3.DeleteObjectsInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectsOutput, error)
+	AbortMultipartUploadFunction    func(ctx context.Context, params *s3.AbortMultipartUploadInput, optFns ...func(*s3.Options)) (*s3.AbortMultipartUploadOutput, error)
+	CompleteMultipartUploadFunction func(ctx context.Context, params *s3.CompleteMultipartUploadInput, optFns ...func(*s3.Options)) (*s3.CompleteMultipartUploadOutput, error)
+	CreateMultipartUploadFunction   func(ctx context.Context, params *s3.CreateMultipartUploadInput, optFns ...func(*s3.Options)) (*s3.CreateMultipartUploadOutput, error)
+	UploadPartFunction              func(ctx context.Context, params *s3.UploadPartInput, optFns ...func(*s3.Options)) (*s3.UploadPartOutput, error)
 }
 
 func (m *MockS3APIMethods) DeleteObject(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error) {
@@ -39,6 +43,22 @@ func (m *MockS3APIMethods) ListObjectsV2(ctx context.Context, params *s3.ListObj
 
 func (m *MockS3APIMethods) DeleteObjects(ctx context.Context, params *s3.DeleteObjectsInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectsOutput, error) {
 	return m.DeleteObjectsFunction(ctx, params, optFns...)
+}
+
+func (m *MockS3APIMethods) AbortMultipartUpload(ctx context.Context, params *s3.AbortMultipartUploadInput, optFns ...func(*s3.Options)) (*s3.AbortMultipartUploadOutput, error) {
+	return m.AbortMultipartUploadFunction(ctx, params, optFns...)
+}
+
+func (m *MockS3APIMethods) CompleteMultipartUpload(ctx context.Context, params *s3.CompleteMultipartUploadInput, optFns ...func(*s3.Options)) (*s3.CompleteMultipartUploadOutput, error) {
+	return m.CompleteMultipartUploadFunction(ctx, params, optFns...)
+}
+
+func (m *MockS3APIMethods) CreateMultipartUpload(ctx context.Context, params *s3.CreateMultipartUploadInput, optFns ...func(*s3.Options)) (*s3.CreateMultipartUploadOutput, error) {
+	return m.CreateMultipartUploadFunction(ctx, params, optFns...)
+}
+
+func (m *MockS3APIMethods) UploadPart(ctx context.Context, params *s3.UploadPartInput, optFns ...func(*s3.Options)) (*s3.UploadPartOutput, error) {
+	return m.UploadPartFunction(ctx, params, optFns...)
 }
 
 func TestNewS3Client(t *testing.T) {
@@ -63,7 +83,6 @@ func TestDeleteObject(t *testing.T) {
 
 	t.Run("Delete object, fail", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			DeleteObjectFunction: func(
 				_ctx context.Context,
 				_params *s3.DeleteObjectInput,
@@ -86,7 +105,6 @@ func TestDeleteObject(t *testing.T) {
 	})
 	t.Run("Delete object, success", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			DeleteObjectFunction: func(
 				_ctx context.Context,
 				_params *s3.DeleteObjectInput,
@@ -122,7 +140,6 @@ func TestPutObject(t *testing.T) {
 
 	t.Run("Put object, fail", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			PutObjectFunction: func(
 				_ctx context.Context,
 				_params *s3.PutObjectInput,
@@ -146,7 +163,6 @@ func TestPutObject(t *testing.T) {
 	})
 	t.Run("Put object, success", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			PutObjectFunction: func(
 				_ctx context.Context,
 				_params *s3.PutObjectInput,
@@ -182,7 +198,6 @@ func TestGetObject(t *testing.T) {
 
 	t.Run("Get object, fail", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			GetObjectFunction: func(
 				_ctx context.Context,
 				_params *s3.GetObjectInput,
@@ -207,7 +222,6 @@ func TestGetObject(t *testing.T) {
 	})
 	t.Run("Get object, success", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			GetObjectFunction: func(
 				_ctx context.Context,
 				_params *s3.GetObjectInput,
@@ -244,7 +258,6 @@ func TestListObjects(t *testing.T) {
 
 	t.Run("List objects, fail", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			ListObjectsV2Function: func(
 				_ctx context.Context,
 				_params *s3.ListObjectsV2Input,
@@ -268,7 +281,6 @@ func TestListObjects(t *testing.T) {
 	})
 	t.Run("List objects, success", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			ListObjectsV2Function: func(
 				_ctx context.Context,
 				_params *s3.ListObjectsV2Input,
@@ -304,7 +316,6 @@ func TestDeleteObjects(t *testing.T) {
 
 	t.Run("Delete objects, fail", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			ListObjectsV2Function: func(
 				_ctx context.Context,
 				_params *s3.ListObjectsV2Input,
@@ -327,7 +338,6 @@ func TestDeleteObjects(t *testing.T) {
 	})
 	t.Run("Delete objects, success", func(t *testing.T) {
 		mockClient := &MockS3APIMethods{
-
 			ListObjectsV2Function: func(
 				_ctx context.Context,
 				_params *s3.ListObjectsV2Input,

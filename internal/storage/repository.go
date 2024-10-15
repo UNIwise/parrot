@@ -38,6 +38,30 @@ type S3API interface {
 		params *s3.DeleteObjectsInput,
 		optFns ...func(*s3.Options),
 	) (*s3.DeleteObjectsOutput, error)
+
+	AbortMultipartUpload(
+		ctx context.Context,
+		params *s3.AbortMultipartUploadInput,
+		optFns ...func(*s3.Options),
+	) (*s3.AbortMultipartUploadOutput, error)
+
+	CompleteMultipartUpload(
+		ctx context.Context,
+		params *s3.CompleteMultipartUploadInput,
+		optFns ...func(*s3.Options),
+	) (*s3.CompleteMultipartUploadOutput, error)
+
+	CreateMultipartUpload(
+		ctx context.Context,
+		params *s3.CreateMultipartUploadInput,
+		optFns ...func(*s3.Options),
+	) (*s3.CreateMultipartUploadOutput, error)
+
+	UploadPart(
+		ctx context.Context,
+		params *s3.UploadPartInput,
+		optFns ...func(*s3.Options),
+	) (*s3.UploadPartOutput, error)
 }
 
 type Storage interface {

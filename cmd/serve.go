@@ -198,6 +198,12 @@ func instantiateLogger() *logrus.Logger {
 		logger.Warnf("Did not understand log format '%s'. Defaulting to json format", viper.GetString(confLogFormat))
 		logger.SetFormatter(&logrus.JSONFormatter{})
 	}
+
+	logger.WithFields(logrus.Fields{
+		"level":  viper.GetString(confLogLevel),
+		"format": viper.GetString(confLogFormat),
+	}).Info("Logger initialized")
+
 	return logger
 }
 

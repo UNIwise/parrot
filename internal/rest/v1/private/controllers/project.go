@@ -22,6 +22,8 @@ type getAllProjectsResponse struct {
 }
 
 func (h *Handlers) getAllProjects(ctx echo.Context, l *logrus.Entry) error {
+	l.Debug("Retrieving projects")
+
 	projects, err := h.ProjectService.GetAllProjects(ctx.Request().Context())
 	if err != nil {
 		l.WithError(err).Error("Error retrieving projects")
@@ -73,6 +75,8 @@ func (h *Handlers) getProject(ctx echo.Context, l *logrus.Entry) error {
 	}
 
 	l = l.WithField("project", req.ID)
+
+	l.Debug("Retrieving project")
 
 	project, err := h.ProjectService.GetProjectByID(
 		ctx.Request().Context(),
@@ -128,6 +132,8 @@ func (h *Handlers) getProjectVersions(c echo.Context, l *logrus.Entry) error {
 
 	l = l.WithField("project", req.ProjectID)
 
+	l.Debug("Retrieving project versions")
+
 	versions, err := h.ProjectService.GetProjectVersions(
 		c.Request().Context(),
 		req.ProjectID,
@@ -167,7 +173,7 @@ func (h *Handlers) newGetProjectVersionsResponse(
 
 type deleteProjectVersionRequest struct {
 	ProjectID uint   `param:"project_id" validate:"required,numeric"`
-	VersionID string `param:"version_id" validate:"required,semver,max=20"`
+	VersionID string `param:"version_id" validate:"required,version,max=20"`
 }
 
 func (h *Handlers) deleteProjectVersion(c echo.Context, l *logrus.Entry) error {
@@ -183,6 +189,8 @@ func (h *Handlers) deleteProjectVersion(c echo.Context, l *logrus.Entry) error {
 		"version": req.VersionID,
 	})
 
+	l.Debug("Deleting project version")
+
 	err := h.ProjectService.DeleteProjectVersionByIDAndProjectID(
 		c.Request().Context(),
 		req.VersionID,
@@ -194,12 +202,14 @@ func (h *Handlers) deleteProjectVersion(c echo.Context, l *logrus.Entry) error {
 		return echo.ErrInternalServerError
 	}
 
+	l.Info("Project version deleted")
+
 	return c.NoContent(http.StatusOK)
 }
 
 type postProjectVersionRequest struct {
 	ID   int    `param:"id" validate:"required,numeric"`
-	Name string `json:"name" validate:"required,semver,max=20"`
+	Name string `json:"name" validate:"required,version,max=20"`
 }
 
 func (h *Handlers) postProjectVersion(c echo.Context, l *logrus.Entry) error {
@@ -209,6 +219,13 @@ func (h *Handlers) postProjectVersion(c echo.Context, l *logrus.Entry) error {
 
 		return echo.ErrBadRequest
 	}
+
+	l = l.WithFields(logrus.Fields{
+		"project": req.ID,
+		"name":    req.Name,
+	})
+
+	l.Debug("Creating project version")
 
 	if err := c.Validate(req); err != nil {
 		l.WithError(err).Error("Error binding request")
@@ -235,6 +252,8 @@ func (h *Handlers) postProjectVersion(c echo.Context, l *logrus.Entry) error {
 
 		return echo.ErrInternalServerError
 	}
+
+	l.Info("Creating project version")
 
 	return c.NoContent(http.StatusCreated)
 }

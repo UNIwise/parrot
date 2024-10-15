@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/pkg/errors"
@@ -39,7 +40,9 @@ func NewS3Client(ctx context.Context, conf S3StorageConfig) (*S3ClientImpl, erro
 
 // PutObject creates an S3 object
 func (c *S3ClientImpl) PutObject(ctx context.Context, key string, payloadReader io.Reader, metadata map[string]string, mimeType string) error {
-	if _, err := c.client.PutObject(ctx, &s3.PutObjectInput{
+	uploader := manager.NewUploader(c.client)
+
+	if _, err := uploader.Upload(ctx, &s3.PutObjectInput{
 		Body:        payloadReader,
 		Bucket:      aws.String(c.config.Bucket),
 		Key:         aws.String(key),
@@ -111,7 +114,6 @@ func (s *S3ClientImpl) GetObject(ctx context.Context, key string) (*s3.GetObject
 		Bucket: aws.String(s.config.Bucket),
 		Key:    aws.String(key),
 	})
-
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to get object from S3")
 	}
@@ -122,12 +124,52 @@ func (s *S3ClientImpl) GetObject(ctx context.Context, key string) (*s3.GetObject
 // ListObjects lists all objects in an S3 bucket
 func (s *S3ClientImpl) ListObjects(ctx context.Context, storageKey string) (*s3.ListObjectsV2Output, error) {
 	output, err := s.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: aws.String(s.config.Bucket),
-		Prefix: &storageKey,
+		Bucket:    aws.String(s.config.Bucket),
+		Prefix:    &storageKey,
 		Delimiter: aws.String("/"),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to list objects in S3")
+	}
+
+	return output, nil
+}
+
+func (s *S3ClientImpl) AbortMultipartUpload(ctx context.Context, uploadID string) error {
+	_, err := s.client.AbortMultipartUpload(ctx, &s3.AbortMultipartUploadInput{
+		Bucket:   aws.String(s.config.Bucket),
+		Key:      aws.String(uploadID),
+		UploadId: aws.String(uploadID),
+	})
+	if err != nil {
+		return errors.Wrap(err, "Failed to abort multipart upload")
+	}
+
+	return nil
+}
+
+func (s *S3ClientImpl) CompleteMultipartUpload(ctx context.Context, input *s3.CompleteMultipartUploadInput) (*s3.CompleteMultipartUploadOutput, error) {
+	output, err := s.client.CompleteMultipartUpload(ctx, input)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to complete multipart upload")
+	}
+
+	return output, nil
+}
+
+func (s *S3ClientImpl) CreateMultipartUpload(ctx context.Context, input *s3.CreateMultipartUploadInput) (*s3.CreateMultipartUploadOutput, error) {
+	output, err := s.client.CreateMultipartUpload(ctx, input)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create multipart upload")
+	}
+
+	return output, nil
+}
+
+func (s *S3ClientImpl) UploadPart(ctx context.Context, input *s3.UploadPartInput) (*s3.UploadPartOutput, error) {
+	output, err := s.client.UploadPart(ctx, input)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to upload part")
 	}
 
 	return output, nil

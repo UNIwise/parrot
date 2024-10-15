@@ -437,7 +437,7 @@ func (c *ClientImpl) ExportProject(ctx context.Context, r ExportProjectRequest) 
 		}
 	}
 
-	if res.Response.Code == "4044" {
+	if res.Response.Code == "404" {
 		return nil, &ErrLanguageNotFound{
 			ProjectID:    r.ID,
 			LanguageCode: r.Language,
@@ -445,6 +445,7 @@ func (c *ClientImpl) ExportProject(ctx context.Context, r ExportProjectRequest) 
 	}
 
 	if res.Response.Code != "200" {
+		fmt.Println(res.Response)
 		return nil, errors.New(res.Response.Message)
 	}
 

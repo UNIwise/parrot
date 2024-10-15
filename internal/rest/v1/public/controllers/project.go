@@ -17,7 +17,7 @@ type getProjectLanguageRequest struct {
 	Project  int    `param:"project" validate:"required"`
 	Language string `param:"language" validate:"required,languageCode"`
 	Format   string `query:"format" validate:"omitempty,oneof=po pot mo xls xlsx csv ini resw resx android_strings apple_strings xliff properties key_value_json json yml xlf xmb xtb arb rise_360_xliff"`
-	Version  string `query:"version" validate:"omitempty,max=20,alphanum"`
+	Version  string `query:"version" validate:"omitempty,max=20,semver"`
 }
 
 func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {

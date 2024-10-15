@@ -14,6 +14,7 @@ import (
 
 	gosundheit "github.com/AppsFlyer/go-sundheit"
 	"github.com/AppsFlyer/go-sundheit/checks"
+	"github.com/alitto/pond"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -373,60 +374,62 @@ func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int,
 		ContentType string
 	}
 
-	var translationObjects []TranslationObject
+	jobErrors := []error{}
+	pool := pond.New(10, 1000) // 25 workers, 1000 buffered jobs
+
+	versionKey := fmt.Sprintf("%d/%s_%s_%d", projectID, uuid, name, timeStamp)
 
 	for _, language := range languagesResponse.Result.Languages {
 		for contentMetaKey, contentMeta := range contentMetaMap {
-			resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
-				ID:       projectID,
-				Language: language.Code,
-				Type:     contentMetaKey,
-				Filters:  []string{"translated"},
-			})
-			if err != nil {
-				return errors.Wrap(err, "Failed to export project")
-			}
+			pool.Submit(func() {
+				resp, err := s.Client.ExportProject(ctx, poedit.ExportProjectRequest{
+					ID:       projectID,
+					Language: language.Code,
+					Type:     contentMetaKey,
+					Filters:  []string{"translated"},
+				})
+				if err != nil {
+					jobErrors = append(jobErrors, errors.Wrap(err, "Failed to export project"))
+				}
 
-			d, err := http.Get(resp.Result.URL)
-			if err != nil {
-				return errors.Wrap(err, "Failed to download project language file")
-			}
-			defer d.Body.Close()
+				d, err := http.Get(resp.Result.URL)
+				if err != nil {
+					jobErrors = append(jobErrors, errors.Wrap(err, "Failed to download project language file"))
+				}
+				defer d.Body.Close()
 
-			if d.StatusCode != http.StatusOK {
-				return errors.Errorf("Response code '%d' from download GET", d.StatusCode)
-			}
+				if d.StatusCode != http.StatusOK {
+					jobErrors = append(jobErrors, errors.Errorf("Response code '%d' from download GET", d.StatusCode))
+				}
 
-			//upload to s3
-			data, err := io.ReadAll(d.Body)
-			if err != nil {
-				return errors.Wrap(err, "Failed to read project language file")
-			}
+				s3Key := fmt.Sprintf("%s/%s.%s", versionKey, language.Code, contentMeta.Extension)
 
-			reader := bytes.NewReader(data)
+				meta := map[string]string{
+					"project":     fmt.Sprintf("%d", projectID),
+					"lang":        language.Code,
+					"versionName": name,
+					"format":      contentMeta.Extension,
+				}
 
-			s3Key := fmt.Sprintf("%d/%s_%s_%d/%s.%s", projectID, uuid, name, timeStamp, language.Code, contentMeta.Extension)
+				fmt.Println("Uploading to S3", s3Key)
 
-			meta := map[string]string{
-				"project":     fmt.Sprintf("%d", projectID),
-				"lang":        language.Code,
-				"versionName": name,
-				"format":      contentMeta.Extension,
-			}
+				if err := s.storage.PutObject(ctx, s3Key, d.Body, meta, contentMeta.Type); err != nil {
+					jobErrors = append(jobErrors, errors.Wrap(err, "Failed to upload project language file to S3"))
+				}
 
-			translationObjects = append(translationObjects, TranslationObject{
-				S3Key:       s3Key,
-				Reader:      reader,
-				Meta:        meta,
-				ContentType: contentMeta.Type,
+				fmt.Println("Done uploading to S3", s3Key)
 			})
 		}
 	}
 
-	for _, translationObject := range translationObjects {
-		if err := s.storage.PutObject(ctx, translationObject.S3Key, translationObject.Reader, translationObject.Meta, translationObject.ContentType); err != nil {
-			return errors.Wrap(err, "Failed to upload project language file to S3")
+	pool.StopAndWait()
+
+	if len(jobErrors) > 0 {
+		if err := s.storage.DeleteObjects(ctx, versionKey); err != nil {
+			return errors.Wrap(err, "Failed to delete project version in S3")
 		}
+
+		return errors.New("Failed to create language versions")
 	}
 
 	return nil
