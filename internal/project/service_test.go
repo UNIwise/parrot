@@ -320,6 +320,16 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 		},
 	}
 
+	prefix := fmt.Sprintf("%d/%s_%s_%d", testID, testUUID, "1.0.0", testGenerateTimestamp())
+
+	listObjectsV2Output := &s3.ListObjectsV2Output{
+		CommonPrefixes: []types.CommonPrefix{
+			{
+				Prefix: &prefix,
+			},
+		},
+	}
+
 	exportProjectRequest := poedit.ExportProjectRequest{
 		ID:       int(testProjectID),
 		Language: "en",
@@ -341,6 +351,7 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	fileName := fmt.Sprintf("%d/%s_%s_%d/%s.json", testID, testUUID, testName, testGenerateTimestamp(), "en")
 
 	t.Run("Success", func(t *testing.T) {
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
 		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
 
@@ -354,7 +365,28 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("Fail, version already exist in S3", func(t *testing.T) {
+
+		prefixExist := fmt.Sprintf("%d/%s_%s_%d", testID, testUUID, testName, testGenerateTimestamp())
+
+		listObjectsV2Output := &s3.ListObjectsV2Output{
+			CommonPrefixes: []types.CommonPrefix{
+				{
+					Prefix: &prefixExist,
+				},
+			},
+		}
+
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
+
+		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
+
+		assert.ErrorIs(t, err, ErrVersionAlreadyExist)
+		assert.ErrorContains(t, err, "Project version already exists")
+	})
+
 	t.Run("Fail, fails to list project languages", func(t *testing.T) {
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(nil, errTest)
 
 		err := service.CreateLanguagesVersion(testCtx, int(testProjectID), testName)
@@ -363,6 +395,7 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	})
 
 	t.Run("Fail, fails to export project", func(t *testing.T) {
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
 		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(nil, errTest)
 
@@ -372,6 +405,7 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	})
 
 	t.Run("Fail, fails to download file", func(t *testing.T) {
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
 		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
 
@@ -384,6 +418,7 @@ func TestServiceCreateLanguagesVersion(t *testing.T) {
 	})
 
 	t.Run("Fail, fails to upload file to S3", func(t *testing.T) {
+		storage.EXPECT().ListObjects(testCtx, testStorageKeyForListing).Times(1).Return(listObjectsV2Output, nil)
 		poeditClient.EXPECT().ListProjectLanguages(testCtx, listProjectLanguagesRequest).Return(listAvailableLanguagesResponse, nil)
 		poeditClient.EXPECT().ExportProject(testCtx, exportProjectRequest).Return(exportProjectResponse, nil)
 

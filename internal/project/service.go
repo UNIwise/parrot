@@ -23,6 +23,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+var ErrVersionAlreadyExist = errors.New("Project version already exists")
 type Translation struct {
 	TTL      time.Duration
 	Checksum string
@@ -320,7 +321,36 @@ func (s *ServiceImpl) DeleteProjectVersionByIDAndProjectID(ctx context.Context, 
 	return nil
 }
 
+func (s *ServiceImpl) checkProjectVersionExistInS3(ctx context.Context, projectID int, name string) (bool, error) {
+	s3Output, err := s.storage.ListObjects(ctx, fmt.Sprintf("%d/", projectID))
+	if err != nil {
+		return false, errors.Wrap(err, "failed to get project versions")
+	}
+
+	for _, object := range s3Output.CommonPrefixes {
+		// Example Prefix : {projectID}/{versionID_versionName_timestamp}/
+		// 720964/61ded6dc-c8b7-4d4e-aa70-cd37dd1216b3_1.0.0_123456789/
+		prefixData := strings.Split(aws.ToString(object.Prefix), "/")
+
+		versionData := strings.Split(prefixData[1], "_")
+		versionName := versionData[1]
+
+		if versionName == name {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func (s *ServiceImpl) CreateLanguagesVersion(ctx context.Context, projectID int, name string) error {
+	exists, err := s.checkProjectVersionExistInS3(ctx, projectID, name)
+	if err != nil {	
+		return errors.Wrap(err, "Failed to check project version existence in S3")
+	}
+	if exists {
+		return ErrVersionAlreadyExist
+	}
 	languagesResponse, err := s.Client.ListProjectLanguages(ctx, poedit.ListProjectLanguagesRequest{
 		ID: projectID,
 	})

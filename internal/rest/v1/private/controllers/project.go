@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -226,6 +227,10 @@ func (h *Handlers) postProjectVersion(c echo.Context, l *logrus.Entry) error {
 		req.Name,
 	)
 	if err != nil {
+		if errors.Is(err, project.ErrVersionAlreadyExist) {
+			return echo.ErrBadRequest
+		}
+		
 		l.WithError(err).Error("Error creating project version")
 
 		return echo.ErrInternalServerError
