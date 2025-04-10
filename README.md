@@ -1,14 +1,19 @@
+# Parrot
 
-<p align="center">
-<img alt="Parrot logo" src="assets/parrot_banner.svg" height="150"/>
-</p>
+![Parrot logo](assets/parrot_banner.svg){ height="150" }
+
+<!--<p align="center">-->
+<!--<img alt="Parrot logo" src="assets/parrot_banner.svg" height="150"/>-->
+<!--</p>-->
 
 <p align="center">
   Parrot the <a href="http://poeditor.com/">POEditor</a> pull-through cache
 </p>
 
 <p align="center">
-  <a href="https://github.com/UNIwise/parrot/releases/latest"><img src="https://img.shields.io/github/v/release/UNIwise/parrot"></a>
+  <a href="https://github.com/UNIwise/parrot/releases/latest">
+    <img src="https://img.shields.io/github/v/release/UNIwise/parrot">
+  </a>
 </p>
 <p align="center">
   <img src="https://api.stage.eu.wiseflow.io/badges/v1/namespace/parrot/deployment/parrot?text=stage">
@@ -19,15 +24,15 @@
 
 This cache makes it possible to pull app translations directly from [POEditor](http://poeditor.com/) instead of compiling them into your app. This means no more re-builds every time translations are updated!
 
-# Features
+## Features
 
--  **Battle tested**: The software is in active use on the WISEflow platform with high request rates daily.
--  **All the formats**: Parrot can provide all formats supported by POEditor.
--   **Cache choices**: Parrot comes with a Filesystem and Redis cache to facilitate single app deployments and highly distributed deployments.
--   **OpenAPI**: The Parrot API has been documented in OpenAPI specification which can be found in the [doc/](/docs) directory.
--  **Easy deployment**: A docker image and helm chart is provided.
+- **Battle tested**: The software is in active use on the WISEflow platform with high request rates daily.
+- **All the formats**: Parrot can provide all formats supported by POEditor.
+- **Cache choices**: Parrot comes with a Filesystem and Redis cache to facilitate single app deployments and highly distributed deployments.
+- **OpenAPI**: The Parrot API has been documented in OpenAPI specification which can be found in the [doc/](/docs) directory.
+- **Easy deployment**: A docker image and helm chart is provided.
 
-# Configuration
+## Configuration
 
 The server can be configured with a yaml configuration file specified with the `--config` option. Every configuration can be overridden with an environment variable, where dots are replaced by underscores, such that `API_TOKEN=xxx` will set the `api.token` value
 
@@ -55,11 +60,11 @@ The server can be configured with a yaml configuration file specified with the `
 | prometheus.port                | port to expose the prometheus metrics under                                  | int      | `9090`                       |
 | api.token                      | secret token to authenticating against poeditor                              | string   |
 
-# API specification
+## API specification
 
 The REST API of Parrot is documented in the OpenAPI format. The specification file can be found here [docs/api.yml](docs/api.yml) and a Swagger UI is available here [uniwise.github.io/parrot](https://uniwise.github.io/parrot).
 
-# License
+## License
 
 Parrot is available under the Apache 2 license.
 
