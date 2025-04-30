@@ -1,8 +1,17 @@
 *
+
+# Backend
 !internal
 !cmd
 !pkg
 !main.go
 !go.mod
 !go.sum
+
+# Dashboard
+!dashboard/*
+dashboard/node_modules
+
+# Other
 !LICENSE
+!docker/*

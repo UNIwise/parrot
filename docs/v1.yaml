@@ -69,6 +69,12 @@ paths:
         name: format
         in: query
         required: false
+      - schema:
+          type: string
+        description: The version of the return data
+        name: version
+        in: query
+        required: false
     get:
       tags:
         - project
@@ -79,6 +85,142 @@ paths:
           description: "Invalid project id"
         "404":
           description: "No translation found for language code"
+  /v1/projects:
+    get:
+      description: Get all projects
+      tags:
+        - projects
+      responses:
+        "200":
+          description: "Successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Project id in POEditor
+                          example: 123456
+                        name:
+                          type: string
+                          description: The name of the project
+                          example: "My project"
+                        numberOfVersions:
+                          type: integer
+                          description: The number of versions in the project
+                          example: 1
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The creation date of the project in ISO 8601 format
+                          example: "2023-09-05T12:34:56Z"
+  /v1/projects/{project}:
+    parameters:
+      - schema:
+          type: integer
+          format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+    get:
+      description: Get project by project id
+      tags:
+        - projects
+      responses:
+        "200":
+          description: "Successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 123456
+                  name:
+                    type: string
+                    example: "My project"
+                  numberOfVersions:
+                    type: integer
+                    example: 1
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2021-01-01T00:00:00Z"
+        "400":
+          description: "Invalid project id"
+        "404":
+          description: "Project not found"
+  /v1/projects/{project}/versions:
+    parameters:
+      - schema:
+          type: integer
+          format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+    get:
+      description: Get all project versions
+      tags:
+        - projects
+      responses:
+        "200":
+          description: "Successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Version id in S3
+                          example: 123456
+                        name:
+                          type: string
+                          description: Version name
+                          example: "v1"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The creation date of the version in ISO 8601 format
+                          example: "2023-09-05T12:34:56Z"
+        "400":
+          description: "Invalid project id"
+        "404":
+          description: "Project versions not found"
+    post:
+      description: Create a new project version
+      tags:
+        - projects
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "My project"
+      responses:
+        "201":
+          description: "Successful"
+        "400":
+          description: "Invalid project id"
   /v1/project/{project}/purge:
     parameters:
       - schema:
@@ -96,6 +238,29 @@ paths:
           description: "Successful"
         "400":
           description: "Invalid project id"
+  /v1/project/{project}/versions/{version}:
+    parameters:
+      - schema:
+          type: integer
+          format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+      - schema:
+          type: string
+        description: Version id in S3
+        name: version
+        in: path
+        required: true
+    delete:
+      tags:
+        - projects
+      responses:
+        "200":
+          description: "Successful"
+        "400":
+          description: "Invalid project id or version id"
   /v1/project/{project}/language/{language}/purge:
     parameters:
       - schema:

@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,13 +31,16 @@ import (
 	"github.com/uniwise/parrot/internal/cache"
 	"github.com/uniwise/parrot/internal/metrics"
 	"github.com/uniwise/parrot/internal/project"
-	"github.com/uniwise/parrot/internal/rest"
+	privateRest "github.com/uniwise/parrot/internal/rest/v1/private"
+	publicRest "github.com/uniwise/parrot/internal/rest/v1/public"
+	"github.com/uniwise/parrot/internal/storage"
 	"github.com/uniwise/parrot/pkg/poedit"
 )
 
 const (
-	confServerPort  = "server.port"
-	confServerGrace = "server.gracePeriod"
+	confServerPortPublic  = "server.port.public"
+	confServerPortPrivate = "server.port.private"
+	confServerGrace       = "server.gracePeriod"
 
 	confLogLevel  = "log.level"
 	confLogFormat = "log.format"
@@ -61,6 +64,9 @@ const (
 	confPrometheusPort    = "prometheus.port"
 
 	confAPIToken = "api.token"
+
+	confAWSRegion = "aws.region"
+	confAWSBucket = "aws.bucket"
 )
 
 // serveCmd represents the serve command
@@ -75,24 +81,50 @@ by caching exports from poeditor`,
 
 		cacheInstance, err := instantiateCache(logger.WithField("subsystem", "cache"))
 		if err != nil {
-			logger.Fatal(err)
+			logger.WithError(err).Fatal("Could not instantiate cache")
 		}
 
 		cli := poedit.NewClient(viper.GetString(confAPIToken), http.DefaultClient)
 
-		svc := project.NewService(cli, cacheInstance, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
-
-		server, err := rest.NewServer(logrus.NewEntry(logger), svc, viper.GetBool(confPrometheusEnabled))
-		if err != nil {
-			logger.Fatal(err)
+		s3Config := &storage.S3StorageConfig{
+			Region: viper.GetString(confAWSRegion),
+			Bucket: viper.GetString(confAWSBucket),
 		}
 
-		port := viper.GetInt(confServerPort)
+		s3Client, err := storage.NewS3Client(context.Background(), *s3Config)
+		if err != nil {
+			logger.WithError(err).Fatal("Could not instantiate S3 client")
+		}
 
-		logger.Infof("Server listening at :%d", port)
+		storageService := storage.NewService(context.Background(), s3Client)
+
+		svc := project.NewService(cli, storageService, cacheInstance, viper.GetDuration(confCacheRenewalThreshold), logrus.NewEntry(logger))
+
+		publicServer, err := publicRest.NewServer(logrus.NewEntry(logger), svc)
+		if err != nil {
+			logger.WithError(err).Fatal("Could not instantiate public server")
+		}
+
+		publicPort := viper.GetInt(confServerPortPublic)
+
+		logger.Infof("Public server listening at :%d", publicPort)
 		go func() {
-			if err := server.Start(port); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logger.Fatal("shutting down server")
+			if err := publicServer.Start(publicPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				logger.Fatal("shutting down public server")
+			}
+		}()
+
+		privateServer, err := privateRest.NewServer(logrus.NewEntry(logger), svc, viper.GetBool(confPrometheusEnabled))
+		if err != nil {
+			logger.WithError(err).Fatal("Could not instantiate private server")
+		}
+
+		privatePort := viper.GetInt(confServerPortPrivate)
+
+		logger.Infof("Private server listening at :%d", privatePort)
+		go func() {
+			if err := privateServer.Start(privatePort); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				logger.Fatal("shutting down private server")
 			}
 		}()
 
@@ -108,7 +140,10 @@ by caching exports from poeditor`,
 		<-quit
 		ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration(confServerGrace))
 		defer cancel()
-		if err := server.Shutdown(ctx); err != nil {
+		if err := privateServer.Shutdown(ctx); err != nil {
+			logger.Fatal(err)
+		}
+		if err := publicServer.Shutdown(ctx); err != nil {
 			logger.Fatal(err)
 		}
 	},
@@ -121,7 +156,8 @@ func init() {
 		cDir = "/tmp"
 	}
 
-	viper.SetDefault(confServerPort, 80)
+	viper.SetDefault(confServerPortPublic, 8000)
+	viper.SetDefault(confServerPortPrivate, 8001)
 	viper.SetDefault(confServerGrace, time.Second*10)
 
 	viper.SetDefault(confLogLevel, "info")
@@ -138,6 +174,7 @@ func init() {
 	viper.SetDefault(confPrometheusEnabled, true)
 	viper.SetDefault(confPrometheusPort, 9090)
 	viper.SetDefault(confPrometheusPath, "/metrics")
+	viper.SetDefault(confAWSRegion, "eu-west-1")
 
 	rootCmd.AddCommand(serveCmd)
 }
@@ -161,6 +198,12 @@ func instantiateLogger() *logrus.Logger {
 		logger.Warnf("Did not understand log format '%s'. Defaulting to json format", viper.GetString(confLogFormat))
 		logger.SetFormatter(&logrus.JSONFormatter{})
 	}
+
+	logger.WithFields(logrus.Fields{
+		"level":  viper.GetString(confLogLevel),
+		"format": viper.GetString(confLogFormat),
+	}).Info("Logger initialized")
+
 	return logger
 }
 
