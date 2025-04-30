@@ -12,6 +12,7 @@ on:
 
 jobs:
   test:
+    runs-on: default
     steps:
       - uses: actions/checkout@v2
 
@@ -25,6 +26,7 @@ jobs:
 
   lint:
     name: lint
+    runs-on: default
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
