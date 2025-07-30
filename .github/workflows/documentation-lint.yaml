@@ -1,0 +1,14 @@
+name: Docs
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - "wiki/**"
+
+jobs:
+  markdown:
+    uses: UNIwise/workflows/.github/workflows/documentation.yaml@master
+    secrets: inherit
+    with:
+      sync: false # We don't want to sync documentation on pull requests

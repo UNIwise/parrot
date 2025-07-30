@@ -1,0 +1,14 @@
+name: Docs
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - master
+    paths:
+      - "wiki/**"
+
+jobs:
+  markdown:
+    uses: UNIwise/workflows/.github/workflows/documentation.yaml@master
+    secrets: inherit
