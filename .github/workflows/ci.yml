@@ -15,7 +15,7 @@ on:
 
 jobs:
   golang:
-    uses: UNIwise/workflows/.github/workflows/golang.yaml@master
+    uses: UNIwise/workflows/.github/workflows/golang.yaml@optimize-golang
     secrets: inherit
     with:
       go-version: 1.19
