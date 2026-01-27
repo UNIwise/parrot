@@ -7,6 +7,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Language represents a language in a POEditor project
+type Language struct {
+	Name         string  `json:"name"`
+	Code         string  `json:"code"`
+	Translations int64   `json:"translations"`
+	Percentage   float64 `json:"percentage"`
+	Updated      string  `json:"updated"`
+}
+
 type ListAvailableLanguagesResponse struct {
 	Response struct {
 		Status  string `json:"status"`

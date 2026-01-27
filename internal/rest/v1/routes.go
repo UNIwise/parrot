@@ -29,6 +29,7 @@ func Register(e *echo.Echo, l *logrus.Entry, projectService project.Service, ena
 		g.Use(prom)
 	}
 
+	g.GET("/project/:project/languages", wrap(h.getProjectLanguages, l))
 	g.GET("/project/:project/language/:language", wrap(h.getProjectLanguage, l))
 }
 

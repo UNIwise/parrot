@@ -90,3 +90,49 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 
 	return ctx.Stream(http.StatusOK, contentMeta.Type, bytes.NewReader(trans.Data))
 }
+
+type getProjectLanguagesRequest struct {
+	Project int `param:"project" validate:"required"`
+}
+
+func (h *Handlers) getProjectLanguages(ctx echo.Context, l *logrus.Entry) error {
+	req := new(getProjectLanguagesRequest)
+	if err := ctx.Bind(req); err != nil {
+		l.WithError(err).Error("Error binding request")
+
+		return echo.ErrBadRequest
+	}
+
+	l = l.WithFields(logrus.Fields{
+		"project": req.Project,
+	})
+
+	if err := ctx.Validate(req); err != nil {
+		l.WithError(err).Error("Error validating request")
+
+		return echo.ErrBadRequest
+	}
+
+	languages, err := h.ProjectService.GetLanguages(
+		ctx.Request().Context(),
+		req.Project,
+	)
+	if errors.Is(err, context.Canceled) {
+		return echo.NewHTTPError(499, "client closed request")
+	}
+
+	if err != nil {
+		switch err.(type) {
+		case *poedit.ErrProjectPermissionDenied:
+			return echo.ErrBadRequest
+		default:
+			l.WithError(err).Error("Error retrieving languages")
+
+			return echo.ErrInternalServerError
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
+		"languages": languages,
+	})
+}

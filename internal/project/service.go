@@ -23,6 +23,7 @@ type Translation struct {
 
 type Service interface {
 	GetTranslation(ctx context.Context, projectID int, languageCode, format string) (trans *Translation, err error)
+	GetLanguages(ctx context.Context, projectID int) (languages []poedit.Language, err error)
 	PurgeTranslation(ctx context.Context, projectID int, languageCode string) (err error)
 	PurgeProject(ctx context.Context, projectID int) (err error)
 	RegisterChecks(h gosundheit.Health) (err error)
@@ -88,6 +89,28 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 		Checksum: checksum,
 		Data:     data,
 	}, nil
+}
+
+func (s *ServiceImpl) GetLanguages(ctx context.Context, projectID int) ([]poedit.Language, error) {
+	resp, err := s.Client.ListProjectLanguages(ctx, poedit.ListProjectLanguagesRequest{
+		ID: projectID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	languages := make([]poedit.Language, len(resp.Result.Languages))
+	for i, lang := range resp.Result.Languages {
+		languages[i] = poedit.Language{
+			Name:         lang.Name,
+			Code:         lang.Code,
+			Translations: lang.Translations,
+			Percentage:   lang.Percentage,
+			Updated:      lang.Updated,
+		}
+	}
+
+	return languages, nil
 }
 
 func (s *ServiceImpl) PurgeTranslation(ctx context.Context, projectID int, languageCode string) error {

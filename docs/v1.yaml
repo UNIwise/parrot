@@ -26,6 +26,43 @@ servers:
         default: ""
 
 paths:
+  /v1/project/{project}/languages:
+    parameters:
+      - schema:
+          type: integer
+          format: int32
+        description: Project id in POEditor
+        name: project
+        in: path
+        required: true
+    get:
+      tags:
+        - project
+      responses:
+        "200":
+          description: "Successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  languages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        code:
+                          type: string
+                        translations:
+                          type: integer
+                        percentage:
+                          type: number
+                        updated:
+                          type: string
+        "400":
+          description: "Invalid project id"
   /v1/project/{project}/language/{language}:
     parameters:
       - schema:
