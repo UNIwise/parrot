@@ -13,9 +13,9 @@ import (
 )
 
 type getProjectLanguageRequest struct {
-	Project  int    `param:"project" validate:"required"`
+	Project  int    `param:"project"  validate:"required"`
 	Language string `param:"language" validate:"required,languageCode"`
-	Format   string `query:"format" validate:"omitempty,oneof=po pot mo xls xlsx csv ini resw resx android_strings apple_strings xliff properties key_value_json json yml xlf xmb xtb arb rise_360_xliff"`
+	Format   string `                 validate:"omitempty,oneof=po pot mo xls xlsx csv ini resw resx android_strings apple_strings xliff properties key_value_json json yml xlf xmb xtb arb rise_360_xliff" query:"format"` //nolint:lll
 }
 
 func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
@@ -62,9 +62,9 @@ func (h *Handlers) getProjectLanguage(ctx echo.Context, l *logrus.Entry) error {
 
 	if err != nil {
 		switch err.(type) {
-		case *poedit.ErrProjectPermissionDenied:
+		case *poedit.ProjectPermissionDeniedError:
 			return echo.ErrBadRequest
-		case *poedit.ErrLanguageNotFound:
+		case *poedit.LanguageNotFoundError:
 			return echo.ErrNotFound
 		default:
 			l.WithError(err).Error("Error retrieving translation")

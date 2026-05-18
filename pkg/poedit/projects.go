@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -72,7 +73,7 @@ type ViewProjectResponse struct {
 			Description       string `json:"description"`
 			Public            int64  `json:"public"`
 			Open              int64  `json:"open"`
-			ReferenceLanguage string `json:"reference_language"` // nolint:tagliatelle
+			ReferenceLanguage string `json:"reference_language"` //nolint:tagliatelle
 			Terms             int64  `json:"terms"`
 			Created           string `json:"created"`
 		} `json:"project"`
@@ -86,7 +87,7 @@ func (c *ClientImpl) ViewProject(ctx context.Context, r ViewProjectRequest) (*Vi
 	req := c.r.R()
 
 	req.SetFormData(map[string]string{
-		"id": fmt.Sprintf("%d", r.ID),
+		"id": strconv.Itoa(r.ID),
 	})
 
 	req.SetContext(ctx)
@@ -202,7 +203,7 @@ func (c *ClientImpl) UpdateProjectSettings(ctx context.Context, r UpdateProjectS
 	req := c.r.R()
 
 	req.SetFormData(map[string]string{
-		"id":                 fmt.Sprintf("%d", r.ID),
+		"id":                 strconv.Itoa(r.ID),
 		"name":               r.Name,
 		"description":        r.Description,
 		"reference_language": r.ReferenceLanguage,
@@ -249,7 +250,7 @@ func (c *ClientImpl) DeleteProject(ctx context.Context, r DeleteProjectRequest) 
 	req := c.r.R()
 
 	req.SetFormData(map[string]string{
-		"id": fmt.Sprintf("%d", r.ID),
+		"id": strconv.Itoa(r.ID),
 	})
 
 	req.SetContext(ctx)
@@ -309,7 +310,7 @@ type UploadProjectResponse struct {
 //
 // https://poeditor.com/docs/api#projects_upload
 //
-// NOT IMPLEMENTED In this sdk
+// NOT IMPLEMENTED In this sdk.
 func (c *ClientImpl) UploadProject(ctx context.Context, r UploadProjectRequest) (*UploadProjectResponse, error) {
 	return nil, ErrNotImplemented
 }
@@ -342,7 +343,8 @@ type SyncProjectTermsResponse struct {
 	} `json:"result"`
 }
 
-// SyncProjectTerms Syncs your project with the array you send (terms that are not found in the JSON object will be deleted from project and the new ones added).
+// SyncProjectTerms Syncs your project with the array you send
+// (terms that are not found in the JSON object will be deleted from project and the new ones added).
 // Please use with caution. If wrong data is sent, existing terms and their translations might be irreversibly lost.
 //
 // https://poeditor.com/docs/api#projects_sync
@@ -355,7 +357,7 @@ func (c *ClientImpl) SyncProjectTerms(ctx context.Context, r SyncProjectTermsReq
 	}
 
 	req.SetFormData(map[string]string{
-		"id":   fmt.Sprintf("%d", r.ID),
+		"id":   strconv.Itoa(r.ID),
 		"data": string(data),
 	})
 
@@ -408,7 +410,7 @@ func (c *ClientImpl) ExportProject(ctx context.Context, r ExportProjectRequest) 
 	req := c.r.R()
 
 	req.SetFormData(map[string]string{
-		"id":       fmt.Sprintf("%d", r.ID),
+		"id":       strconv.Itoa(r.ID),
 		"language": r.Language,
 		"type":     r.Type,
 		"order":    r.Order,
@@ -432,13 +434,13 @@ func (c *ClientImpl) ExportProject(ctx context.Context, r ExportProjectRequest) 
 	}
 
 	if res.Response.Code == "403" {
-		return nil, &ErrProjectPermissionDenied{
+		return nil, &ProjectPermissionDeniedError{
 			ProjectID: r.ID,
 		}
 	}
 
 	if res.Response.Code == "4044" {
-		return nil, &ErrLanguageNotFound{
+		return nil, &LanguageNotFoundError{
 			ProjectID:    r.ID,
 			LanguageCode: r.Language,
 		}

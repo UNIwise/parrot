@@ -1,13 +1,92 @@
-linters:
-  enable-all: true
-  disable:
-    - wsl
-    - gochecknoglobals
-    - exhaustivestruct
-    - wrapcheck
+version: "2"
 
-    # Deprecated
-    - scopelint
-    - golint
-    - maligned
-    - interfacer
+linters:
+  default: none
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - dogsled
+    - dupword
+    - embeddedstructfieldcheck
+    - errcheck
+    - errname
+    - exhaustive
+    - exptostd
+    - gocheckcompilerdirectives
+    - gochecknoinits
+    - gochecksumtype
+    - godot
+    - gomoddirectives
+    - govet
+    - inamedparam
+    - ineffassign
+    - intrange
+    - iotamixing
+    - lll
+    - misspell
+    - modernize
+    - musttag
+    - nestif
+    - nlreturn
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - paralleltest
+    - perfsprint
+    - predeclared
+    - promlinter
+    - protogetter
+    - staticcheck
+    - tagalign
+    - testifylint
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - whitespace
+    - wsl_v5
+  exclusions:
+    generated: strict
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - dupl
+          - gosec
+      - linters:
+          - errcheck
+        source: "^\\s*defer\\s+"
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    lll:
+      line-length: 150
+    paralleltest:
+      ignore-missing-subtests: true
+    tagalign:
+      strict: true
+    testifylint:
+      disable:
+        - require-error
+
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+  settings:
+    gofumpt:
+      extra-rules: true
+    golines:
+      max-len: 150
+
+issues:
+  fix: true
+
+run:
+  timeout: 5m

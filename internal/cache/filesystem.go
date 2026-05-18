@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -39,6 +38,7 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 	if os.IsNotExist(err) {
 		return nil, ErrCacheMiss
 	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to get cached file state from OS")
 	}
@@ -47,15 +47,16 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 		return nil, ErrCacheMiss
 	}
 
-	b, err := ioutil.ReadFile(filePath)
+	b, err := os.ReadFile(filePath)
 	if os.IsNotExist(err) {
 		return nil, ErrCacheMiss
 	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	md5, err := ioutil.ReadFile(fmt.Sprintf("%s.md5", filePath))
+	md5, err := os.ReadFile(filePath + ".md5")
 	if err != nil {
 		return nil, ErrCacheMiss
 	}
@@ -68,7 +69,7 @@ func (f *FilesystemCache) GetTranslation(ctx context.Context, projectID int, lan
 }
 
 func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, languageCode, format string, data []byte) (string, error) {
-	if err := ioutil.WriteFile(
+	if err := os.WriteFile(
 		f.filePath(projectID, languageCode, format),
 		data,
 		os.ModePerm,
@@ -79,7 +80,7 @@ func (f *FilesystemCache) SetTranslation(ctx context.Context, projectID int, lan
 	hashBytes := md5.Sum(data)
 	hash := hex.EncodeToString(hashBytes[:])
 
-	if err := ioutil.WriteFile(
+	if err := os.WriteFile(
 		f.md5Path(projectID, languageCode, format),
 		[]byte(hash),
 		os.ModePerm,
@@ -122,10 +123,7 @@ func (f *FilesystemCache) filePath(projectID int, languageCode, format string) s
 func (f *FilesystemCache) md5Path(projectID int, languageCode, format string) string {
 	return path.Join(
 		f.dir,
-		fmt.Sprintf(
-			"%s.md5",
-			f.filename(projectID, languageCode, format),
-		),
+		f.filename(projectID, languageCode, format)+".md5",
 	)
 }
 

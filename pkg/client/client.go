@@ -76,6 +76,7 @@ func (c *CachedClientImpl) GetTranslation(ctx context.Context, language string) 
 	// Lock here to avoid multiple concurrent requests to upstream
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+
 	cached, exists := c.cache[key]
 	if exists && cached.Expires.After(time.Now()) {
 		return cached.Data, nil
@@ -116,6 +117,7 @@ func (c *CachedClientImpl) GetTranslation(ctx context.Context, language string) 
 		if !ok || data == nil {
 			return nil, errors.Errorf("Failed to parse response: '%s'", resp.Body())
 		}
+
 		result := mapResponse(*data)
 		c.cache[key] = cacheItem{
 			Etag:    resp.Header().Get("Etag"),

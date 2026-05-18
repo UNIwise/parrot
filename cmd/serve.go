@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ const (
 	confAPIToken = "api.token"
 )
 
-// serveCmd represents the serve command
+// serveCmd represents the serve command.
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the parrot caching server",
@@ -90,6 +90,7 @@ by caching exports from poeditor`,
 		port := viper.GetInt(confServerPort)
 
 		logger.Infof("Server listening at :%d", port)
+
 		go func() {
 			if err := server.Start(port); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				logger.Fatal("shutting down server")
@@ -98,6 +99,7 @@ by caching exports from poeditor`,
 
 		if viper.GetBool(confPrometheusEnabled) {
 			logger.Infof("Prometheus metrics exposed at :%d%s", viper.GetInt(confPrometheusPort), viper.GetString(confPrometheusPath))
+
 			go func() {
 				logger.Fatal(metrics.Start(viper.GetString(confPrometheusPath), viper.GetInt(confPrometheusPort)))
 			}()
@@ -106,15 +108,17 @@ by caching exports from poeditor`,
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, os.Interrupt)
 		<-quit
+
 		ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration(confServerGrace))
 		defer cancel()
+
 		if err := server.Shutdown(ctx); err != nil {
 			logger.Fatal(err)
 		}
 	},
 }
 
-// nolint:gochecknoinits
+//nolint:gochecknoinits
 func init() {
 	cDir, err := os.UserCacheDir()
 	if err != nil {
@@ -148,8 +152,10 @@ func instantiateLogger() *logrus.Logger {
 	lvl, err := logrus.ParseLevel(viper.GetString(confLogLevel))
 	if err != nil {
 		logger.WithError(err).Warnf("Could not parse log level '%s' defaulting to INFO", viper.GetString(confLogLevel))
+
 		lvl = logrus.InfoLevel
 	}
+
 	logger.SetLevel(lvl)
 
 	switch viper.GetString(confLogFormat) {
@@ -161,6 +167,7 @@ func instantiateLogger() *logrus.Logger {
 		logger.Warnf("Did not understand log format '%s'. Defaulting to json format", viper.GetString(confLogFormat))
 		logger.SetFormatter(&logrus.JSONFormatter{})
 	}
+
 	return logger
 }
 
