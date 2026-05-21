@@ -34,7 +34,7 @@ type RedisLogger struct {
 	*logrus.Entry
 }
 
-func (r *RedisLogger) Printf(ctx context.Context, format string, v ...interface{}) {
+func (r *RedisLogger) Printf(ctx context.Context, format string, v ...any) {
 	r.WithContext(ctx).Printf(format, v...)
 }
 
@@ -52,6 +52,7 @@ func (r *RedisCache) GetTranslation(ctx context.Context, projectID int, language
 	key := r.key(projectID, languageCode, format)
 
 	var item RedisCacheItem
+
 	err := r.rc.Get(ctx, key, &item)
 	if err != nil {
 		if strings.Contains(err.Error(), "key is missing") {
@@ -132,9 +133,12 @@ func (r *RedisCache) getKeysMatching(ctx context.Context, pattern string) ([]str
 	var allKeys []string
 
 	var cursor uint64
+
 	for {
-		var keys []string
-		var err error
+		var (
+			keys []string
+			err  error
+		)
 
 		keys, cursor, err = r.c.Scan(
 			ctx,

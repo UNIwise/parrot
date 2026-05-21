@@ -2,7 +2,7 @@ package project
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -51,7 +51,8 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
 		return nil, err
 	}
-	if err == nil {
+
+	if err == nil { //nolint:nestif
 		expiresAt := item.CreatedAt.Add(s.Cache.GetTTL())
 
 		if time.Until(expiresAt) < s.RenewalThreshold {
@@ -64,7 +65,7 @@ func (s *ServiceImpl) GetTranslation(ctx context.Context, projectID int, languag
 
 				s.Logger.Debugf("Pre-fetching language %s format %s for project %d", languageCode, format, projectID)
 
-				_, _, err := s.fetchAndCacheTranslation(context.Background(), projectID, languageCode, format)
+				_, _, err := s.fetchAndCacheTranslation(ctx, projectID, languageCode, format)
 				if err != nil {
 					s.Logger.Errorf("Failed to pre-fetch language %s format %s for project %d", languageCode, format, projectID)
 				}
@@ -120,7 +121,7 @@ func (s *ServiceImpl) fetchAndCacheTranslation(ctx context.Context, projectID in
 		return nil, "", errors.Errorf("Response code '%d' from download GET", d.StatusCode)
 	}
 
-	data, err := ioutil.ReadAll(d.Body)
+	data, err := io.ReadAll(d.Body)
 	if err != nil {
 		return nil, "", err
 	}

@@ -12,14 +12,14 @@ type Validator struct {
 func NewValidator() *Validator {
 	v := validator.New()
 
-	v.RegisterValidation("languageCode", validateLanguageCode)
+	_ = v.RegisterValidation("languageCode", validateLanguageCode) //nolint:errcheck
 
 	return &Validator{
 		validator: v,
 	}
 }
 
-func (cv *Validator) Validate(i interface{}) error {
+func (cv *Validator) Validate(i any) error {
 	return cv.validator.Struct(i)
 }
 

@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,15 +28,18 @@ import (
 
 var cfgFile string
 
-const asciiart string = "ICAgICAoXA0KICAgICggIFwgIC8obylcDQogICAgKCAgIFwvICAoKS8gLykNCiAgICAgKCAgIGA7LikpJyIuKQ0KICAgICAgYCgvLy8vLy4tJw0KICAgPT09PT0pKT0pKT09PSgpDQogICAgIC8vLycNCiAgICAvLw0KICAgJw=="
+const asciiart string = "ICAgICAoXA0KICAgICggIFwgIC8obylcDQogICAgKCAgIFwvICAoKS8gLykNCiAgICAgKCAgIGA7LikpJyIuKQ0KICAgICAgYCgvLy8vLy4tJw0KICAgPT09PT0pKT0pKT09PSgpDQogICAgIC8vLycNCiAgICAvLw0KICAgJw==" //nolint:lll
 
 func ascii() string {
-	b, _ := base64.StdEncoding.DecodeString(asciiart)
+	b, err := base64.StdEncoding.DecodeString(asciiart)
+	if err != nil {
+		return ""
+	}
 
 	return string(b)
 }
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "parrot",
 	Short: "Your friendly neighborhood Poeditor pull-through-cache",
@@ -54,7 +57,7 @@ func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 }
 
-// nolint:gochecknoinits
+//nolint:gochecknoinits
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -76,10 +79,11 @@ func initConfig() {
 		viper.SetConfigName(".parrot")
 	}
 
-	godotenv.Load(".env")
+	_ = godotenv.Load(".env") //nolint:errcheck
+
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	viper.ReadInConfig()
+	_ = viper.ReadInConfig() //nolint:errcheck
 }

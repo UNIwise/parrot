@@ -11,23 +11,23 @@ var (
 	ErrNotImplemented            = errors.New("Method is not implemented")
 )
 
-type ErrProjectPermissionDenied struct {
+type ProjectPermissionDeniedError struct {
 	ProjectID int
 }
 
-func (e *ErrProjectPermissionDenied) Error() string {
+func (e *ProjectPermissionDeniedError) Error() string {
 	return fmt.Sprintf(
 		"You don't have permission to access project %d",
 		e.ProjectID,
 	)
 }
 
-type ErrLanguageNotFound struct {
+type LanguageNotFoundError struct {
 	ProjectID    int
 	LanguageCode string
 }
 
-func (e *ErrLanguageNotFound) Error() string {
+func (e *LanguageNotFoundError) Error() string {
 	return fmt.Sprintf(
 		"Project %d does not contain specified language %s",
 		e.ProjectID,

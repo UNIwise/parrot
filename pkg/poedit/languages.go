@@ -2,7 +2,7 @@ package poedit
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -69,14 +69,15 @@ type ListProjectLanguagesResponse struct {
 	} `json:"result"`
 }
 
-// ListProjectLanguages Returns project languages, percentage of translation done for each and the datetime (UTC - ISO 8601) when the last change was made.
+// ListProjectLanguages Returns project languages, percentage of translation done for each and the datetime (UTC - ISO 8601)
+// when the last change was made.
 //
 // https://poeditor.com/docs/api#languages_list
 func (c *ClientImpl) ListProjectLanguages(ctx context.Context, r ListProjectLanguagesRequest) (*ListProjectLanguagesResponse, error) {
 	req := c.r.R()
 
 	req.SetFormData(map[string]string{
-		"id": fmt.Sprintf("%d", r.ID),
+		"id": strconv.Itoa(r.ID),
 	})
 
 	req.SetContext(ctx)
@@ -120,7 +121,7 @@ func (c *ClientImpl) AddProjectlanguage(ctx context.Context, r AddProjectLanguag
 	req := c.r.R()
 
 	req.SetFormData(map[string]string{
-		"id":       fmt.Sprintf("%d", r.ID),
+		"id":       strconv.Itoa(r.ID),
 		"language": r.Language,
 	})
 
@@ -169,7 +170,7 @@ type UpdateProjectLanguageResponse struct {
 //
 // https://poeditor.com/docs/api#languages_update
 //
-// NOT IMPLEMENTED in this sdk
+// NOT IMPLEMENTED in this sdk.
 func (c *ClientImpl) UpdateProjectLanguage(ctx context.Context, r UpdateProjectLanguageRequest) (*UpdateProjectLanguageResponse, error) {
 	return nil, ErrNotImplemented
 }
@@ -194,7 +195,7 @@ func (c *ClientImpl) DeleteProjectLanguage(ctx context.Context, r DeleteProjectL
 	req := c.r.R()
 
 	req.SetFormData(map[string]string{
-		"id":       fmt.Sprintf("%d", r.ID),
+		"id":       strconv.Itoa(r.ID),
 		"language": r.Language,
 	})
 
