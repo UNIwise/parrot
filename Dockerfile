@@ -1,31 +1,32 @@
 ############################
-# STEP 1 build base
+# STEP 1 Build base
 ############################
-FROM golang:1.26-alpine3.23 as build-base
-RUN apk add --update --no-cache git ca-certificates build-base
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine3.23 AS builder
+ARG TARGETOS
+ARG TARGETARCH
 WORKDIR /build
-COPY go.mod .
-COPY go.sum .
-RUN go mod download -x
 
-############################
-# STEP 2 image base
-############################
-FROM alpine:3.23 as image-base
-WORKDIR /app
-COPY --from=build-base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-ENTRYPOINT ["/app/parrot", "serve"]
+# Cache dependencies to speed up subsequent builds
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download -x
 
-############################
-# STEP 3 build executable
-############################
-FROM build-base AS builder
+# Copy source code and build the binary
 COPY . .
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o /build/bin/parrot main.go
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    go build -ldflags="-s -w" -o /build/bin/parrot main.go
 
 ############################
-# STEP 4 Finalize image
+# STEP 2 Finalize image
 ############################
-FROM image-base
+FROM gcr.io/distroless/static-debian13:nonroot AS runtime
+WORKDIR /app
 COPY LICENSE .
-COPY --from=builder /build/bin/parrot parrot
+
+COPY --from=builder /build/bin/parrot /usr/bin/parrot
+
+USER 10000:10000
+
+# serve stays in the entrypoint: the deployments pass --config as args, which replace CMD.
+ENTRYPOINT [ "parrot", "serve" ]
