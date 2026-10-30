@@ -14,5 +14,6 @@ jobs:
     uses: UNIwise/workflows/.github/workflows/golang.yaml@master
     secrets: inherit
     with:
-      go-version: 1.26
+      go-version: "1.26"
       golangci-lint-version: v2.11.4
+      platforms: linux/amd64,linux/arm64
